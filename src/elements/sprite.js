@@ -1,25 +1,35 @@
-import { Texture, Sprite } from "pixi.js";
-import Matter from "matter-js";
-import { signal } from "reactive-values";
+import { Sprite } from "pixi.js";
+import { signalValue } from "reactive-values";
 
 export class PhysicsSprite extends Sprite {
+  #position = signalValue({
+    x: 0,
+    y: 0,
+  });
   body;
-  xSignal = signal(0);
-  ySignal = signal(0);
-  angleSignal = signal(0);
+  angleSignal = signalValue(0);
 
   constructor(texture, body) {
     super(texture);
     this.body = body;
 
-    this.xSignal.effect(v => this.x = v);
-    this.ySignal.effect(v => this.y = v);
-    this.angleSignal.effect(v => this.rotation = v);
+    this.#position.effect(({ x, y }) => {
+      this.x = x;
+      this.y = y;
+    });
+
+    this.angleSignal.effect((v) => (this.rotation = v));
+  }
+
+  setPosition(x, y) {
+    this.position.set(x, y);
   }
 
   sync() {
-    this.xSignal.set(this.body.position.x);
-    this.ySignal.set(this.body.position.y);
+    this.#position.set({
+      x: this.body.position.x,
+      y: this.body.position.y,
+    });
     this.angleSignal.set(this.body.angle);
   }
 }

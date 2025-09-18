@@ -1,5 +1,5 @@
-import { Application, Assets, Sprite } from "pixi.js";
-import { signalValue } from "reactive-values";
+import { Application, Assets } from "pixi.js";
+import { PhysicsSprite } from "./elements/sprite";
 
 (async () => {
   // Create a new application
@@ -16,7 +16,7 @@ import { signalValue } from "reactive-values";
   const texture = await Assets.load("/assets/bunny.png");
 
   // Create a bunny Sprite
-  const bunny = new Sprite(texture);
+  const bunny = new PhysicsSprite(texture);
 
   // Center the sprite's anchor point
   bunny.anchor.set(0.5);
@@ -34,4 +34,6 @@ import { signalValue } from "reactive-values";
     // * Creates frame-independent transformation *
     bunny.rotation += 0.1 * time.deltaTime;
   });
+
+  globalThis.__PIXI_APP__ = app;
 })();
