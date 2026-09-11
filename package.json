@@ -1,25 +1,18 @@
 {
-  "name": "games-engine",
-  "version": "0.0.1",
+  "name": "games-running",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run dev",
-    "build": "npm run lint && vite build",
-    "lint": "eslint .",
-    "dev": "vite"
-  },
-  "dependencies": {
-    "matter-js": "0.20.0",
-    "pixi.js": "8.8.1",
-    "reactive-values": "1.0.19"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.6",
-    "prettier": "^3.5.3",
-    "vite": "^6.2.0"
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "reactive-values": "^1.0.22"
   }
 }
