@@ -10,6 +10,7 @@ export class Dimensions {
     () => this.width() * this.height(),
     [this.width, this.height]
   );
+
   public readonly position = computedValue(
     () => ({
       x: this.x(),
@@ -17,6 +18,7 @@ export class Dimensions {
     }),
     [this.x, this.y]
   );
+
   public readonly size = computedValue(
     () => ({
       width: this.width(),
