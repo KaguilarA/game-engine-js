@@ -17,6 +17,7 @@
   "dependencies": {
     "@esotericsoftware/spine-canvas": "^4.3.13",
     "@esotericsoftware/spine-core": "^4.3.13",
+    "lucide-static": "^1.56.0",
     "reactive-values": "^1.0.22"
   }
 }
