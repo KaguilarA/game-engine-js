@@ -105,7 +105,7 @@ export class GameSelector {
       this.selectedIndex === 0
     );
     this.drawChoice(
-      'POLARITY VANGUARD',
+      '',
       'INSPIRED BY IKARUGA',
       dimensions.getHeight() * 0.56,
       this.selectedIndex === 1
@@ -138,18 +138,20 @@ export class GameSelector {
     const color = selected ? '#426ea8' : '#242c42';
 
     GameContext.drawRect(x, y - 56, width, 132, color);
-    GameContext.drawText(
-      title,
-      dimensions.getWidth() * 0.5,
-      y,
-      36,
-      selected ? '#ffffff' : '#b6c5ff',
-      'center'
-    );
+    if (title) {
+      GameContext.drawText(
+        title,
+        dimensions.getWidth() * 0.5,
+        y,
+        36,
+        selected ? '#ffffff' : '#b6c5ff',
+        'center'
+      );
+    }
     GameContext.drawText(
       description,
       dimensions.getWidth() * 0.5,
-      y + 42,
+      title ? y + 42 : y + 20,
       26,
       '#ffffff',
       'center'

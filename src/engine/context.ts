@@ -1,4 +1,5 @@
 import Dimensions from './dimensions';
+import { signalValue } from 'reactive-values';
 
 const LANDSCAPE_WIDTH = 1920;
 const LANDSCAPE_HEIGHT = 1080;
@@ -30,9 +31,9 @@ class Context {
   private readonly pointerStartListeners = new Set<PointerListener>();
   private readonly pointerMoveListeners = new Set<PointerListener>();
   private readonly pointerEndListeners = new Set<PointerListener>();
-  private scale = 1;
-  private offsetX = 0;
-  private offsetY = 0;
+  private readonly scale = signalValue(1);
+  private readonly offsetX = signalValue(0);
+  private readonly offsetY = signalValue(0);
 
   public get dimensionsModel(): Dimensions {
     return this.dimensions;
@@ -91,8 +92,8 @@ class Context {
 
     return {
       id: event.pointerId,
-      x: (event.clientX - bounds.left - this.offsetX) / this.scale,
-      y: (event.clientY - bounds.top - this.offsetY) / this.scale
+      x: (event.clientX - bounds.left - this.offsetX()) / this.scale(),
+      y: (event.clientY - bounds.top - this.offsetY()) / this.scale()
     };
   }
 
@@ -163,9 +164,9 @@ class Context {
     const offsetX = (viewportWidth - gameWidth * scale) * 0.5;
     const offsetY = (viewportHeight - gameHeight * scale) * 0.5;
 
-    this.scale = scale;
-    this.offsetX = offsetX;
-    this.offsetY = offsetY;
+    this.scale.set(scale);
+    this.offsetX.set(offsetX);
+    this.offsetY.set(offsetY);
     this.canvas.width = Math.floor(viewportWidth * pixelRatio);
     this.canvas.height = Math.floor(viewportHeight * pixelRatio);
     this.canvas.style.width = `${viewportWidth}px`;

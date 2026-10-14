@@ -1,8 +1,10 @@
+import { signalValue } from 'reactive-values';
+
 class Events {
   private readonly keys = new Set<string>();
   private readonly pointerKeys = new Map<number, string>();
 
-  private initialized = false;
+  private readonly initialized = signalValue(false);
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     this.keys.add(event.key);
@@ -17,23 +19,23 @@ class Events {
   }
 
   public initEvents(): void {
-    if (this.initialized) return;
+    if (this.initialized()) return;
 
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
 
-    this.initialized = true;
+    this.initialized.set(true);
   }
 
   public destroy(): void {
-    if (!this.initialized) return;
+    if (!this.initialized()) return;
 
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
 
     this.keys.clear();
     this.pointerKeys.clear();
-    this.initialized = false;
+    this.initialized.set(false);
   }
 
   public isKeyPressed(key: string): boolean {

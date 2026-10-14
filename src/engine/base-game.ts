@@ -1,4 +1,5 @@
 import { GameControls } from './game-controls';
+import { signalValue } from 'reactive-values';
 
 /**
  * Shared lifecycle for every playable game.
@@ -9,8 +10,8 @@ import { GameControls } from './game-controls';
  */
 export abstract class BaseGame {
   protected readonly controls: GameControls;
-  private running = true;
-  private lastFrameTime = performance.now();
+  private readonly running = signalValue(true);
+  private readonly lastFrameTime = signalValue(performance.now());
   private readonly onReturnToMenu: (() => void) | undefined;
 
   protected constructor(onReturnToMenu?: () => void) {
@@ -47,10 +48,13 @@ export abstract class BaseGame {
   protected disposeGame(): void {}
 
   private gameLoop = (time = performance.now()): void => {
-    if (!this.running) return;
+    if (!this.running()) return;
 
-    const deltaSeconds = Math.min((time - this.lastFrameTime) / 1000, 0.05);
-    this.lastFrameTime = time;
+    const deltaSeconds = Math.min(
+      (time - this.lastFrameTime()) / 1000,
+      0.05
+    );
+    this.lastFrameTime.set(time);
 
     if (!this.controls.isPaused && !this.isGameOver) {
       this.updateGame(deltaSeconds);
@@ -72,7 +76,7 @@ export abstract class BaseGame {
   }
 
   private returnToMenu(): void {
-    this.running = false;
+    this.running.set(false);
     this.controls.dispose();
     this.disposeGame();
     this.onReturnToMenu?.();

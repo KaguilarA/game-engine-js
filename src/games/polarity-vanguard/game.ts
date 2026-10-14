@@ -4,6 +4,7 @@ import { BaseGame } from '../../engine/base-game';
 import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
+import { signalValue } from 'reactive-values';
 
 import { PolarityVanguardEnemy } from './enemy';
 import type { Polarity } from './polarity';
@@ -16,11 +17,18 @@ import chevronRightSvg from 'lucide-static/icons/chevron-right.svg?raw';
 import chevronDownSvg from 'lucide-static/icons/chevron-down.svg?raw';
 import chevronUpSvg from 'lucide-static/icons/chevron-up.svg?raw';
 import crosshairSvg from 'lucide-static/icons/crosshair.svg?raw';
+import heartSvg from 'lucide-static/icons/heart.svg?raw';
 
 interface Circle {
   x: number;
   y: number;
   radius: number;
+}
+
+interface LifePickup {
+  x: number;
+  y: number;
+  size: number;
 }
 
 export class PolarityVanguardGame extends BaseGame {
@@ -30,6 +38,9 @@ export class PolarityVanguardGame extends BaseGame {
   private readonly downIcon = new CanvasIcon(chevronDownSvg);
   private readonly shootIcon = new CanvasIcon(crosshairSvg);
   private readonly polarityIcon = new CanvasIcon(arrowLeftRightSvg);
+  private readonly fullHeartIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
+  private readonly emptyHeartIcon = new CanvasIcon(heartSvg, '#5c657d');
+  private readonly lifePickupIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
   private readonly player = new PolarityVanguardPlayer();
   private readonly enemies: PolarityVanguardEnemy[] = [];
   private readonly playerProjectiles: PolarityProjectile[] = [];
@@ -40,6 +51,10 @@ export class PolarityVanguardGame extends BaseGame {
   private absorbedShots = 0;
   private chain = 0;
   private gameOver = false;
+  private readonly lives = signalValue(3);
+  private readonly nextLifeScore = signalValue(1000);
+  private readonly lifePickup = signalValue<LifePickup | undefined>(undefined);
+  private readonly damageCooldown = signalValue(0);
   private readonly pointerListenerCleanup: Array<() => void> = [];
 
   public constructor(onReturnToMenu?: () => void) {
@@ -59,9 +74,10 @@ export class PolarityVanguardGame extends BaseGame {
   }
 
   protected updateGame(deltaSeconds: number): void {
-
     this.player.setBottomMargin(this.getPlayerBottomMargin());
     this.player.update(deltaSeconds);
+    this.updateLifePickup(deltaSeconds);
+    this.damageCooldown.set(Math.max(0, this.damageCooldown() - deltaSeconds));
     this.updateShooting(deltaSeconds);
     this.enemies.filter((enemy) => enemy.alive).forEach((enemy) => {
       enemy.update(deltaSeconds);
@@ -143,7 +159,7 @@ export class PolarityVanguardGame extends BaseGame {
       this.chain = enemy.polarity === this.player.currentPolarity
         ? this.chain + 1
         : 0;
-      this.score += 100 + this.chain * 25;
+      this.addScore(100 + this.chain * 25);
       GameLoader.playAudio(`boom${1 + Math.floor(Math.random() * 4)}`);
     });
 
@@ -166,9 +182,13 @@ export class PolarityVanguardGame extends BaseGame {
       projectile.active = false;
       if (projectile.getPolarity() === this.player.currentPolarity) {
         this.absorbedShots += 1;
-        this.score += 25;
-      } else {
-        this.gameOver = true;
+        this.addScore(25);
+      } else if (this.damageCooldown() === 0) {
+        this.lives.set(Math.max(0, this.lives() - 1));
+        this.damageCooldown.set(0.75);
+        if (this.lives() === 0) {
+          this.gameOver = true;
+        }
         GameLoader.playAudio('lose');
       }
     });
@@ -179,6 +199,7 @@ export class PolarityVanguardGame extends BaseGame {
     GameContext.clear();
     this.drawBackground();
     this.enemies.forEach((enemy) => enemy.draw());
+    this.drawLifePickup();
     this.player.draw();
     this.playerProjectiles.forEach((projectile) => projectile.draw());
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
@@ -191,17 +212,18 @@ export class PolarityVanguardGame extends BaseGame {
       30 * hudScale,
       '#ffffff'
     );
+    this.drawLives();
     GameContext.drawText(
       `CHAIN ${this.chain}`,
       40 * hudScale,
-      100 * hudScale,
+      154 * hudScale,
       24 * hudScale,
       '#ffffff'
     );
     GameContext.drawText(
       `ABSORB ${this.absorbedShots}`,
       40 * hudScale,
-      136 * hudScale,
+      190 * hudScale,
       24 * hudScale,
       '#ffffff'
     );
@@ -258,6 +280,35 @@ export class PolarityVanguardGame extends BaseGame {
       0,
       dimensions.getWidth(),
       dimensions.getHeight()
+    );
+  }
+
+  private drawLives(): void {
+    const x = GameContext.isPortrait ? 42 : 32;
+    const y = GameContext.isPortrait ? 112 : 80;
+    const spacing = GameContext.isPortrait ? 50 : 30;
+    const size = GameContext.isPortrait ? 46 : 26;
+
+    for (let index = 0; index < 3; index++) {
+      const icon = index < this.lives()
+        ? this.fullHeartIcon
+        : this.emptyHeartIcon;
+      icon.draw(
+        x + index * spacing - size * 0.5,
+        y - size * 0.5,
+        size
+      );
+    }
+  }
+
+  private drawLifePickup(): void {
+    const pickup = this.lifePickup();
+    if (pickup === undefined) return;
+
+    this.lifePickupIcon.draw(
+      pickup.x - pickup.size * 0.5,
+      pickup.y - pickup.size * 0.5,
+      pickup.size
     );
   }
 
@@ -451,9 +502,62 @@ export class PolarityVanguardGame extends BaseGame {
           )
         );
       }
+
     }
 
     this.enemyShotCooldown = 0.8;
+  }
+
+  private addScore(points: number): void {
+    this.score += points;
+
+    while (this.score >= this.nextLifeScore()) {
+      if (this.lives() < 3 && this.lifePickup() === undefined) {
+        this.spawnLifePickup();
+      }
+
+      this.nextLifeScore.set(this.nextLifeScore() + 1000);
+    }
+  }
+
+  private spawnLifePickup(): void {
+    const dimensions = GameContext.gameDimensionsModel;
+    const size = GameContext.isPortrait ? 58 : 42;
+
+    this.lifePickup.set({
+      x: size * 0.5 + Math.random() * (dimensions.getWidth() - size),
+      y: -size * 0.5,
+      size
+    });
+  }
+
+  private updateLifePickup(deltaSeconds: number): void {
+    const pickup = this.lifePickup();
+    if (pickup === undefined) return;
+
+    const nextY = pickup.y + 180 * deltaSeconds;
+    const dimensions = GameContext.gameDimensionsModel;
+    if (nextY > dimensions.getHeight() + pickup.size * 0.5) {
+      this.lifePickup.set(undefined);
+      return;
+    }
+
+    if (this.overlapsCircle(
+      pickup.x,
+      nextY,
+      pickup.size * 0.5,
+      this.player.x,
+      this.player.y,
+      this.player.width,
+      this.player.height
+    )) {
+      this.lives.set(Math.min(3, this.lives() + 1));
+      this.lifePickup.set(undefined);
+      GameLoader.playAudio('win');
+      return;
+    }
+
+    this.lifePickup.set({ ...pickup, y: nextY });
   }
 
   private createProjectiles(): void {
@@ -479,6 +583,10 @@ export class PolarityVanguardGame extends BaseGame {
     this.absorbedShots = 0;
     this.chain = 0;
     this.gameOver = false;
+    this.lives.set(3);
+    this.nextLifeScore.set(1000);
+    this.lifePickup.set(undefined);
+    this.damageCooldown.set(0);
     this.controls.hideEndActions();
     this.player.reset();
     this.playerProjectiles.forEach((projectile) => {

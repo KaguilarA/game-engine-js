@@ -6,6 +6,7 @@ import houseSvg from 'lucide-static/icons/house.svg?raw';
 
 import CanvasIcon from './canvas-icon';
 import GameContext from './context';
+import { signalValue } from 'reactive-values';
 
 export interface GameControlCircle {
   x: number;
@@ -32,9 +33,9 @@ export class GameControls {
   private readonly removePointerListener: () => void;
   private readonly onReset: () => void;
   private readonly onReturnToMenu: (() => void) | undefined;
-  private paused = false;
-  private endActionsVisible = false;
-  private fullscreenOnly = false;
+  private readonly paused = signalValue(false);
+  private readonly endActionsVisible = signalValue(false);
+  private readonly fullscreenOnly = signalValue(false);
 
   public constructor(onReset: () => void, onReturnToMenu?: () => void) {
     this.onReset = onReset;
@@ -45,16 +46,16 @@ export class GameControls {
   }
 
   public get isPaused(): boolean {
-    return this.paused;
+    return this.paused();
   }
 
   public draw(): void {
-    this.fullscreenOnly = false;
+    this.fullscreenOnly.set(false);
     const layout = this.getLayout();
 
     this.drawArcadeButton(
       layout.pauseButton,
-      this.paused ? '#2d7d46' : '#384a78'
+      this.paused() ? '#2d7d46' : '#384a78'
     );
     this.drawIcon(
       this.pauseIcon,
@@ -84,7 +85,7 @@ export class GameControls {
       layout.menuButton.radius * 1.05
     );
 
-    if (this.paused) {
+    if (this.paused()) {
       const dimensions = GameContext.gameDimensionsModel;
       this.drawIcon(
         this.pauseIcon,
@@ -96,7 +97,7 @@ export class GameControls {
   }
 
   public drawFullscreenOnly(): void {
-    this.fullscreenOnly = true;
+    this.fullscreenOnly.set(true);
     const fullscreenButton = this.getLayout().fullscreenButton;
 
     this.drawArcadeButton(fullscreenButton, '#466598');
@@ -109,7 +110,7 @@ export class GameControls {
   }
 
   public drawEndActions(): void {
-    this.endActionsVisible = true;
+    this.endActionsVisible.set(true);
     const dimensions = GameContext.gameDimensionsModel;
     const width = Math.min(380, dimensions.getWidth() * 0.36);
     const height = 58;
@@ -122,7 +123,7 @@ export class GameControls {
   }
 
   public hideEndActions(): void {
-    this.endActionsVisible = false;
+    this.endActionsVisible.set(false);
   }
 
   public getLayout(): GameControlsLayout {
@@ -167,17 +168,17 @@ export class GameControls {
   private readonly handlePointerDown = (x: number, y: number): void => {
     const layout = this.getLayout();
 
-    if (this.fullscreenOnly) {
+    if (this.fullscreenOnly()) {
       if (this.containsPoint(layout.fullscreenButton, x, y)) {
         void this.toggleFullscreen();
-      } else if (this.endActionsVisible) {
+      } else if (this.endActionsVisible()) {
         this.handleEndActionPointer(x, y);
       }
       return;
     }
 
     if (this.containsPoint(layout.resetButton, x, y)) {
-      this.paused = false;
+      this.paused.set(false);
       this.onReset();
       return;
     }
@@ -188,7 +189,7 @@ export class GameControls {
     }
 
     if (this.containsPoint(layout.pauseButton, x, y)) {
-      this.paused = !this.paused;
+      this.paused.set(!this.paused());
       return;
     }
 
@@ -200,7 +201,7 @@ export class GameControls {
       return;
     }
 
-    if (this.endActionsVisible) {
+    if (this.endActionsVisible()) {
       this.handleEndActionPointer(x, y);
     }
   };
@@ -214,7 +215,7 @@ export class GameControls {
     const menuY = restartY + height + 18;
 
     if (this.containsRectangle(left, restartY, width, height, x, y)) {
-      this.paused = false;
+      this.paused.set(false);
       this.hideEndActions();
       this.onReset();
     } else if (

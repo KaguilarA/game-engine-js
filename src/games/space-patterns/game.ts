@@ -210,7 +210,7 @@ export class SpacePatternsGame extends BaseGame {
 
     const layout = this.getBoardLayout();
     this.fallingPatterns.forEach((fall) => {
-      this.drawPattern(fall.to, fall.pattern, layout, fall.body.y);
+      this.drawPattern(fall.to, fall.pattern, layout, fall.body.y());
     });
   }
 
@@ -291,13 +291,13 @@ export class SpacePatternsGame extends BaseGame {
 
     this.fallingPatterns.forEach((fall) => {
       fall.body.update(deltaSeconds, 4200);
-      if (fall.body.y > fall.targetY) {
-        fall.body.y = fall.targetY;
-        fall.body.velocityY = 0;
+      if (fall.body.y() > fall.targetY) {
+        fall.body.y.set(fall.targetY);
+        fall.body.velocityY.set(0);
       }
     });
 
-    if (this.fallingPatterns.some((fall) => fall.body.y < fall.targetY)) return;
+    if (this.fallingPatterns.some((fall) => fall.body.y() < fall.targetY)) return;
 
     this.fallingPatterns = [];
     const matches = this.board.findCurrentMatches();
