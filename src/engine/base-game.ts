@@ -59,8 +59,10 @@ export abstract class BaseGame {
     this.drawGame();
     if (this.isGameOver) {
       this.drawEndActions();
+      this.controls.drawFullscreenOnly();
+    } else {
+      this.controls.draw();
     }
-    this.controls.draw();
     requestAnimationFrame(this.gameLoop);
   };
 

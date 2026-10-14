@@ -1,5 +1,6 @@
 import GameContext from '../engine/context';
 import GameEvents from '../engine/events';
+import { GameControls } from '../engine/game-controls';
 import GameLoader from '../engine/loader';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
 import { SpacePatternsGame } from './space-patterns/game';
@@ -18,8 +19,10 @@ export class GameSelector {
   private directionWasPressed = false;
   private started = false;
   private lastFrameTime = performance.now();
+  private controls: GameControls;
 
   public constructor() {
+    this.controls = new GameControls(() => {});
     GameContext.addPointerDownListener(this.handlePointerDown);
     this.gameLoop();
   }
@@ -85,6 +88,7 @@ export class GameSelector {
       '#ffffff',
       'center'
     );
+    this.controls.drawFullscreenOnly();
     GameContext.drawText(
       'SELECT A MISSION',
       dimensions.getWidth() * 0.5,
@@ -172,6 +176,7 @@ export class GameSelector {
     if (this.started) return;
 
     this.started = true;
+    this.controls.dispose();
 
     if (this.choices[this.selectedIndex] === 'space-hunters') {
       new SpaceHuntersGame(this.returnToMenu);
@@ -185,6 +190,7 @@ export class GameSelector {
   private readonly returnToMenu = (): void => {
     this.started = false;
     this.lastFrameTime = performance.now();
+    this.controls = new GameControls(() => {});
     this.gameLoop();
   };
 }

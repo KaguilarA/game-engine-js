@@ -34,6 +34,7 @@ export class GameControls {
   private readonly onReturnToMenu: (() => void) | undefined;
   private paused = false;
   private endActionsVisible = false;
+  private fullscreenOnly = false;
 
   public constructor(onReset: () => void, onReturnToMenu?: () => void) {
     this.onReset = onReset;
@@ -48,6 +49,7 @@ export class GameControls {
   }
 
   public draw(): void {
+    this.fullscreenOnly = false;
     const layout = this.getLayout();
 
     this.drawArcadeButton(
@@ -91,6 +93,19 @@ export class GameControls {
         128
       );
     }
+  }
+
+  public drawFullscreenOnly(): void {
+    this.fullscreenOnly = true;
+    const fullscreenButton = this.getLayout().fullscreenButton;
+
+    this.drawArcadeButton(fullscreenButton, '#466598');
+    this.drawIcon(
+      GameContext.isFullscreen ? this.minimizeIcon : this.maximizeIcon,
+      fullscreenButton.x,
+      fullscreenButton.y,
+      fullscreenButton.radius * 1.05
+    );
   }
 
   public drawEndActions(): void {
@@ -151,6 +166,15 @@ export class GameControls {
 
   private readonly handlePointerDown = (x: number, y: number): void => {
     const layout = this.getLayout();
+
+    if (this.fullscreenOnly) {
+      if (this.containsPoint(layout.fullscreenButton, x, y)) {
+        void this.toggleFullscreen();
+      } else if (this.endActionsVisible) {
+        this.handleEndActionPointer(x, y);
+      }
+      return;
+    }
 
     if (this.containsPoint(layout.resetButton, x, y)) {
       this.paused = false;
