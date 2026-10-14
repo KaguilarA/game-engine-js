@@ -1,47 +1,62 @@
 import { signalValue } from 'reactive-values';
-import { Dimensions } from '../engine/dimensions';
-import type { GameContext } from '../engine/context';
+
+import GameContext from '../engine/context';
+import GameLoader from '../engine/loader';
+import Sprite from './sprite';
 
 export class Projectile {
-  private context: GameContext;
-  private dimensions = new Dimensions(8, 20, 0, 0);
-  private speed = signalValue(20);
-  public isFree = signalValue(true);
+  private readonly sprite = new Sprite(
+    GameLoader.getImage('enemyProjectile'),
+    14,
+    28,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    50,
+    70,
+    4,
+    12
+  );
+  private direction = -1;
+  private readonly speed = 620;
 
-  public get height() {
-    return this.dimensions.size().height;
+  public readonly isFree = signalValue(true);
+
+  public get height(): number {
+    return this.sprite.dimensions.getHeight();
   }
 
-  public get width() {
-    return this.dimensions.size().width;
+  public get width(): number {
+    return this.sprite.dimensions.getWidth();
   }
 
-  public get x() {
-    return this.dimensions.position().x;
+  public get x(): number {
+    return this.sprite.dimensions.getX();
   }
 
-  public get y() {
-    return this.dimensions.position().y;
+  public get y(): number {
+    return this.sprite.dimensions.getY();
   }
 
-  constructor(context: GameContext) {
-    this.context = context;
+  public get dimensions() {
+    return this.sprite.dimensions;
   }
 
   public draw(): void {
     if (!this.isFree()) {
-      this.context.drawRect(
-        this.x,
-        this.y,
-        this.width,
-        this.height,
-        'green'
-      );
+      this.sprite.draw();
     }
   }
 
-  public start(x: number, y: number): void {
-    this.dimensions.setPosition((x - this.width * 0.5), y);
+  public start(x: number, y: number, direction = -1): void {
+    this.direction = direction;
+    this.sprite.dimensions.setPosition(
+      x - this.width * 0.5,
+      y
+    );
     this.isFree.set(false);
   }
 
@@ -49,11 +64,18 @@ export class Projectile {
     this.isFree.set(true);
   }
 
-  public update(): void {
-    if (!this.isFree()) {
-      this.dimensions.setPosition(this.x, this.y - this.speed());
+  public update(deltaSeconds: number): void {
+    if (this.isFree()) return;
 
-      if (this.y < -this.height) this.stop();
+    this.sprite.update(deltaSeconds);
+    const nextY = this.y + this.speed * this.direction * deltaSeconds;
+    const gameHeight = GameContext.gameDimensionsModel.getHeight();
+
+    if (nextY < -this.height || nextY > gameHeight + this.height) {
+      this.stop();
+      return;
     }
+
+    this.sprite.dimensions.setPosition(this.x, nextY);
   }
 }
