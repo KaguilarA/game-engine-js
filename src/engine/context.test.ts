@@ -4,6 +4,7 @@ describe('GameContext', () => {
   let viewportWidth = 1920;
   let viewportHeight = 1080;
   let resizeListener: (() => void) | undefined;
+  let pointerDownListener: ((event: PointerEvent) => void) | undefined;
   const drawingContext = {
     clearRect: vi.fn(),
     drawImage: vi.fn(),
@@ -13,8 +14,24 @@ describe('GameContext', () => {
     setTransform: vi.fn()
   } as unknown as CanvasRenderingContext2D;
   const canvas = {
+    addEventListener: vi.fn(
+      (type: string, listener: (event: PointerEvent) => void): void => {
+        if (type === 'pointerdown') {
+          pointerDownListener = listener;
+        }
+      }
+    ),
     getContext: vi.fn(() => drawingContext),
+    getBoundingClientRect: vi.fn(() => ({
+      bottom: viewportHeight,
+      height: viewportHeight,
+      left: 0,
+      right: viewportWidth,
+      top: 0,
+      width: viewportWidth
+    })),
     height: 0,
+    removeEventListener: vi.fn(),
     style: {},
     width: 0
   } as unknown as HTMLCanvasElement;
@@ -23,6 +40,7 @@ describe('GameContext', () => {
     viewportWidth = 1920;
     viewportHeight = 1080;
     resizeListener = undefined;
+    pointerDownListener = undefined;
     vi.clearAllMocks();
     vi.resetModules();
 
@@ -92,5 +110,18 @@ describe('GameContext', () => {
       0,
       (844 - 1920 * (390 / 1080)) * 0.5
     );
+  });
+
+  it('maps canvas pointer input to logical game coordinates', async () => {
+    const { default: gameContext } = await import('./context');
+    const listener = vi.fn();
+    gameContext.addPointerDownListener(listener);
+
+    pointerDownListener?.({
+      clientX: 960,
+      clientY: 540
+    } as PointerEvent);
+
+    expect(listener).toHaveBeenCalledWith(960, 540);
   });
 });

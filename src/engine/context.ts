@@ -5,6 +5,8 @@ const LANDSCAPE_HEIGHT = 1080;
 const PORTRAIT_WIDTH = 1080;
 const PORTRAIT_HEIGHT = 1920;
 
+type PointerDownListener = (x: number, y: number) => void;
+
 class Context {
   private readonly dimensions = new Dimensions(
     document.documentElement.clientWidth,
@@ -17,6 +19,10 @@ class Context {
 
   public readonly canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly pointerDownListeners = new Set<PointerDownListener>();
+  private scale = 1;
+  private offsetX = 0;
+  private offsetY = 0;
 
   public get dimensionsModel(): Dimensions {
     return this.dimensions;
@@ -42,6 +48,14 @@ class Context {
     return this.ctx;
   }
 
+  private readonly onPointerDown = (event: PointerEvent): void => {
+    const bounds = this.canvas.getBoundingClientRect();
+    const x = (event.clientX - bounds.left - this.offsetX) / this.scale;
+    const y = (event.clientY - bounds.top - this.offsetY) / this.scale;
+
+    this.pointerDownListeners.forEach((listener) => listener(x, y));
+  };
+
   constructor() {
     if (!this.canvas) {
       throw new Error('Failed to find the canvas element with id "game-canvas".');
@@ -55,6 +69,7 @@ class Context {
 
     this.resizeCanvas();
     window.addEventListener('resize', this.resizeCanvas);
+    this.canvas.addEventListener('pointerdown', this.onPointerDown);
   }
 
   private resizeCanvas = (): void => {
@@ -87,6 +102,9 @@ class Context {
     const offsetX = (viewportWidth - gameWidth * scale) * 0.5;
     const offsetY = (viewportHeight - gameHeight * scale) * 0.5;
 
+    this.scale = scale;
+    this.offsetX = offsetX;
+    this.offsetY = offsetY;
     this.canvas.width = Math.floor(viewportWidth * pixelRatio);
     this.canvas.height = Math.floor(viewportHeight * pixelRatio);
     this.canvas.style.width = `${viewportWidth}px`;
@@ -146,8 +164,23 @@ class Context {
     this.ctx.fillRect(x, y, width, height);
   }
 
+  /**
+   * Registers a listener that receives pointer positions in game coordinates.
+   *
+   * @returns A function that unregisters the listener.
+   */
+  public addPointerDownListener(listener: PointerDownListener): () => void {
+    this.pointerDownListeners.add(listener);
+
+    return () => {
+      this.pointerDownListeners.delete(listener);
+    };
+  }
+
   public destroy(): void {
     window.removeEventListener('resize', this.resizeCanvas);
+    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
+    this.pointerDownListeners.clear();
   }
 }
 
