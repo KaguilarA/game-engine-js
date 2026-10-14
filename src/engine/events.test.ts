@@ -59,4 +59,20 @@ describe('GameEvents', () => {
     gameEvents.initEvents();
     expect(addEventListener).toHaveBeenCalledTimes(4);
   });
+
+  it('tracks virtual keys independently for each active touch pointer', async () => {
+    const { default: gameEvents } = await import('./events');
+
+    gameEvents.setPointerKey(1, 'ArrowLeft');
+    gameEvents.setPointerKey(2, ' ');
+    expect(gameEvents.isKeyPressed('ArrowLeft')).toBe(true);
+    expect(gameEvents.isKeyPressed(' ')).toBe(true);
+
+    gameEvents.setPointerKey(1, undefined);
+    expect(gameEvents.isKeyPressed('ArrowLeft')).toBe(false);
+    expect(gameEvents.isKeyPressed(' ')).toBe(true);
+
+    gameEvents.setPointerKey(2, undefined);
+    expect(gameEvents.isKeyPressed(' ')).toBe(false);
+  });
 });

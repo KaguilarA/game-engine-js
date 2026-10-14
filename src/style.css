@@ -7,5 +7,7 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
+  touch-action: none;
   transform: translate(-50%, -50%);
+  user-select: none;
 }

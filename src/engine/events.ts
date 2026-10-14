@@ -1,5 +1,6 @@
 class Events {
   private readonly keys = new Set<string>();
+  private readonly pointerKeys = new Map<number, string>();
 
   private initialized = false;
 
@@ -31,11 +32,27 @@ class Events {
     window.removeEventListener('keyup', this.onKeyUp);
 
     this.keys.clear();
+    this.pointerKeys.clear();
     this.initialized = false;
   }
 
   public isKeyPressed(key: string): boolean {
-    return this.keys.has(key);
+    return (
+      this.keys.has(key)
+      || [...this.pointerKeys.values()].includes(key)
+    );
+  }
+
+  /**
+   * Associates a touch pointer with a virtual keyboard key.
+   */
+  public setPointerKey(pointerId: number, key: string | undefined): void {
+    if (key === undefined) {
+      this.pointerKeys.delete(pointerId);
+      return;
+    }
+
+    this.pointerKeys.set(pointerId, key);
   }
 }
 

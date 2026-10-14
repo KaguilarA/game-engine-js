@@ -6,6 +6,13 @@ const PORTRAIT_WIDTH = 1080;
 const PORTRAIT_HEIGHT = 1920;
 
 type PointerDownListener = (x: number, y: number) => void;
+type PointerListener = (pointer: GamePointer) => void;
+
+export interface GamePointer {
+  id: number;
+  x: number;
+  y: number;
+}
 
 class Context {
   private readonly dimensions = new Dimensions(
@@ -20,6 +27,9 @@ class Context {
   public readonly canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly pointerDownListeners = new Set<PointerDownListener>();
+  private readonly pointerStartListeners = new Set<PointerListener>();
+  private readonly pointerMoveListeners = new Set<PointerListener>();
+  private readonly pointerEndListeners = new Set<PointerListener>();
   private scale = 1;
   private offsetX = 0;
   private offsetY = 0;
@@ -44,16 +54,55 @@ class Context {
     return this.dimensions.getHeight() > this.dimensions.getWidth();
   }
 
+  /**
+   * Indicates whether the current device is a phone with touch input.
+   */
+  public get isMobileDevice(): boolean {
+    const userAgent = navigator.userAgent;
+    const isMobileUserAgent = /Android|iPhone|iPod|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
+    const isSmallTouchDevice = (
+      navigator.maxTouchPoints > 0
+      && Math.min(
+        this.dimensions.getWidth(),
+        this.dimensions.getHeight()
+      ) <= 768
+    );
+
+    return isMobileUserAgent || isSmallTouchDevice;
+  }
+
   public get context(): CanvasRenderingContext2D {
     return this.ctx;
   }
 
-  private readonly onPointerDown = (event: PointerEvent): void => {
+  private getGamePointer(event: PointerEvent): GamePointer {
     const bounds = this.canvas.getBoundingClientRect();
-    const x = (event.clientX - bounds.left - this.offsetX) / this.scale;
-    const y = (event.clientY - bounds.top - this.offsetY) / this.scale;
 
-    this.pointerDownListeners.forEach((listener) => listener(x, y));
+    return {
+      id: event.pointerId,
+      x: (event.clientX - bounds.left - this.offsetX) / this.scale,
+      y: (event.clientY - bounds.top - this.offsetY) / this.scale
+    };
+  }
+
+  private readonly onPointerDown = (event: PointerEvent): void => {
+    const pointer = this.getGamePointer(event);
+    this.pointerDownListeners.forEach((listener) => {
+      listener(pointer.x, pointer.y);
+    });
+    this.pointerStartListeners.forEach((listener) => listener(pointer));
+  };
+
+  private readonly onPointerMove = (event: PointerEvent): void => {
+    const pointer = this.getGamePointer(event);
+    this.pointerMoveListeners.forEach((listener) => listener(pointer));
+  };
+
+  private readonly onPointerEnd = (event: PointerEvent): void => {
+    const pointer = this.getGamePointer(event);
+    this.pointerEndListeners.forEach((listener) => listener(pointer));
   };
 
   constructor() {
@@ -70,6 +119,9 @@ class Context {
     this.resizeCanvas();
     window.addEventListener('resize', this.resizeCanvas);
     this.canvas.addEventListener('pointerdown', this.onPointerDown);
+    this.canvas.addEventListener('pointermove', this.onPointerMove);
+    this.canvas.addEventListener('pointerup', this.onPointerEnd);
+    this.canvas.addEventListener('pointercancel', this.onPointerEnd);
   }
 
   private resizeCanvas = (): void => {
@@ -165,6 +217,21 @@ class Context {
   }
 
   /**
+   * Draws a filled circle in logical game coordinates.
+   */
+  public drawCircle(
+    x: number,
+    y: number,
+    radius: number,
+    color: string
+  ): void {
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+    this.ctx.fill();
+  }
+
+  /**
    * Registers a listener that receives pointer positions in game coordinates.
    *
    * @returns A function that unregisters the listener.
@@ -177,10 +244,40 @@ class Context {
     };
   }
 
+  public addPointerStartListener(listener: PointerListener): () => void {
+    this.pointerStartListeners.add(listener);
+
+    return () => {
+      this.pointerStartListeners.delete(listener);
+    };
+  }
+
+  public addPointerMoveListener(listener: PointerListener): () => void {
+    this.pointerMoveListeners.add(listener);
+
+    return () => {
+      this.pointerMoveListeners.delete(listener);
+    };
+  }
+
+  public addPointerEndListener(listener: PointerListener): () => void {
+    this.pointerEndListeners.add(listener);
+
+    return () => {
+      this.pointerEndListeners.delete(listener);
+    };
+  }
+
   public destroy(): void {
     window.removeEventListener('resize', this.resizeCanvas);
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
+    this.canvas.removeEventListener('pointermove', this.onPointerMove);
+    this.canvas.removeEventListener('pointerup', this.onPointerEnd);
+    this.canvas.removeEventListener('pointercancel', this.onPointerEnd);
     this.pointerDownListeners.clear();
+    this.pointerStartListeners.clear();
+    this.pointerMoveListeners.clear();
+    this.pointerEndListeners.clear();
   }
 }
 

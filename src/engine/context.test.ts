@@ -6,8 +6,11 @@ describe('GameContext', () => {
   let resizeListener: (() => void) | undefined;
   let pointerDownListener: ((event: PointerEvent) => void) | undefined;
   const drawingContext = {
+    arc: vi.fn(),
+    beginPath: vi.fn(),
     clearRect: vi.fn(),
     drawImage: vi.fn(),
+    fill: vi.fn(),
     fillRect: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
@@ -123,5 +126,21 @@ describe('GameContext', () => {
     } as PointerEvent);
 
     expect(listener).toHaveBeenCalledWith(960, 540);
+  });
+
+  it('draws circles in logical game coordinates', async () => {
+    const { default: gameContext } = await import('./context');
+
+    gameContext.drawCircle(100, 200, 30, '#ffffff');
+
+    expect(drawingContext.beginPath).toHaveBeenCalledOnce();
+    expect(drawingContext.arc).toHaveBeenCalledWith(
+      100,
+      200,
+      30,
+      0,
+      Math.PI * 2
+    );
+    expect(drawingContext.fill).toHaveBeenCalledOnce();
   });
 });
