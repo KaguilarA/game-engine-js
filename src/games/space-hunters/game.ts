@@ -1,5 +1,6 @@
 import GameContext from '../../engine/context';
 import type { GamePointer } from '../../engine/context';
+import { BaseGame } from '../../engine/base-game';
 import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
@@ -12,10 +13,6 @@ import chevronLeftSvg from 'lucide-static/icons/chevron-left.svg?raw';
 import chevronRightSvg from 'lucide-static/icons/chevron-right.svg?raw';
 import crosshairSvg from 'lucide-static/icons/crosshair.svg?raw';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
-import maximizeSvg from 'lucide-static/icons/maximize.svg?raw';
-import minimizeSvg from 'lucide-static/icons/minimize.svg?raw';
-import pauseSvg from 'lucide-static/icons/pause.svg?raw';
-import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
 
 interface Circle {
   x: number;
@@ -23,16 +20,13 @@ interface Circle {
   radius: number;
 }
 
-export class Game {
-  private readonly pauseIcon = new CanvasIcon(pauseSvg);
-  private readonly maximizeIcon = new CanvasIcon(maximizeSvg);
-  private readonly minimizeIcon = new CanvasIcon(minimizeSvg);
-  private readonly resetIcon = new CanvasIcon(resetSvg);
+export class Game extends BaseGame {
   private readonly leftIcon = new CanvasIcon(chevronLeftSvg);
   private readonly rightIcon = new CanvasIcon(chevronRightSvg);
   private readonly shootIcon = new CanvasIcon(crosshairSvg);
-  private readonly fullHeartIcon = new CanvasIcon(heartSvg, '#ff5a6b');
+  private readonly fullHeartIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
   private readonly emptyHeartIcon = new CanvasIcon(heartSvg, '#5c657d');
+  private readonly lifePickupIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
   private readonly player = new Player();
   private readonly playerProjectiles: Projectile[] = [];
   private readonly enemyProjectiles: Projectile[] = [];
@@ -44,45 +38,32 @@ export class Game {
   private enemyDirection = 1;
   private enemySpeed = 75;
   private enemyShotTimer = 0;
-  private lastFrameTime = performance.now();
   private lastPortrait = GameContext.isPortrait;
   private score = 0;
   private lives = 3;
+  private nextLifeScore = 1000;
+  private lifePickup: { x: number; y: number; size: number } | undefined;
   private gameOver = false;
-  private paused = false;
   private shootCooldown = 0;
-  private running = true;
-  private readonly onReturnToMenu: (() => void) | undefined;
   private readonly pointerListenerCleanup: Array<() => void> = [];
 
   constructor(onReturnToMenu?: () => void) {
-    this.onReturnToMenu = onReturnToMenu;
+    super(onReturnToMenu);
     this.initProjectiles();
     this.initEnemies();
     this.pointerListenerCleanup.push(
-      GameContext.addPointerDownListener(this.handlePointerDown),
       GameContext.addPointerStartListener(this.handleTouchStart),
       GameContext.addPointerMoveListener(this.handleTouchMove),
       GameContext.addPointerEndListener(this.handleTouchEnd)
     );
-    this.gameLoop();
+    this.start();
   }
 
-  private gameLoop = (time = performance.now()): void => {
-    if (!this.running) return;
+  protected get isGameOver(): boolean {
+    return this.gameOver;
+  }
 
-    const deltaSeconds = Math.min(
-      (time - this.lastFrameTime) / 1000,
-      0.05
-    );
-
-    this.lastFrameTime = time;
-    this.update(deltaSeconds);
-    this.draw();
-    requestAnimationFrame(this.gameLoop);
-  };
-
-  private update(deltaSeconds: number): void {
+  protected updateGame(deltaSeconds: number): void {
     if (this.lastPortrait !== GameContext.isPortrait) {
       this.lastPortrait = GameContext.isPortrait;
       if (this.boss === null) {
@@ -90,26 +71,9 @@ export class Game {
       }
     }
 
-    if (this.gameOver) {
-      if (
-        this.onReturnToMenu !== undefined
-        && (
-          GameEvents.isKeyPressed('m')
-          || GameEvents.isKeyPressed('M')
-          || GameEvents.isKeyPressed('Escape')
-        )
-      ) {
-        this.returnToMenu();
-      } else if (GameEvents.isKeyPressed('Enter')) {
-        this.restart();
-      }
-      return;
-    }
-
-    if (this.paused) return;
-
     this.player.setBottomMargin(this.getPlayerBottomMargin());
     this.player.update(deltaSeconds);
+    this.updateLifePickup(deltaSeconds);
     this.updatePlayerShooting(deltaSeconds);
     this.updateEnemies(deltaSeconds);
     this.updateBoss(deltaSeconds);
@@ -133,21 +97,23 @@ export class Game {
     }
   }
 
-  private draw(): void {
+  protected drawGame(): void {
+    const hudScale = GameContext.isPortrait ? 1.35 : 1;
     GameContext.clear();
     this.drawBackground();
 
     this.enemies.forEach((enemy) => enemy.draw());
     this.boss?.draw();
+    this.drawLifePickup();
     this.player.draw();
     this.playerProjectiles.forEach((projectile) => projectile.draw());
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
 
     GameContext.drawText(
       `SCORE ${this.score}`,
-      32,
-      44,
-      24,
+      32 * hudScale,
+      44 * hudScale,
+      24 * hudScale,
       '#ffffff'
     );
     this.drawHudControls();
@@ -160,7 +126,7 @@ export class Game {
     if (this.gameOver) {
       const dimensions = GameContext.gameDimensionsModel;
       GameContext.drawText(
-        'GAME OVER',
+        'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.5,
         72,
@@ -168,82 +134,29 @@ export class Game {
         'center'
       );
       GameContext.drawText(
-        'PRESS ENTER TO RESTART',
+        'GAME OVER',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.5 + 56,
         24,
         '#ffffff',
         'center'
       );
-      if (this.onReturnToMenu !== undefined) {
-        GameContext.drawText(
-          'PRESS M OR ESC TO RETURN TO MENU',
-          dimensions.getWidth() * 0.5,
-          dimensions.getHeight() * 0.5 + 90,
-          20,
-          '#ffffff',
-          'center'
-        );
-      }
-    }
-
-    if (this.paused) {
-      const dimensions = GameContext.gameDimensionsModel;
-      this.drawCenteredIcon(
-        this.pauseIcon,
-        dimensions.getWidth() * 0.5,
-        dimensions.getHeight() * 0.5,
-        128
-      );
     }
   }
 
   private drawHudControls(): void {
-    const {
-      pauseButton,
-      fullscreenButton,
-      resetButton,
-      livesX,
-      livesY
-    } = this.getHudLayout();
+    const { livesX, livesY } = this.getHudLayout();
     const activeLives = Math.max(0, this.lives);
-
-    this.drawArcadeButton(
-      pauseButton,
-      this.paused ? '#2d7d46' : '#384a78'
-    );
-    this.drawCenteredIcon(
-      this.pauseIcon,
-      pauseButton.x,
-      pauseButton.y,
-      pauseButton.radius * 1.05
-    );
-    this.drawArcadeButton(
-      fullscreenButton,
-      '#466598'
-    );
-    this.drawCenteredIcon(
-      GameContext.isFullscreen ? this.minimizeIcon : this.maximizeIcon,
-      fullscreenButton.x,
-      fullscreenButton.y,
-      fullscreenButton.radius * 1.05
-    );
-    this.drawArcadeButton(resetButton, '#9c3e45');
-    this.drawCenteredIcon(
-      this.resetIcon,
-      resetButton.x,
-      resetButton.y,
-      resetButton.radius * 1.05
-    );
 
     for (let index = 0; index < 3; index++) {
       this.drawCenteredIcon(
         index < activeLives ? this.fullHeartIcon : this.emptyHeartIcon,
-        livesX + index * 30,
+        livesX + index * (GameContext.isPortrait ? 50 : 30),
         livesY,
-        26
+        GameContext.isPortrait ? 46 : 26
       );
     }
+
   }
 
   private drawTouchControls(): void {
@@ -331,46 +244,12 @@ export class Game {
   }
 
   private getHudLayout(): {
-    pauseButton: Circle;
-    fullscreenButton: Circle;
-    resetButton: Circle;
     livesX: number;
     livesY: number;
   } {
-    const dimensions = GameContext.gameDimensionsModel;
-    const padding = 32;
-    const buttonRadius = 34;
-    const buttonDiameter = buttonRadius * 2;
-    const gap = 12;
-    const livesWidth = 86;
-    const totalWidth = (
-      buttonDiameter * 3
-      + livesWidth
-      + gap * 2
-      + 20
-    );
-    const pauseX = dimensions.getWidth() - padding - totalWidth + buttonRadius;
-    const fullscreenX = pauseX + buttonDiameter + gap;
-    const resetX = fullscreenX + buttonDiameter + gap;
-
     return {
-      pauseButton: {
-        x: pauseX,
-        y: 50,
-        radius: buttonRadius
-      },
-      fullscreenButton: {
-        x: fullscreenX,
-        y: 50,
-        radius: buttonRadius
-      },
-      resetButton: {
-        x: resetX,
-        y: 50,
-        radius: buttonRadius
-      },
-      livesX: resetX + buttonRadius + 20,
-      livesY: 50
+      livesX: GameContext.isPortrait ? 42 : 32,
+      livesY: GameContext.isPortrait ? 112 : 80
     };
   }
 
@@ -414,32 +293,6 @@ export class Game {
       - controlsTop
       + 32
     );
-  }
-
-  private handlePointerDown = (x: number, y: number): void => {
-    const { pauseButton, fullscreenButton, resetButton } = this.getHudLayout();
-
-    if (this.containsPointInCircle(resetButton, x, y)) {
-      this.restart();
-      return;
-    }
-
-    if (this.containsPointInCircle(fullscreenButton, x, y)) {
-      void this.toggleFullscreen();
-      return;
-    }
-
-    if (!this.gameOver && this.containsPointInCircle(pauseButton, x, y)) {
-      this.paused = !this.paused;
-    }
-  };
-
-  private async toggleFullscreen(): Promise<void> {
-    try {
-      await GameContext.toggleFullscreen();
-    } catch (error) {
-      console.error('Failed to change fullscreen mode.', error);
-    }
   }
 
   private handleTouchStart = (pointer: GamePointer): void => {
@@ -584,7 +437,7 @@ export class Game {
     );
 
     if (!this.boss.isAlive) {
-      this.score += this.boss.points;
+      this.addScore(this.boss.points);
       return;
     }
 
@@ -676,7 +529,7 @@ export class Game {
         if (hit) {
           projectile.stop();
           if (enemy.isDefeated) {
-            this.score += enemy.points;
+            this.addScore(enemy.points);
             this.playExplosion();
           }
           break;
@@ -692,7 +545,7 @@ export class Game {
         )) {
           projectile.stop();
           if (!this.boss.isAlive) {
-            this.score += this.boss.points;
+            this.addScore(this.boss.points);
             GameLoader.playAudio('win');
           }
         }
@@ -744,12 +597,77 @@ export class Game {
     );
   }
 
-  private restart(): void {
+  private addScore(points: number): void {
+    this.score += points;
+
+    while (this.score >= this.nextLifeScore) {
+      if (this.lives < 3 && this.lifePickup === undefined) {
+        this.spawnLifePickup();
+      }
+
+      this.nextLifeScore += 1000;
+    }
+  }
+
+  private spawnLifePickup(): void {
+    const dimensions = GameContext.gameDimensionsModel;
+    const size = GameContext.isPortrait ? 58 : 42;
+
+    this.lifePickup = {
+      x: 32 + Math.random() * (dimensions.getWidth() - size - 64),
+      y: -size,
+      size
+    };
+  }
+
+  private updateLifePickup(deltaSeconds: number): void {
+    if (this.lifePickup === undefined) return;
+
+    this.lifePickup.y += 180 * deltaSeconds;
+    const pickup = this.lifePickup;
+    const dimensions = GameContext.gameDimensionsModel;
+
+    if (pickup.y > dimensions.getHeight() + pickup.size) {
+      this.lifePickup = undefined;
+      return;
+    }
+
+    if (!this.overlaps(
+      pickup.x,
+      pickup.y,
+      pickup.size,
+      pickup.size,
+      this.player.x,
+      this.player.y,
+      this.player.width,
+      this.player.height
+    )) {
+      return;
+    }
+
+    this.lives = Math.min(3, this.lives + 1);
+    this.lifePickup = undefined;
+    GameLoader.playAudio('win');
+  }
+
+  private drawLifePickup(): void {
+    if (this.lifePickup === undefined) return;
+
+    this.lifePickupIcon.draw(
+      this.lifePickup.x,
+      this.lifePickup.y,
+      this.lifePickup.size
+    );
+  }
+
+  protected restartGame(): void {
     GameLoader.playAudio('newgame');
     this.score = 0;
     this.lives = 3;
+    this.nextLifeScore = 1000;
+    this.lifePickup = undefined;
+    this.controls.hideEndActions();
     this.gameOver = false;
-    this.paused = false;
     this.wave = 1;
     this.boss = null;
     this.bossShotTimer = 0;
@@ -760,11 +678,9 @@ export class Game {
     this.initEnemies();
   }
 
-  private returnToMenu(): void {
-    this.running = false;
+  protected disposeGame(): void {
     this.pointerListenerCleanup.forEach((cleanup) => cleanup());
     this.pointerListenerCleanup.length = 0;
-    this.onReturnToMenu?.();
   }
 
   private spawnBoss(): void {

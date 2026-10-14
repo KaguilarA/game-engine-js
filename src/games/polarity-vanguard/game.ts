@@ -1,5 +1,6 @@
 import GameContext from '../../engine/context';
 import type { GamePointer } from '../../engine/context';
+import { BaseGame } from '../../engine/base-game';
 import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
@@ -22,7 +23,7 @@ interface Circle {
   radius: number;
 }
 
-export class PolarityVanguardGame {
+export class PolarityVanguardGame extends BaseGame {
   private readonly leftIcon = new CanvasIcon(chevronLeftSvg);
   private readonly rightIcon = new CanvasIcon(chevronRightSvg);
   private readonly upIcon = new CanvasIcon(chevronUpSvg);
@@ -33,19 +34,16 @@ export class PolarityVanguardGame {
   private readonly enemies: PolarityVanguardEnemy[] = [];
   private readonly playerProjectiles: PolarityProjectile[] = [];
   private readonly enemyProjectiles: PolarityProjectile[] = [];
-  private lastFrameTime = performance.now();
   private shootCooldown = 0;
   private enemyShotCooldown = 1;
   private score = 0;
   private absorbedShots = 0;
   private chain = 0;
   private gameOver = false;
-  private running = true;
-  private readonly onReturnToMenu: (() => void) | undefined;
   private readonly pointerListenerCleanup: Array<() => void> = [];
 
   public constructor(onReturnToMenu?: () => void) {
-    this.onReturnToMenu = onReturnToMenu;
+    super(onReturnToMenu);
     this.createProjectiles();
     this.createFormation();
     this.pointerListenerCleanup.push(
@@ -53,35 +51,14 @@ export class PolarityVanguardGame {
       GameContext.addPointerMoveListener(this.handleTouchMove),
       GameContext.addPointerEndListener(this.handleTouchEnd)
     );
-    this.gameLoop();
+    this.start();
   }
 
-  private gameLoop = (time = performance.now()): void => {
-    if (!this.running) return;
+  protected get isGameOver(): boolean {
+    return this.gameOver;
+  }
 
-    const deltaSeconds = Math.min((time - this.lastFrameTime) / 1000, 0.05);
-    this.lastFrameTime = time;
-    this.update(deltaSeconds);
-    this.draw();
-    requestAnimationFrame(this.gameLoop);
-  };
-
-  private update(deltaSeconds: number): void {
-    if (this.gameOver) {
-      if (
-        this.onReturnToMenu !== undefined
-        && (
-          GameEvents.isKeyPressed('m')
-          || GameEvents.isKeyPressed('M')
-          || GameEvents.isKeyPressed('Escape')
-        )
-      ) {
-        this.returnToMenu();
-      } else if (GameEvents.isKeyPressed('Enter')) {
-        this.restart();
-      }
-      return;
-    }
+  protected updateGame(deltaSeconds: number): void {
 
     this.player.setBottomMargin(this.getPlayerBottomMargin());
     this.player.update(deltaSeconds);
@@ -197,7 +174,8 @@ export class PolarityVanguardGame {
     });
   }
 
-  private draw(): void {
+  protected drawGame(): void {
+    const hudScale = GameContext.isPortrait ? 1.35 : 1;
     GameContext.clear();
     this.drawBackground();
     this.enemies.forEach((enemy) => enemy.draw());
@@ -206,14 +184,32 @@ export class PolarityVanguardGame {
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
 
     const dimensions = GameContext.gameDimensionsModel;
-    GameContext.drawText(`SCORE ${this.score}`, 40, 60, 30, '#ffffff');
-    GameContext.drawText(`CHAIN ${this.chain}`, 40, 100, 24, '#ffffff');
-    GameContext.drawText(`ABSORB ${this.absorbedShots}`, 40, 136, 24, '#ffffff');
+    GameContext.drawText(
+      `SCORE ${this.score}`,
+      40 * hudScale,
+      60 * hudScale,
+      30 * hudScale,
+      '#ffffff'
+    );
+    GameContext.drawText(
+      `CHAIN ${this.chain}`,
+      40 * hudScale,
+      100 * hudScale,
+      24 * hudScale,
+      '#ffffff'
+    );
+    GameContext.drawText(
+      `ABSORB ${this.absorbedShots}`,
+      40 * hudScale,
+      136 * hudScale,
+      24 * hudScale,
+      '#ffffff'
+    );
     GameContext.drawText(
       `POLARITY ${this.player.currentPolarity.toUpperCase()}`,
-      dimensions.getWidth() - 40,
-      60,
-      28,
+      dimensions.getWidth() - 40 * hudScale,
+      60 * hudScale,
+      28 * hudScale,
       POLARITY_COLORS[this.player.currentPolarity],
       'right'
     );
@@ -240,23 +236,13 @@ export class PolarityVanguardGame {
         'center'
       );
       GameContext.drawText(
-        'PRESS ENTER TO RESTART',
+        'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.55,
         28,
         '#ffffff',
         'center'
       );
-      if (this.onReturnToMenu !== undefined) {
-        GameContext.drawText(
-          'PRESS M OR ESC TO RETURN TO MENU',
-          dimensions.getWidth() * 0.5,
-          dimensions.getHeight() * 0.61,
-          20,
-          '#ffffff',
-          'center'
-        );
-      }
     }
   }
 
@@ -488,11 +474,12 @@ export class PolarityVanguardGame {
     }
   }
 
-  private restart(): void {
+  protected restartGame(): void {
     this.score = 0;
     this.absorbedShots = 0;
     this.chain = 0;
     this.gameOver = false;
+    this.controls.hideEndActions();
     this.player.reset();
     this.playerProjectiles.forEach((projectile) => {
       projectile.active = false;
@@ -504,11 +491,9 @@ export class PolarityVanguardGame {
     GameLoader.playAudio('newgame');
   }
 
-  private returnToMenu(): void {
-    this.running = false;
+  protected disposeGame(): void {
     this.pointerListenerCleanup.forEach((cleanup) => cleanup());
     this.pointerListenerCleanup.length = 0;
-    this.onReturnToMenu?.();
   }
 
   private overlapsCircle(

@@ -2,8 +2,8 @@ import Dimensions from './dimensions';
 
 const LANDSCAPE_WIDTH = 1920;
 const LANDSCAPE_HEIGHT = 1080;
-const PORTRAIT_WIDTH = 1080;
-const PORTRAIT_HEIGHT = 1920;
+const PORTRAIT_WIDTH = 982;
+const PORTRAIT_HEIGHT = 1746;
 
 type PointerDownListener = (x: number, y: number) => void;
 type PointerListener = (pointer: GamePointer) => void;
@@ -41,7 +41,9 @@ class Context {
   /**
    * Gets the logical game area used by entities and rendering.
    *
-   * Landscape uses `1920 x 1080`; portrait uses `1080 x 1920`.
+   * Landscape uses `1920 x 1080`; portrait uses `982 x 1746`.
+   * The smaller portrait area renders content approximately 10% larger while
+   * preserving the original 9:16 aspect ratio.
    */
   public get gameDimensionsModel(): Dimensions {
     return this.gameDimensions;

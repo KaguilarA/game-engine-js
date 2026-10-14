@@ -104,16 +104,16 @@ describe('GameContext', () => {
 
     expect(gameContext.isPortrait).toBe(true);
     expect(gameContext.gameDimensionsModel.size()).toEqual({
-      height: 1920,
-      width: 1080
+      height: 1746,
+      width: 982
     });
     expect(drawingContext.setTransform).toHaveBeenLastCalledWith(
-      390 / 1080,
+      390 / 982,
       0,
       0,
-      390 / 1080,
+      390 / 982,
       0,
-      (844 - 1920 * (390 / 1080)) * 0.5
+      (844 - 1746 * (390 / 982)) * 0.5
     );
   });
 

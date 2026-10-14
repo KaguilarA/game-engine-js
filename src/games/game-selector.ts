@@ -2,15 +2,17 @@ import GameContext from '../engine/context';
 import GameEvents from '../engine/events';
 import GameLoader from '../engine/loader';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
+import { SpacePatternsGame } from './space-patterns/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 
-type GameChoice = 'space-hunters' | 'polarity-vanguard';
+type GameChoice = 'space-hunters' | 'polarity-vanguard' | 'space-patterns';
 
 export class GameSelector {
   private readonly choices: GameChoice[] = [
     'space-hunters',
-    'polarity-vanguard'
+    'polarity-vanguard',
+    'space-patterns'
   ];
   private selectedIndex = 0;
   private directionWasPressed = false;
@@ -41,7 +43,7 @@ export class GameSelector {
     );
 
     if (directionPressed && !this.directionWasPressed) {
-      this.selectedIndex = this.selectedIndex === 0 ? 1 : 0;
+      this.selectedIndex = (this.selectedIndex + 1) % this.choices.length;
     }
 
     this.directionWasPressed = directionPressed;
@@ -94,20 +96,26 @@ export class GameSelector {
 
     this.drawChoice(
       'SPACE HUNTERS',
-      'DEFEND EARTH AGAINST THE INVADERS',
-      dimensions.getHeight() * 0.42,
+      'INSPIRED BY SPACE INVADERS',
+      dimensions.getHeight() * 0.39,
       this.selectedIndex === 0
     );
     this.drawChoice(
       'POLARITY VANGUARD',
-      'ABSORB MATCHING FIRE. DESTROY THE OPPOSITE.',
-      dimensions.getHeight() * 0.62,
+      'INSPIRED BY IKARUGA',
+      dimensions.getHeight() * 0.56,
       this.selectedIndex === 1
+    );
+    this.drawChoice(
+      'SPACE PATTERNS',
+      'INSPIRED BY CANDY CRUSH',
+      dimensions.getHeight() * 0.73,
+      this.selectedIndex === 2
     );
     GameContext.drawText(
       'ARROWS / WASD SELECT   ENTER / SPACE START',
       dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.82,
+      dimensions.getHeight() * 0.91,
       20,
       '#ffffff',
       'center'
@@ -125,7 +133,7 @@ export class GameSelector {
     const x = (dimensions.getWidth() - width) * 0.5;
     const color = selected ? '#426ea8' : '#242c42';
 
-    GameContext.drawRect(x, y - 50, width, 120, color);
+    GameContext.drawRect(x, y - 56, width, 132, color);
     GameContext.drawText(
       title,
       dimensions.getWidth() * 0.5,
@@ -137,8 +145,8 @@ export class GameSelector {
     GameContext.drawText(
       description,
       dimensions.getWidth() * 0.5,
-      y + 38,
-      18,
+      y + 42,
+      26,
       '#ffffff',
       'center'
     );
@@ -148,11 +156,14 @@ export class GameSelector {
     if (this.started) return;
 
     const height = GameContext.gameDimensionsModel.getHeight();
-    if (y >= height * 0.42 - 50 && y <= height * 0.42 + 70) {
+    if (y >= height * 0.39 - 56 && y <= height * 0.39 + 76) {
       this.selectedIndex = 0;
       this.startSelectedGame();
-    } else if (y >= height * 0.62 - 50 && y <= height * 0.62 + 70) {
+    } else if (y >= height * 0.56 - 56 && y <= height * 0.56 + 76) {
       this.selectedIndex = 1;
+      this.startSelectedGame();
+    } else if (y >= height * 0.73 - 56 && y <= height * 0.73 + 76) {
+      this.selectedIndex = 2;
       this.startSelectedGame();
     }
   };
@@ -164,8 +175,10 @@ export class GameSelector {
 
     if (this.choices[this.selectedIndex] === 'space-hunters') {
       new SpaceHuntersGame(this.returnToMenu);
-    } else {
+    } else if (this.choices[this.selectedIndex] === 'polarity-vanguard') {
       new PolarityVanguardGame(this.returnToMenu);
+    } else {
+      new SpacePatternsGame(this.returnToMenu);
     }
   }
 
