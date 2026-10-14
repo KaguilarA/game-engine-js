@@ -1,7 +1,9 @@
 import './style.css'
 import { Game } from './class/game.ts';
+import GameLoader from './engine/loader';
 
-window.addEventListener('load', () => {
-  const app = document.getElementById('app');
-  const game = new Game(app!);
+window.addEventListener('load', async () => {
+
+  await GameLoader.loadAll();
+  new Game();
 });
