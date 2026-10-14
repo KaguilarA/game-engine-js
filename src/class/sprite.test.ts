@@ -72,6 +72,40 @@ describe('Sprite', () => {
     );
   });
 
+  it('advances through horizontal sprite-sheet frames', () => {
+    const sprite = new Sprite(
+      {} as CanvasImageSource,
+      72,
+      64,
+      0,
+      0,
+      0,
+      0,
+      0,
+      80,
+      90,
+      80,
+      4,
+      8
+    );
+
+    sprite.play(0, 4, 8);
+    sprite.update(0.125);
+    sprite.draw();
+
+    expect(drawingContext.drawImage).toHaveBeenCalledWith(
+      expect.anything(),
+      90,
+      80,
+      90,
+      80,
+      0,
+      0,
+      72,
+      64
+    );
+  });
+
   it('restores the drawing context when drawing fails', () => {
     vi.mocked(drawingContext.drawImage).mockImplementation(() => {
       throw new Error('Image is not drawable.');
