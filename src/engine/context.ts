@@ -77,6 +77,13 @@ class Context {
     return this.ctx;
   }
 
+  /**
+   * Indicates whether the game canvas is currently displayed fullscreen.
+   */
+  public get isFullscreen(): boolean {
+    return document.fullscreenElement === this.canvas;
+  }
+
   private getGamePointer(event: PointerEvent): GamePointer {
     const bounds = this.canvas.getBoundingClientRect();
 
@@ -229,6 +236,26 @@ class Context {
     this.ctx.beginPath();
     this.ctx.arc(x, y, radius, 0, Math.PI * 2);
     this.ctx.fill();
+  }
+
+  /**
+   * Enters or exits fullscreen mode for the game canvas.
+   */
+  public async toggleFullscreen(): Promise<void> {
+    if (this.isFullscreen) {
+      if (document.exitFullscreen === undefined) {
+        throw new Error('Fullscreen exit is not supported by this browser.');
+      }
+
+      await document.exitFullscreen();
+      return;
+    }
+
+    if (this.canvas.requestFullscreen === undefined) {
+      throw new Error('Fullscreen is not supported by this browser.');
+    }
+
+    await this.canvas.requestFullscreen();
   }
 
   /**

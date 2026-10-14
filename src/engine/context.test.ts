@@ -14,7 +14,7 @@ describe('GameContext', () => {
     fillRect: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
-    setTransform: vi.fn()
+    setTransform: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
   const canvas = {
     addEventListener: vi.fn(
@@ -35,6 +35,7 @@ describe('GameContext', () => {
     })),
     height: 0,
     removeEventListener: vi.fn(),
+    requestFullscreen: vi.fn(() => Promise.resolve()),
     style: {},
     width: 0
   } as unknown as HTMLCanvasElement;
@@ -56,6 +57,7 @@ describe('GameContext', () => {
           return viewportWidth;
         }
       },
+      fullscreenElement: null,
       getElementById: vi.fn(() => canvas)
     });
     vi.stubGlobal('window', {
@@ -143,4 +145,13 @@ describe('GameContext', () => {
     );
     expect(drawingContext.fill).toHaveBeenCalledOnce();
   });
+
+  it('requests fullscreen mode for the canvas', async () => {
+    const { default: gameContext } = await import('./context');
+
+    await gameContext.toggleFullscreen();
+
+    expect(canvas.requestFullscreen).toHaveBeenCalledOnce();
+  });
+
 });

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type ImageEventName = 'error' | 'load';
 type ImageListener = () => void;
+type AudioEventName = 'error' | 'canplaythrough';
 
 class TestImage {
   private readonly listeners = new Map<ImageEventName, ImageListener>();
@@ -20,10 +21,40 @@ class TestImage {
   }
 }
 
+class TestAudio {
+  public currentTime = 0;
+  public preload = '';
+  private readonly listeners = new Map<AudioEventName, () => void>();
+
+  public constructor(_: string) {}
+
+  public addEventListener(
+    type: AudioEventName,
+    listener: () => void
+  ): void {
+    this.listeners.set(type, listener);
+  }
+
+  public load(): void {
+    queueMicrotask(() => {
+      this.listeners.get('canplaythrough')?.();
+    });
+  }
+
+  public cloneNode(): TestAudio {
+    return this;
+  }
+
+  public play(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
 describe('GameLoader', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.stubGlobal('Image', TestImage);
+    vi.stubGlobal('Audio', TestAudio);
   });
 
   afterEach(() => {
@@ -55,11 +86,40 @@ describe('GameLoader', () => {
     }
   });
 
+  it('loads every MP3 asset and exposes each one by filename', async () => {
+    const { default: gameLoader } = await import('./loader');
+
+    await gameLoader.loadAll();
+
+    for (const name of [
+      'boom1',
+      'boom2',
+      'boom3',
+      'boom4',
+      'lose',
+      'newgame',
+      'scream',
+      'slide',
+      'win'
+    ]) {
+      expect(gameLoader.hasAudio(name)).toBe(true);
+      expect(gameLoader.getAudio(name)).toBeInstanceOf(TestAudio);
+    }
+  });
+
   it('throws when an image has not been loaded', async () => {
     const { default: gameLoader } = await import('./loader');
 
     expect(() => gameLoader.getImage('missing')).toThrow(
       'Image asset "missing" has not been loaded.'
+    );
+  });
+
+  it('throws when an audio has not been loaded', async () => {
+    const { default: gameLoader } = await import('./loader');
+
+    expect(() => gameLoader.getAudio('missing')).toThrow(
+      'Audio asset "missing" has not been loaded.'
     );
   });
 });
