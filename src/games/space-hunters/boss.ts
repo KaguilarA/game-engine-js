@@ -1,6 +1,6 @@
-import GameLoader from '../engine/loader';
-import { Health } from './health';
-import Sprite from './sprite';
+import GameLoader from '../../engine/loader';
+import { Health } from '../../engine/health';
+import Sprite from '../../engine/sprite';
 
 export type BossType = 1 | 2 | 3;
 

@@ -12,7 +12,7 @@ const { drawingContext } = vi.hoisted(() => ({
   } as unknown as CanvasRenderingContext2D
 }));
 
-vi.mock('../engine/context', () => ({
+vi.mock('./context', () => ({
   default: {
     context: drawingContext
   }

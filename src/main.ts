@@ -1,9 +1,9 @@
 import './style.css'
-import { Game } from './class/game.ts';
+import { GameSelector } from './games/game-selector';
 import GameLoader from './engine/loader';
 
 window.addEventListener('load', async () => {
 
   await GameLoader.loadAll();
-  new Game();
+  new GameSelector();
 });

@@ -5,8 +5,8 @@ import {
   Skeleton
 } from '@esotericsoftware/spine-core';
 
-import GameContext from '../engine/context';
-import Dimensions from '../engine/dimensions';
+import GameContext from './context';
+import Dimensions from './dimensions';
 
 /**
  * Renders and updates a Spine skeleton in the engine's Canvas 2D context.

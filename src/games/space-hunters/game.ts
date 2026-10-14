@@ -1,8 +1,8 @@
-import GameContext from '../engine/context';
-import type { GamePointer } from '../engine/context';
-import CanvasIcon from '../engine/canvas-icon';
-import GameEvents from '../engine/events';
-import GameLoader from '../engine/loader';
+import GameContext from '../../engine/context';
+import type { GamePointer } from '../../engine/context';
+import CanvasIcon from '../../engine/canvas-icon';
+import GameEvents from '../../engine/events';
+import GameLoader from '../../engine/loader';
 import { Boss } from './boss';
 import type { BossType } from './boss';
 import { Enemy } from './enemy';
@@ -51,18 +51,26 @@ export class Game {
   private gameOver = false;
   private paused = false;
   private shootCooldown = 0;
+  private running = true;
+  private readonly onReturnToMenu: (() => void) | undefined;
+  private readonly pointerListenerCleanup: Array<() => void> = [];
 
-  constructor() {
+  constructor(onReturnToMenu?: () => void) {
+    this.onReturnToMenu = onReturnToMenu;
     this.initProjectiles();
     this.initEnemies();
-    GameContext.addPointerDownListener(this.handlePointerDown);
-    GameContext.addPointerStartListener(this.handleTouchStart);
-    GameContext.addPointerMoveListener(this.handleTouchMove);
-    GameContext.addPointerEndListener(this.handleTouchEnd);
+    this.pointerListenerCleanup.push(
+      GameContext.addPointerDownListener(this.handlePointerDown),
+      GameContext.addPointerStartListener(this.handleTouchStart),
+      GameContext.addPointerMoveListener(this.handleTouchMove),
+      GameContext.addPointerEndListener(this.handleTouchEnd)
+    );
     this.gameLoop();
   }
 
   private gameLoop = (time = performance.now()): void => {
+    if (!this.running) return;
+
     const deltaSeconds = Math.min(
       (time - this.lastFrameTime) / 1000,
       0.05
@@ -83,7 +91,16 @@ export class Game {
     }
 
     if (this.gameOver) {
-      if (GameEvents.isKeyPressed('Enter')) {
+      if (
+        this.onReturnToMenu !== undefined
+        && (
+          GameEvents.isKeyPressed('m')
+          || GameEvents.isKeyPressed('M')
+          || GameEvents.isKeyPressed('Escape')
+        )
+      ) {
+        this.returnToMenu();
+      } else if (GameEvents.isKeyPressed('Enter')) {
         this.restart();
       }
       return;
@@ -158,6 +175,16 @@ export class Game {
         '#ffffff',
         'center'
       );
+      if (this.onReturnToMenu !== undefined) {
+        GameContext.drawText(
+          'PRESS M OR ESC TO RETURN TO MENU',
+          dimensions.getWidth() * 0.5,
+          dimensions.getHeight() * 0.5 + 90,
+          20,
+          '#ffffff',
+          'center'
+        );
+      }
     }
 
     if (this.paused) {
@@ -731,6 +758,13 @@ export class Game {
     this.playerProjectiles.forEach((projectile) => projectile.stop());
     this.enemyProjectiles.forEach((projectile) => projectile.stop());
     this.initEnemies();
+  }
+
+  private returnToMenu(): void {
+    this.running = false;
+    this.pointerListenerCleanup.forEach((cleanup) => cleanup());
+    this.pointerListenerCleanup.length = 0;
+    this.onReturnToMenu?.();
   }
 
   private spawnBoss(): void {

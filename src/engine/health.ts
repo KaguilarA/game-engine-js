@@ -4,7 +4,7 @@ export interface DamageResult {
 }
 
 /**
- * Stores an entity's hit points and applies finite, positive damage values.
+ * Stores shared entity hit points and applies finite, positive damage values.
  */
 export class Health {
   public readonly maximum: number;

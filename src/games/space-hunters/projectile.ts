@@ -1,8 +1,8 @@
 import { signalValue } from 'reactive-values';
 
-import GameContext from '../engine/context';
-import GameLoader from '../engine/loader';
-import Sprite from './sprite';
+import GameContext from '../../engine/context';
+import GameLoader from '../../engine/loader';
+import Sprite from '../../engine/sprite';
 
 export class Projectile {
   private readonly sprite = new Sprite(

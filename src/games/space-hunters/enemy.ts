@@ -1,6 +1,6 @@
-import Sprite from './sprite';
-import GameLoader from '../engine/loader';
-import { Health } from './health';
+import Sprite from '../../engine/sprite';
+import GameLoader from '../../engine/loader';
+import { Health } from '../../engine/health';
 
 /**
  * A single invader in the game's enemy formation.

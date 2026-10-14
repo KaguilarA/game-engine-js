@@ -1,5 +1,5 @@
-import GameContext from '../engine/context';
-import Dimensions from '../engine/dimensions';
+import GameContext from './context';
+import Dimensions from './dimensions';
 
 /**
  * Draws an image or sprite-sheet frame using reactive position, size, scale,

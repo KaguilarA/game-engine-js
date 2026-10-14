@@ -6,13 +6,13 @@ const { drawImage } = vi.hoisted(() => ({
   drawImage: vi.fn()
 }));
 
-vi.mock('../engine/loader', () => ({
+vi.mock('../../engine/loader', () => ({
   default: {
     getImage: vi.fn(() => ({}))
   }
 }));
 
-vi.mock('../engine/context', () => ({
+vi.mock('../../engine/context', () => ({
   default: {
     context: {
       drawImage,

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Player } from './player';
 
-vi.mock('../engine/context', () => ({
+vi.mock('../../engine/context', () => ({
   default: {
     context: {},
     gameDimensionsModel: {
@@ -12,13 +12,13 @@ vi.mock('../engine/context', () => ({
   }
 }));
 
-vi.mock('../engine/events', () => ({
+vi.mock('../../engine/events', () => ({
   default: {
     isKeyPressed: () => false
   }
 }));
 
-vi.mock('../engine/loader', () => ({
+vi.mock('../../engine/loader', () => ({
   default: {
     getImage: vi.fn(() => ({}))
   }
