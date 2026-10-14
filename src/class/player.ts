@@ -1,66 +1,170 @@
 import { signalValue } from 'reactive-values';
-import { Dimensions } from '../engine/dimensions';
-import { GameContext } from '../engine/context';
-import { Events } from '../engine/events';
+
+import GameContext from '../engine/context';
+import GameEvents from '../engine/events';
+import GameLoader from '../engine/loader';
+import { Health } from './health';
+import Sprite from './sprite';
+
+type PlayerAnimation = 'idle' | 'moving' | 'shooting';
 
 export class Player {
-  private context: GameContext;
-  private events: Events;
-  private dimensions = new Dimensions(50, 50, 0, 0);
-  public speed = signalValue(0);
+  private readonly sprite = new Sprite(
+    GameLoader.getImage('player'),
+    70,
+    50,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    140,
+    120,
+    4,
+    8
+  );
 
-  public get height() {
-    return this.dimensions.size().height;
+  public readonly speed = signalValue(0);
+  private readonly health = new Health(2);
+  private animation: PlayerAnimation = 'idle';
+  private bottomMargin = 40;
+  private shootingTime = 0;
+
+  public get height(): number {
+    return this.sprite.dimensions.getHeight();
   }
 
-  public get width() {
-    return this.dimensions.size().width;
+  public get width(): number {
+    return this.sprite.dimensions.getWidth();
   }
 
-  public get x() {
-    return this.dimensions.position().x;
+  public get x(): number {
+    return this.sprite.dimensions.getX();
   }
 
-  public get y() {
-    return this.dimensions.position().y;
+  public get y(): number {
+    return this.sprite.dimensions.getY();
   }
 
-  constructor(context: GameContext, events: Events) {
-    this.context = context;
-    this.events = events;
+  public get dimensions() {
+    return this.sprite.dimensions;
+  }
 
-    this.dimensions.setPosition(
-      this.context.size().width * 0.5 - this.dimensions.size().width * 0.5,
-      this.context.size().height - this.dimensions.size().height
+  constructor() {
+    const gameDimensions = GameContext.gameDimensionsModel;
+
+    this.sprite.dimensions.setPosition(
+      (gameDimensions.getWidth() - this.width) * 0.5,
+      gameDimensions.getHeight() - this.height - this.bottomMargin
     );
   }
 
-  draw(): void {
-    this.context.drawRect(
-      this.x,
-      this.y,
-      this.width,
-      this.height,
-      'red'
+  /**
+   * Reserves space below the player for controls or other interface elements.
+   */
+  public setBottomMargin(margin: number): void {
+    if (!Number.isFinite(margin) || margin < 0) {
+      throw new RangeError('Bottom margin must be a finite non-negative number.');
+    }
+
+    this.bottomMargin = margin;
+  }
+
+  private updateLayout(): void {
+    const gameDimensions = GameContext.gameDimensionsModel;
+    const maxX = Math.max(
+      0,
+      gameDimensions.getWidth() - this.width
+    );
+
+    this.sprite.dimensions.setPosition(
+      Math.max(0, Math.min(this.x, maxX)),
+      gameDimensions.getHeight() - this.height - this.bottomMargin
     );
   }
 
-  update(): void {
+  public draw(): void {
+    this.sprite.draw();
+  }
 
-    if (this.events.isKeyPressed('ArrowLeft')) {
-      this.speed.set(-5);
-    } else if (this.events.isKeyPressed('ArrowRight')) {
-      this.speed.set(5);
-    } else {
-      this.speed.set(0);
+  public update(deltaSeconds: number): void {
+    this.shootingTime = Math.max(0, this.shootingTime - deltaSeconds);
+    this.updateLayout();
+    this.updateSpeed();
+    this.updateAnimation(deltaSeconds);
+    this.updatePosition();
+  }
+
+  public shoot(): void {
+    this.shootingTime = 0.2;
+  }
+
+  /**
+   * Applies one projectile impact and reports whether one player life was lost.
+   */
+  public takeDamage(): boolean {
+    const damage = this.health.receiveDamage();
+
+    if (!damage.isDepleted) return false;
+
+    this.health.restore();
+    return true;
+  }
+
+  public restoreHealth(): void {
+    this.health.restore();
+  }
+
+  private updateAnimation(deltaSeconds: number): void {
+    const nextAnimation: PlayerAnimation = this.shootingTime > 0
+      ? 'shooting'
+      : this.speed() !== 0
+        ? 'moving'
+        : 'idle';
+
+    if (
+      nextAnimation !== this.animation
+      || (
+        nextAnimation === 'shooting'
+        && !this.sprite.isAnimationPlaying
+      )
+    ) {
+      this.animation = nextAnimation;
+
+      if (nextAnimation === 'idle') {
+        this.sprite.setFrame(0);
+      } else if (nextAnimation === 'moving') {
+        this.sprite.play(1, 2, 8, true);
+      } else {
+        this.sprite.play(2, 2, 12);
+      }
     }
 
-    if (this.x < 0) {
-      this.dimensions.setPosition(0, this.y);
-    } else if (this.x + this.width > this.context.size().width) {
-      this.dimensions.setPosition(this.context.size().width - this.width, this.dimensions.position().y);
+    this.sprite.update(deltaSeconds);
+  }
+
+  private updateSpeed(): void {
+    if (GameEvents.isKeyPressed('ArrowLeft')) {
+      this.speed.set(-8);
+      return;
     }
 
-    this.dimensions.setPosition(this.x + this.speed(), this.y);
+    if (GameEvents.isKeyPressed('ArrowRight')) {
+      this.speed.set(8);
+      return;
+    }
+
+    this.speed.set(0);
+  }
+
+  private updatePosition(): void {
+    const nextX = this.x + this.speed();
+    const maxX = GameContext.gameDimensionsModel.getWidth() - this.width;
+
+    this.sprite.dimensions.setPosition(
+      Math.max(0, Math.min(nextX, maxX)),
+      this.y
+    );
   }
 }
