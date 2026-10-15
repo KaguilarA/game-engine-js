@@ -89,19 +89,21 @@ export class GameSelector {
     GameContext.drawText(
       'ARCADE FRONTIER',
       dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.2,
-      64,
+      dimensions.getHeight() * 0.12,
+      Math.max(20, Math.min(GameContext.viewportUnit() * 0.055, 38)),
       '#ffffff',
-      'center'
+      'center',
+      dimensions.getWidth() * 0.88
     );
     this.controls.drawFullscreenOnly();
     GameContext.drawText(
       'SELECT A MISSION',
       dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.28,
-      24,
+      dimensions.getHeight() * 0.19,
+      Math.max(12, Math.min(GameContext.viewportUnit() * 0.024, 16)),
       '#b6c5ff',
-      'center'
+      'center',
+      dimensions.getWidth() * 0.85
     );
 
     const choices = [
@@ -121,15 +123,27 @@ export class GameSelector {
     GameContext.drawText(
       'ARROWS / WASD SELECT   ENTER / SPACE START',
       dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.96,
-      20,
+      dimensions.getHeight() * 0.94,
+      Math.max(10, Math.min(GameContext.viewportUnit() * 0.02, 14)),
       '#ffffff',
-      'center'
+      'center',
+      dimensions.getWidth() * 0.9
     );
   }
 
+  private getChoiceHeight(): number {
+    const dimensions = GameContext.gameDimensionsModel;
+    const availableHeight = dimensions.getHeight() * 0.48;
+    return Math.max(36, Math.min(availableHeight / 4.5, 54));
+  }
+
   private getChoiceY(index: number): number {
-    return GameContext.gameDimensionsModel.getHeight() * (0.31 + index * 0.16);
+    const dimensions = GameContext.gameDimensionsModel;
+    const choiceHeight = this.getChoiceHeight();
+    const gap = Math.max(6, Math.min(choiceHeight * 0.2, 12));
+    const totalHeight = this.choices.length * choiceHeight + (this.choices.length - 1) * gap;
+    const startY = dimensions.getHeight() * 0.26 + (dimensions.getHeight() * 0.6 - totalHeight) * 0.5;
+    return startY + index * (choiceHeight + gap) + choiceHeight * 0.5;
   }
 
   private drawChoice(
@@ -139,37 +153,54 @@ export class GameSelector {
     selected: boolean
   ): void {
     const dimensions = GameContext.gameDimensionsModel;
-    const width = Math.min(900, dimensions.getWidth() * 0.75);
+    const width = Math.min(460, dimensions.getWidth() * 0.8);
     const x = (dimensions.getWidth() - width) * 0.5;
+    const height = this.getChoiceHeight();
     const color = selected ? '#426ea8' : '#242c42';
 
-    GameContext.drawRect(x, y - 56, width, 132, color);
+    GameContext.drawRect(x, y - height * 0.5, width, height, color);
+    if (selected) {
+      GameContext.drawRect(x, y - height * 0.5, 4, height, '#72dcff');
+    }
     if (title) {
       GameContext.drawText(
         title,
         dimensions.getWidth() * 0.5,
-        y,
-        36,
+        y - height * 0.08,
+        Math.max(13, Math.min(height * 0.32, 18)),
         selected ? '#ffffff' : '#b6c5ff',
-        'center'
+        'center',
+        width - 24
       );
     }
     GameContext.drawText(
       description,
       dimensions.getWidth() * 0.5,
-      title ? y + 42 : y + 20,
-      26,
+      title ? y + height * 0.28 : y,
+      Math.max(10, Math.min(height * 0.22, 13)),
       '#ffffff',
-      'center'
+      'center',
+      width - 24
     );
   }
 
-  private readonly handlePointerDown = (_: number, y: number): void => {
+  private readonly handlePointerDown = (x: number, y: number): void => {
     if (this.started) return;
+
+    const dimensions = GameContext.gameDimensionsModel;
+    const width = Math.min(460, dimensions.getWidth() * 0.8);
+    const minX = (dimensions.getWidth() - width) * 0.5;
+    const maxX = minX + width;
+
+    if (x < minX || x > maxX) return;
 
     for (let index = 0; index < this.choices.length; index++) {
       const choiceY = this.getChoiceY(index);
-      if (y >= choiceY - 56 && y <= choiceY + 76) {
+      const choiceHeight = this.getChoiceHeight();
+      if (
+        y >= choiceY - choiceHeight * 0.5
+        && y <= choiceY + choiceHeight * 0.5
+      ) {
         this.selectedIndex = index;
         this.startSelectedGame();
         return;
