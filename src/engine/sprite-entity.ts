@@ -40,8 +40,8 @@ export abstract class SpriteEntity {
     this.setPosition(this.x + x, this.y + y);
   }
 
-  public draw(): void {
-    this.sprite.draw();
+  public draw(rotation = 0): void {
+    this.sprite.draw(rotation);
   }
 
   protected updateSprite(deltaSeconds: number): void {

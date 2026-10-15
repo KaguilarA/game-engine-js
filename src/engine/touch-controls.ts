@@ -35,10 +35,14 @@ export class TouchControls {
   private readonly removeListeners: Array<() => void>;
   private readonly activePointers = new Set<number>();
   private readonly showVerticalControls: boolean;
+  private readonly singleRow: boolean;
+  private readonly slotCount: number;
   private extraKeys: Array<[TouchControlCircle, string]> = [];
 
-  public constructor(options: { showVerticalControls?: boolean } = {}) {
+  public constructor(options: { showVerticalControls?: boolean; singleRow?: boolean; slotCount?: number } = {}) {
     this.showVerticalControls = options.showVerticalControls ?? true;
+    this.singleRow = options.singleRow ?? false;
+    this.slotCount = Math.max(3, options.slotCount ?? 5);
     this.removeListeners = [
       GameContext.addPointerStartListener(this.handlePointer),
       GameContext.addPointerMoveListener(this.handlePointer),
@@ -49,7 +53,8 @@ export class TouchControls {
   public get layout(): TouchControlsLayout {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
-    const radius = Math.max(22, Math.min(unit * 0.07, dimensions.getWidth() * 0.085, 42));
+    const slotWidth = dimensions.getWidth() / (this.slotCount + 1);
+    const radius = Math.max(18, Math.min(unit * 0.07, dimensions.getWidth() * 0.085, this.singleRow ? slotWidth * 0.43 : 42, 42));
     const margin = Math.max(14, Math.min(dimensions.getWidth() * 0.035, 28));
     const gap = Math.max(14, Math.min(unit * 0.03, 24));
     const y = dimensions.getHeight() - radius - gap;
@@ -58,6 +63,15 @@ export class TouchControls {
     const up: TouchControlCircle = { x: dimensions.getWidth() * 0.5 - radius * 1.15, y: y - radius * 1.75, radius };
     const down: TouchControlCircle = { x: dimensions.getWidth() * 0.5 + radius * 1.15, y: y - radius * 1.75, radius };
     const shoot: TouchControlCircle = { x: dimensions.getWidth() * 0.5, y, radius };
+    if (this.singleRow) {
+      left.x = margin + radius;
+      up.x = dimensions.getWidth() * 0.32;
+      shoot.x = dimensions.getWidth() * 0.5;
+      down.x = dimensions.getWidth() * 0.68;
+      right.x = dimensions.getWidth() - margin - radius;
+      up.y = y;
+      down.y = y;
+    }
     const visibleControls = [left, right, shoot];
     if (this.showVerticalControls) visibleControls.push(up, down);
     const top = Math.min(...visibleControls.map((control) => control.y - control.radius));

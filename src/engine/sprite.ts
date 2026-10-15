@@ -19,11 +19,11 @@ export default class Sprite {
    */
   public readonly dimensions: Dimensions;
   private readonly image: CanvasImageSource;
-  private readonly sourceX: number;
-  private readonly sourceY: number;
+  private sourceX: number;
+  private sourceY: number;
   private readonly sourceWidth: number | undefined;
   private readonly sourceHeight: number | undefined;
-  private readonly frameCount: number;
+  private frameCount: number;
   private animationFrameRate = 0;
   private animationStart = 0;
   private animationEnd = 0;
@@ -88,11 +88,12 @@ export default class Sprite {
    * @param deltaSeconds - The elapsed time since the previous update.
    */
   public update(deltaSeconds: number): void {
-    if (
-      !this.animationPlaying
-      || this.animationFrameRate <= 0
-      || this.animationEnd <= this.animationStart
-    ) {
+    if (!this.animationPlaying || this.animationFrameRate <= 0) return;
+    if (this.animationEnd <= this.animationStart) {
+      if (!this.animationLoop) {
+        this.animationPlaying = false;
+        this.frameElapsed = 0;
+      }
       return;
     }
 
@@ -147,6 +148,24 @@ export default class Sprite {
     this.frameElapsed = 0;
   }
 
+  /** Starts an animation clip at an explicit cell in a multi-row sprite sheet. */
+  public playClip(
+    sourceX: number,
+    sourceY: number,
+    frameCount: number,
+    frameRate: number,
+    loop = false
+  ): void {
+    if (sourceX < 0 || sourceY < 0) {
+      throw new RangeError('Sprite clip coordinates must be non-negative.');
+    }
+
+    this.sourceX = sourceX;
+    this.sourceY = sourceY;
+    this.frameCount = frameCount;
+    this.play(0, frameCount, frameRate, loop);
+  }
+
   /**
    * Stops the current animation and selects a single frame.
    *
@@ -174,7 +193,7 @@ export default class Sprite {
    *
    * Negative scale values mirror the image around its pivot.
    */
-  public draw(): void {
+  public draw(rotation = 0): void {
     const drawingContext = GameContext.context;
     const width = this.dimensions.getWidth();
     const height = this.dimensions.getHeight();
@@ -194,6 +213,7 @@ export default class Sprite {
         this.dimensions.getX(),
         this.dimensions.getY()
       );
+      drawingContext.rotate(rotation);
       drawingContext.scale(
         this.dimensions.getScaleX(),
         this.dimensions.getScaleY()
