@@ -87,11 +87,15 @@ export class GameControls {
 
     if (this.paused()) {
       const dimensions = GameContext.gameDimensionsModel;
+      const iconSize = Math.min(
+        GameContext.viewportUnit() * 0.16,
+        64
+      );
       this.drawIcon(
         this.pauseIcon,
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.5,
-        128
+        iconSize
       );
     }
   }
@@ -112,11 +116,12 @@ export class GameControls {
   public drawEndActions(): void {
     this.endActionsVisible.set(true);
     const dimensions = GameContext.gameDimensionsModel;
-    const width = Math.min(380, dimensions.getWidth() * 0.36);
-    const height = 58;
+    const unit = GameContext.viewportUnit();
+    const width = Math.min(dimensions.getWidth() * 0.82, Math.min(unit * 0.65, 340));
+    const height = Math.max(42, Math.min(unit * 0.08, 58));
     const x = dimensions.getWidth() * 0.5 - width * 0.5;
     const restartY = dimensions.getHeight() * 0.62;
-    const menuY = restartY + height + 18;
+    const menuY = restartY + height + 14;
 
     this.drawActionButton(x, restartY, width, height, '#426ea8', 'RESTART');
     this.drawActionButton(x, menuY, width, height, '#72549b', 'GAME SELECTOR');
@@ -128,10 +133,13 @@ export class GameControls {
 
   public getLayout(): GameControlsLayout {
     const dimensions = GameContext.gameDimensionsModel;
-    const padding = GameContext.isPortrait ? 24 : 32;
-    const buttonRadius = GameContext.isPortrait ? 46 : 34;
+    const unit = GameContext.viewportUnit();
+    const availableWidth = dimensions.getWidth() * 0.5;
+    const padding = Math.max(8, Math.min(unit * 0.02, 14));
+    const gap = Math.max(7, Math.min(unit * 0.014, 12));
+    const maxRadius = Math.max(12, Math.floor((availableWidth - padding * 2 - gap * 3) / 8));
+    const buttonRadius = Math.max(14, Math.min(unit * 0.034, 24, maxRadius));
     const buttonDiameter = buttonRadius * 2;
-    const gap = 12;
     const resetX = dimensions.getWidth() - padding - buttonRadius;
     const fullscreenX = resetX - buttonDiameter - gap;
     const pauseX = fullscreenX - buttonDiameter - gap;
@@ -140,22 +148,22 @@ export class GameControls {
     return {
       pauseButton: {
         x: pauseX,
-        y: GameContext.isPortrait ? 66 : 50,
+        y: padding + buttonRadius,
         radius: buttonRadius
       },
       fullscreenButton: {
         x: fullscreenX,
-        y: GameContext.isPortrait ? 66 : 50,
+        y: padding + buttonRadius,
         radius: buttonRadius
       },
       resetButton: {
         x: resetX,
-        y: GameContext.isPortrait ? 66 : 50,
+        y: padding + buttonRadius,
         radius: buttonRadius
       },
       menuButton: {
         x: menuX,
-        y: GameContext.isPortrait ? 66 : 50,
+        y: padding + buttonRadius,
         radius: buttonRadius
       }
     };
@@ -208,11 +216,12 @@ export class GameControls {
 
   private handleEndActionPointer(x: number, y: number): void {
     const dimensions = GameContext.gameDimensionsModel;
-    const width = Math.min(380, dimensions.getWidth() * 0.36);
-    const height = 58;
+    const unit = GameContext.viewportUnit();
+    const width = Math.min(dimensions.getWidth() * 0.82, Math.min(unit * 0.65, 340));
+    const height = Math.max(42, Math.min(unit * 0.08, 58));
     const left = dimensions.getWidth() * 0.5 - width * 0.5;
     const restartY = dimensions.getHeight() * 0.62;
-    const menuY = restartY + height + 18;
+    const menuY = restartY + height + 14;
 
     if (this.containsRectangle(left, restartY, width, height, x, y)) {
       this.paused.set(false);
@@ -235,35 +244,38 @@ export class GameControls {
     label: string
   ): void {
     GameContext.drawRect(x, y, width, height, '#11182f');
-    GameContext.drawRect(x + 4, y + 4, width - 8, height - 8, color);
+    GameContext.drawRect(x + 3, y + 3, width - 6, height - 6, color);
     GameContext.drawText(
       label,
       x + width * 0.5,
-      y + height * 0.67,
-      22,
+      y + height * 0.66,
+      Math.max(13, height * 0.36),
       '#ffffff',
-      'center'
+      'center',
+      width - 16
     );
   }
 
   private drawArcadeButton(circle: GameControlCircle, color: string): void {
+    const inset1 = Math.max(2, Math.round(circle.radius * 0.16));
+    const inset2 = Math.max(4, Math.round(circle.radius * 0.4));
     GameContext.drawCircle(
       circle.x,
       circle.y,
       circle.radius,
       'rgba(9, 14, 38, 0.78)'
     );
-    GameContext.drawCircle(circle.x, circle.y, circle.radius - 4, color);
+    GameContext.drawCircle(circle.x, circle.y, Math.max(1, circle.radius - inset1), color);
     GameContext.drawCircle(
       circle.x,
       circle.y,
-      circle.radius - 10,
+      Math.max(1, circle.radius - inset2),
       'rgba(19, 31, 76, 0.42)'
     );
     GameContext.drawCircle(
       circle.x - circle.radius * 0.28,
       circle.y - circle.radius * 0.28,
-      circle.radius * 0.16,
+      Math.max(1, circle.radius * 0.16),
       'rgba(255, 255, 255, 0.35)'
     );
   }
