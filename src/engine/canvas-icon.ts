@@ -2,10 +2,22 @@ import GameContext from './context';
 
 /**
  * Draws an inline SVG icon on the game canvas.
+ * @class CanvasIcon
  */
 export default class CanvasIcon {
+  /**
+   * Stores the image state.
+   * @property {Image} image
+   * @private
+   * @readonly
+   */
   private readonly image = new Image();
 
+  /**
+   * Creates a canvas-ready image from inline SVG markup.
+   * @public
+   * @return {void}
+   */
   constructor(svg: string, color = '#ffffff', filled = false) {
     this.image.addEventListener('error', () => {
       console.error('Failed to load a canvas icon.');
@@ -19,6 +31,11 @@ export default class CanvasIcon {
     );
   }
 
+  /**
+   * Draws the icon inside a square at the requested top-left position.
+   * @public
+   * @return {void}
+   */
   public draw(x: number, y: number, size: number): void {
     if (!this.image.complete || this.image.naturalWidth === 0) return;
 

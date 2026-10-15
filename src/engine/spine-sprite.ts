@@ -20,6 +20,8 @@ import Dimensions from './dimensions';
  * The skeleton's setup-pose bounds are used to initialize `Dimensions`.
  * `x` and `y` represent the pivot position. The pivot is applied relative to
  * those setup-pose bounds before the skeleton is rendered.
+ *
+ * @class SpineSprite
  */
 export default class SpineSprite {
   private static readonly renderer = new SkeletonRenderer(
@@ -28,16 +30,25 @@ export default class SpineSprite {
 
   /**
    * The Spine skeleton rendered by this sprite.
+   * @property {Skeleton} skeleton
+   * @public
+   * @readonly
    */
   public readonly skeleton: Skeleton;
 
   /**
    * The animation state applied to the skeleton before rendering.
+   * @property {AnimationState} animationState
+   * @public
+   * @readonly
    */
   public readonly animationState: AnimationState;
 
   /**
    * The reactive geometry shared with other engine elements.
+   * @property {Dimensions} dimensions
+   * @public
+   * @readonly
    */
   public readonly dimensions: Dimensions;
 
