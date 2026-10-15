@@ -115,8 +115,11 @@ export class SpriteAtlas {
    * @return {void}
    */
   public constructor(text: string) {
-    const sections = text.trim().split(/\r?\n\s*\r?\n/);
-    const page = this.parseSection(sections[0] ?? '', 'atlas page');
+    const sections = this.parseSections(text);
+    const page = sections[0] ?? [];
+    if (!page[0]) {
+      throw new Error('A atlas page is missing its name.');
+    }
     const pageValues = this.readProperties(page.slice(1));
     const pageSize = this.readPair(pageValues.get('size'), 'page size');
 
@@ -125,8 +128,7 @@ export class SpriteAtlas {
     this.height = pageSize[1];
     this.animations = new Map();
 
-    sections.slice(1).forEach((section) => {
-      const lines = this.parseSection(section, 'atlas region');
+    sections.slice(1).forEach((lines) => {
       const region = this.parseRegion(lines);
       const frames = this.animations.get(region.name)?.frames ?? [];
 
@@ -139,6 +141,36 @@ export class SpriteAtlas {
         loop: region.loop
       });
     });
+  }
+
+  /**
+   * Groups Spine atlas records by indentation. Page and region names start
+   * unindented; their properties are indented on following lines.
+   * @param text - Raw Spine atlas contents.
+   * @private
+   * @return {string[][]}
+   */
+  private parseSections(text: string): string[][] {
+    const sections: string[][] = [];
+    text.split(/\r?\n/).forEach((line) => {
+      if (!line.trim()) {
+        return;
+      }
+
+      if (!/^\s/.test(line)) {
+        sections.push([line.trim()]);
+        return;
+      }
+
+      const section = sections.at(-1);
+      if (!section) {
+        throw new Error('Atlas properties appeared before the page name.');
+      }
+
+      section.push(line.trim());
+    });
+
+    return sections;
   }
 
   /**
@@ -169,22 +201,6 @@ export class SpriteAtlas {
     }
 
     return animation.frames[0];
-  }
-
-  /**
-   * Splits a Spine atlas section into its name and property lines.
-   * @param section - Text for one page or region block.
-   * @param sectionType - Section label included in parse errors.
-   * @private
-   * @return {string[]}
-   */
-  private parseSection(section: string, sectionType: string): string[] {
-    const lines = section.split(/\r?\n/).map((line) => line.trim());
-    if (!lines[0]) {
-      throw new Error(`A ${sectionType} is missing its name.`);
-    }
-
-    return lines;
   }
 
   /**

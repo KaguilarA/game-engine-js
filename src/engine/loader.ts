@@ -1,3 +1,5 @@
+import { SpriteAtlas } from './sprite-atlas';
+
 const imageModules = import.meta.glob<string>(
   '../assets/*.{png,jpg,jpeg,webp,gif,svg}',
   {
@@ -11,6 +13,12 @@ const audioModules = import.meta.glob<string>('../assets/*.mp3', {
   eager: false,
   import: 'default',
   query: '?url'
+});
+
+const atlasModules = import.meta.glob<string>('../assets/*.atlas', {
+  eager: true,
+  import: 'default',
+  query: '?raw'
 });
 
 /**
@@ -29,6 +37,13 @@ class Loader {
    * @readonly
    */
   private readonly images = new Map<string, HTMLImageElement>();
+  /**
+   * Parsed Spine-format atlases keyed by their PNG asset name.
+   * @property {Map<string, SpriteAtlas>} atlases
+   * @private
+   * @readonly
+   */
+  private readonly atlases = new Map<string, SpriteAtlas>();
   /**
    * Stores the audios state.
    * @property {Map<string, HTMLAudioElement>} audios
@@ -53,6 +68,7 @@ class Loader {
     if (!this.loading) {
       this.loading = Promise.all([
         this.loadImages(),
+        this.loadAtlases(),
         this.loadAudios()
       ]).then(() => undefined).catch((error: unknown) => {
         this.loading = undefined;
@@ -88,6 +104,21 @@ class Loader {
    */
   public hasImage(name: string): boolean {
     return this.images.has(name);
+  }
+
+  /**
+   * Returns a parsed atlas associated with a loaded PNG asset.
+   * @param name - Asset name shared by the PNG and `.atlas` file.
+   * @public
+   * @return {SpriteAtlas}
+   */
+  public getAtlas(name: string): SpriteAtlas {
+    const atlas = this.atlases.get(name);
+    if (!atlas) {
+      throw new Error(`Sprite atlas "${name}.atlas" has not been loaded.`);
+    }
+
+    return atlas;
   }
 
   /**
@@ -158,6 +189,25 @@ class Loader {
         await this.loadAudio(name, url);
       })
     );
+  }
+
+  /**
+   * Parses every Spine-format atlas and validates its page image name.
+   * @private
+   * @return {void}
+   */
+  private async loadAtlases(): Promise<void> {
+    Object.entries(atlasModules).forEach(([path, text]) => {
+      const name = this.getAssetName(path);
+      const atlas = new SpriteAtlas(text);
+      if (atlas.pageName !== `${name}.png`) {
+        throw new Error(
+          `Atlas "${name}.atlas" references "${atlas.pageName}" instead of "${name}.png".`
+        );
+      }
+
+      this.atlases.set(name, atlas);
+    });
   }
 
   private getAssetName(path: string): string {
