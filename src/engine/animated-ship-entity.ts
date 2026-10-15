@@ -1,5 +1,6 @@
 import Sprite from './sprite';
 import { SpriteEntity } from './sprite-entity';
+import type { AtlasAnimation } from './sprite-atlas';
 
 /**
  * Shares animated engine-trail behavior between player ships.
@@ -20,19 +21,17 @@ export abstract class AnimatedShipEntity extends SpriteEntity {
    * @protected
    * @param sprite Ship body sprite.
    * @param jets Animated engine-trail sprite.
-   * @param jetFrameCount Number of frames in the engine-trail animation.
-   * @param jetFrameRate Engine-trail animation speed in frames per second.
+   * @param jetAnimation Atlas clip for the engine-trail animation.
    * @return {void}
    */
   protected constructor(
     sprite: Sprite,
     jets: Sprite,
-    jetFrameCount: number,
-    jetFrameRate = 14
+    jetAnimation: AtlasAnimation
   ) {
     super(sprite);
     this.jets = jets;
-    this.jets.playClip(0, 0, jetFrameCount, jetFrameRate, true);
+    this.jets.playAtlasClip(jetAnimation);
   }
 
   /**

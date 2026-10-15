@@ -1,5 +1,6 @@
 import GameContext from './context';
 import Dimensions from './dimensions';
+import type { AtlasAnimation, AtlasRegion } from './sprite-atlas';
 
 /**
  * Draws an image or sprite-sheet frame using reactive position, size, scale,
@@ -68,6 +69,12 @@ export default class Sprite {
    * @private
    */
   private animationFramesPerRow: number;
+  /**
+   * Stores per-frame atlas bounds when the current clip comes from an atlas.
+   * @property {AtlasRegion[] | undefined} atlasFrames
+   * @private
+   */
+  private atlasFrames: readonly AtlasRegion[] | undefined;
   /**
    * Stores the animation frame rate state.
    * @property {number} animationFrameRate
@@ -228,11 +235,45 @@ export default class Sprite {
     this.animationStart = startFrame;
     this.animationEnd = endFrame;
     this.animationFramesPerRow = frameCount;
+    this.atlasFrames = undefined;
     this.animationLoop = loop;
     this.animationFrameRate = frameRate;
     this.animationPlaying = true;
     this.frameIndex = startFrame;
     this.frameElapsed = 0;
+  }
+
+  /**
+   * Starts a named animation using its frame bounds and playback data from an atlas.
+   * @param animation - Parsed atlas animation with ordered regions.
+   * @public
+   * @return {void}
+   */
+  public playAtlasClip(animation: AtlasAnimation): void {
+    if (animation.frames.length === 0) {
+      throw new RangeError(`Atlas animation "${animation.name}" has no frames.`);
+    }
+
+    this.frameCount = animation.frames.length;
+    this.atlasFrames = animation.frames;
+
+    if (animation.frames.length === 1) {
+      this.animationStart = 0;
+      this.animationEnd = 0;
+      this.animationLoop = false;
+      this.animationPlaying = false;
+      this.frameIndex = 0;
+      this.frameElapsed = 0;
+      return;
+    }
+
+    this.play(
+      0,
+      animation.frames.length,
+      animation.frameRate,
+      animation.loop
+    );
+    this.atlasFrames = animation.frames;
   }
 
   /**
@@ -310,11 +351,14 @@ export default class Sprite {
     const pivotY = this.dimensions.getPivotY();
     const originX = pivotX === 0 ? 0 : -width * pivotX;
     const originY = pivotY === 0 ? 0 : -height * pivotY;
+    const atlasFrame = this.atlasFrames?.[this.frameIndex];
     const framesPerRow = Math.max(1, this.animationFramesPerRow);
-    const frameSourceX = this.sourceX
+    const frameSourceX = atlasFrame?.x ?? this.sourceX
       + (this.frameIndex % framesPerRow) * (this.sourceWidth ?? 0);
-    const frameSourceY = this.sourceY
+    const frameSourceY = atlasFrame?.y ?? this.sourceY
       + Math.floor(this.frameIndex / framesPerRow) * (this.sourceHeight ?? 0);
+    const sourceWidth = atlasFrame?.width ?? this.sourceWidth;
+    const sourceHeight = atlasFrame?.height ?? this.sourceHeight;
 
     drawingContext.save();
 
@@ -329,13 +373,13 @@ export default class Sprite {
         this.dimensions.getScaleY()
       );
 
-      if (this.sourceWidth !== undefined && this.sourceHeight !== undefined) {
+      if (sourceWidth !== undefined && sourceHeight !== undefined) {
         drawingContext.drawImage(
           this.image,
           frameSourceX,
           frameSourceY,
-          this.sourceWidth,
-          this.sourceHeight,
+          sourceWidth,
+          sourceHeight,
           originX,
           originY,
           width,
