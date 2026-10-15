@@ -17,7 +17,7 @@ function assertNonNegativeDimension(value: number, name: string): void {
 /**
  * Reactive geometry model shared by resizable engine elements.
  *
- * @class
+ * @class Dimensions
  * @remarks
  * Stores an element's position, unscaled size, scale, pivot, and aspect-ratio
  * state. `x` and `y` identify the pivot position, so they are not necessarily
@@ -47,103 +47,172 @@ export default class Dimensions {
    * The unscaled horizontal position.
    *
    * @private
+   * @property {Signal} x
+   * @private
+   * @readonly
    */
   private readonly x = signalValue(0);
   /**
    * The unscaled vertical position.
    *
    * @private
+   * @property {Signal} y
+   * @private
+   * @readonly
    */
   private readonly y = signalValue(0);
   /**
    * The unscaled width.
    *
    * @private
+   * @property {Signal} width
+   * @private
+   * @readonly
    */
   private readonly width = signalValue(0);
   /**
    * The unscaled height.
    *
    * @private
+   * @property {Signal} height
+   * @private
+   * @readonly
    */
   private readonly height = signalValue(0);
   /**
    * The horizontal scale factor.
    *
    * @private
+   * @property {Signal} scaleX
+   * @private
+   * @readonly
    */
   private readonly scaleX = signalValue(1);
   /**
    * The vertical scale factor.
    *
    * @private
+   * @property {Signal} scaleY
+   * @private
+   * @readonly
    */
   private readonly scaleY = signalValue(1);
   /**
    * The horizontal pivot ratio.
    *
    * @private
+   * @property {Signal} pivotX
+   * @private
+   * @readonly
    */
   private readonly pivotX = signalValue(0);
   /**
    * The vertical pivot ratio.
    *
    * @private
+   * @property {Signal} pivotY
+   * @private
+   * @readonly
    */
   private readonly pivotY = signalValue(0);
   /**
    * Whether width and height updates preserve the current aspect ratio.
    *
    * @private
+   * @property {Signal} lockAspectRatio
+   * @private
+   * @readonly
    */
   private readonly lockAspectRatio = signalValue(false);
   /**
    * The width-to-height ratio used when aspect-ratio locking is enabled.
    *
    * @private
+   * @property {Signal} aspectRatio
+   * @private
+   * @readonly
    */
   private readonly aspectRatio = signalValue(0);
 
   /**
-   * @returns The current horizontal position.
+   * Reads the current horizontal pivot position.
+   *
+   * @property {() => number} getX
+   * @public
+   * @readonly
    */
   public readonly getX = (): number => this.x();
   /**
-   * @returns The current vertical position.
+   * Reads the current vertical pivot position.
+   *
+   * @public
+   * @property {() => number} getY
+   * @readonly
    */
   public readonly getY = (): number => this.y();
   /**
-   * @returns The current unscaled width.
+   * Reads the current unscaled width.
+   *
+   * @public
+   * @property {() => number} getWidth
+   * @readonly
    */
   public readonly getWidth = (): number => this.width();
   /**
-   * @returns The current unscaled height.
+   * Reads the current unscaled height.
+   *
+   * @public
+   * @property {() => number} getHeight
+   * @readonly
    */
   public readonly getHeight = (): number => this.height();
   /**
-   * @returns The current horizontal scale factor.
+   * Reads the current horizontal scale factor.
+   *
+   * @public
+   * @property {() => number} getScaleX
+   * @readonly
    */
   public readonly getScaleX = (): number => this.scaleX();
   /**
-   * @returns The current vertical scale factor.
+   * Reads the current vertical scale factor.
+   *
+   * @public
+   * @property {() => number} getScaleY
+   * @readonly
    */
   public readonly getScaleY = (): number => this.scaleY();
   /**
-   * @returns The current horizontal pivot ratio.
+   * Reads the horizontal pivot ratio used for bounds calculations.
+   *
+   * @public
+   * @property {() => number} getPivotX
+   * @readonly
    */
   public readonly getPivotX = (): number => this.pivotX();
   /**
-   * @returns The current vertical pivot ratio.
+   * Reads the vertical pivot ratio used for bounds calculations.
+   *
+   * @public
+   * @property {() => number} getPivotY
+   * @readonly
    */
   public readonly getPivotY = (): number => this.pivotY();
   /**
-   * @returns The current width-to-height aspect ratio, or `0` when either
+   * Reads the current width-to-height ratio. The value is `0` if either
    * dimension is zero.
+   *
+   * @public
+   * @property {() => number} getAspectRatio
+   * @readonly
    */
   public readonly getAspectRatio = (): number => this.aspectRatio();
 
   /**
-   * The current width after applying the horizontal scale.
+   * The current width after applying the absolute horizontal scale.
+   * @property {() => number} scaledWidth
+   * @public
+   * @readonly
    */
   public readonly scaledWidth = computedValue(
     () => this.width() * Math.abs(this.scaleX()),
@@ -151,7 +220,10 @@ export default class Dimensions {
   );
 
   /**
-   * The current height after applying the vertical scale.
+   * The current height after applying the absolute vertical scale.
+   * @property {() => number} scaledHeight
+   * @public
+   * @readonly
    */
   public readonly scaledHeight = computedValue(
     () => this.height() * Math.abs(this.scaleY()),
@@ -159,7 +231,10 @@ export default class Dimensions {
   );
 
   /**
-   * The scaled area of the element.
+   * The area calculated from the scaled width and height.
+   * @property {() => number} area
+   * @public
+   * @readonly
    */
   public readonly area = computedValue(
     () => this.scaledWidth() * this.scaledHeight(),
@@ -168,6 +243,9 @@ export default class Dimensions {
 
   /**
    * The left edge of the element's axis-aligned bounding box.
+   * @property {() => number} left
+   * @public
+   * @readonly
    */
   public readonly left = computedValue(
     () => this.x() - this.scaledWidth() * this.pivotX(),
@@ -176,6 +254,9 @@ export default class Dimensions {
 
   /**
    * The right edge of the element's axis-aligned bounding box.
+   * @property {() => number} right
+   * @public
+   * @readonly
    */
   public readonly right = computedValue(
     () => this.x() + this.scaledWidth() * (1 - this.pivotX()),
@@ -184,6 +265,9 @@ export default class Dimensions {
 
   /**
    * The top edge of the element's axis-aligned bounding box.
+   * @property {() => number} top
+   * @public
+   * @readonly
    */
   public readonly top = computedValue(
     () => this.y() - this.scaledHeight() * this.pivotY(),
@@ -192,6 +276,9 @@ export default class Dimensions {
 
   /**
    * The bottom edge of the element's axis-aligned bounding box.
+   * @property {() => number} bottom
+   * @public
+   * @readonly
    */
   public readonly bottom = computedValue(
     () => this.y() + this.scaledHeight() * (1 - this.pivotY()),
@@ -283,6 +370,8 @@ export default class Dimensions {
    * Updates the horizontal position.
    *
    * @param x - The new horizontal position.
+   * @public
+   * @return {void}
    */
   public setX(x: number): void {
     assertFiniteNumber(x, 'x');
@@ -293,6 +382,8 @@ export default class Dimensions {
    * Updates the vertical position.
    *
    * @param y - The new vertical position.
+   * @public
+   * @return {void}
    */
   public setY(y: number): void {
     assertFiniteNumber(y, 'y');
@@ -304,6 +395,8 @@ export default class Dimensions {
    *
    * @param x - The new horizontal position.
    * @param y - The new vertical position.
+   * @public
+   * @return {void}
    */
   public setPosition(x: number, y: number): void {
     assertFiniteNumber(x, 'x');
@@ -317,6 +410,8 @@ export default class Dimensions {
    * aspect ratio.
    *
    * @param width - The new unscaled width.
+   * @public
+   * @return {void}
    */
   public setWidth(width: number): void {
     assertNonNegativeDimension(width, 'width');
@@ -335,6 +430,8 @@ export default class Dimensions {
    * aspect ratio.
    *
    * @param height - The new unscaled height.
+   * @public
+   * @return {void}
    */
   public setHeight(height: number): void {
     assertNonNegativeDimension(height, 'height');
@@ -357,6 +454,8 @@ export default class Dimensions {
    *
    * @param width - The new unscaled width.
    * @param height - The new unscaled height when aspect-ratio locking is off.
+   * @public
+   * @return {void}
    */
   public setSize(width: number, height: number): void {
     assertNonNegativeDimension(width, 'width');
@@ -381,6 +480,8 @@ export default class Dimensions {
    *
    * @param scaleX - The horizontal scale factor.
    * @param scaleY - The vertical scale factor. Defaults to `scaleX`.
+   * @public
+   * @return {void}
    */
   public setScale(scaleX: number, scaleY: number = scaleX): void {
     assertFiniteNumber(scaleX, 'scaleX');
@@ -394,6 +495,8 @@ export default class Dimensions {
    *
    * @param pivotX - The horizontal ratio: `0` is left and `1` is right.
    * @param pivotY - The vertical ratio: `0` is top and `1` is bottom.
+   * @public
+   * @return {void}
    */
   public setPivot(pivotX: number, pivotY: number): void {
     assertFiniteNumber(pivotX, 'pivotX');
@@ -411,6 +514,8 @@ export default class Dimensions {
    * width and height establish a ratio.
    *
    * @param lock - `true` to enable aspect-ratio locking.
+   * @public
+   * @return {void}
    */
   public setLockAspectRatio(lock: boolean): void {
     if (typeof lock !== 'boolean') {

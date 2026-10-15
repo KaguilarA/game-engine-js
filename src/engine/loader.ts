@@ -19,10 +19,28 @@ const audioModules = import.meta.glob<string>('../assets/*.mp3', {
  * @remarks
  * Asset names are their filenames without extensions. For example,
  * `src/assets/player.png` is available as `player`.
+ * @class Loader
  */
 class Loader {
+  /**
+   * Stores the images state.
+   * @property {Map<string, HTMLImageElement>} images
+   * @private
+   * @readonly
+   */
   private readonly images = new Map<string, HTMLImageElement>();
+  /**
+   * Stores the audios state.
+   * @property {Map<string, HTMLAudioElement>} audios
+   * @private
+   * @readonly
+   */
   private readonly audios = new Map<string, HTMLAudioElement>();
+  /**
+   * Stores the loading state.
+   * @property {Promise<void> | undefined} loading
+   * @private
+   */
   private loading: Promise<void> | undefined;
 
   /**
