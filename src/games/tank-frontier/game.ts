@@ -1038,7 +1038,11 @@ export class TankFrontierGame extends BaseGame {
       'right',
       dimensions.getWidth() * 0.35
     );
-    const size = Math.max(14, Math.min(unit * 0.042, 30));
+    const portrait = GameContext.isPortrait;
+    const size = Math.max(
+      12,
+      Math.min(unit * 0.042, portrait ? 22 : 30)
+    );
     const spacing = size * 1.2;
     const x = Math.max(12, unit * 0.055) + size * 0.5;
     const y = Math.max(size + 14, unit * 0.16);

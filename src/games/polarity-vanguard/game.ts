@@ -358,7 +358,7 @@ export class PolarityVanguardGame extends BaseGame {
    * @return {void}
    */
   protected drawGame(): void {
-    const hudScale = GameContext.isPortrait ? 1.2 : 1;
+    const hudScale = GameContext.isPortrait ? 0.9 : 1;
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
     GameContext.clear();
@@ -382,7 +382,7 @@ export class PolarityVanguardGame extends BaseGame {
     GameContext.drawText(
       `CHAIN ${this.chain}`,
       30 * hudScale,
-      126 * hudScale,
+      (GameContext.isPortrait ? 132 : 126) * hudScale,
       Math.max(12, Math.min(unit * 0.028, 18)) * hudScale,
       '#ffffff',
       'left',
@@ -391,7 +391,7 @@ export class PolarityVanguardGame extends BaseGame {
     GameContext.drawText(
       `ABSORB ${this.absorbedShots}`,
       30 * hudScale,
-      156 * hudScale,
+      (GameContext.isPortrait ? 160 : 156) * hudScale,
       Math.max(12, Math.min(unit * 0.028, 18)) * hudScale,
       '#ffffff',
       'left',
@@ -468,10 +468,10 @@ export class PolarityVanguardGame extends BaseGame {
    * @return {void}
    */
   private drawLives(): void {
-    const x = GameContext.isPortrait ? 42 : 32;
-    const y = GameContext.isPortrait ? 112 : 80;
-    const spacing = GameContext.isPortrait ? 50 : 30;
-    const size = GameContext.isPortrait ? 46 : 26;
+    const x = GameContext.isPortrait ? 30 : 32;
+    const y = GameContext.isPortrait ? 90 : 80;
+    const spacing = GameContext.isPortrait ? 28 : 30;
+    const size = GameContext.isPortrait ? 22 : 26;
 
     for (let index = 0; index < 3; index++) {
       const icon = index < this.lives()
@@ -520,9 +520,9 @@ export class PolarityVanguardGame extends BaseGame {
   }
 
   /**
-   * Returns the position reserved for the extra polarity control.
+   * Places polarity directly above the shared fire button.
    * @private
-   * @return {void}
+   * @return {{ polarity: TouchControlCircle }} The polarity button bounds.
    */
   private getTouchControlsLayout(): {
     polarity: TouchControlCircle;
@@ -530,8 +530,8 @@ export class PolarityVanguardGame extends BaseGame {
     const { shoot } = this.touchControls.layout;
     return {
       polarity: {
-        x: GameContext.gameDimensionsModel.getWidth() * 0.78,
-        y: shoot.y,
+        x: shoot.x,
+        y: shoot.y - shoot.radius * 2 - Math.max(8, shoot.radius * 0.35),
         radius: shoot.radius
       }
     };

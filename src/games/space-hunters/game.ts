@@ -298,9 +298,9 @@ export class Game extends BaseGame {
     for (let index = 0; index < 3; index++) {
       this.drawCenteredIcon(
         index < activeLives ? this.fullHeartIcon : this.emptyHeartIcon,
-        livesX + index * (GameContext.isPortrait ? 50 : 30),
+        livesX + index * (GameContext.isPortrait ? 28 : 30),
         livesY,
-        GameContext.isPortrait ? 46 : 26
+        GameContext.isPortrait ? 22 : 26
       );
     }
 
