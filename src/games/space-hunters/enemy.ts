@@ -1,75 +1,106 @@
 import Sprite from '../../engine/sprite';
 import GameLoader from '../../engine/loader';
 import { Health } from '../../engine/health';
+import { SpriteEntity } from '../../engine/sprite-entity';
+import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 /**
  * A single invader in the game's enemy formation.
+ * @class Enemy
  */
-export class Enemy {
-  private readonly sprite: Sprite;
+export class Enemy extends SpriteEntity {
+  /**
+   * Stores the health state.
+   * @property {Health} health
+   * @private
+   * @readonly
+   */
   private readonly health: Health;
+  /**
+   * Stores the is impacting state.
+   * @property {boolean} isImpacting
+   * @private
+   */
   private isImpacting = false;
+  /**
+   * Stores the source y state.
+   * @property {number} sourceY
+   * @private
+   * @readonly
+   */
+  private readonly sourceY: number;
 
+  /**
+   * Stores the points state.
+   * @property {number} points
+   * @public
+   * @readonly
+   */
   public readonly points: number;
+  /**
+   * Stores the is alive state.
+   * @property {boolean} isAlive
+   * @public
+   */
   public isAlive = true;
 
+  /**
+   * Reports whether the enemy's health has been depleted.
+   * @public
+   * @return {boolean}
+   */
   public get isDefeated(): boolean {
     return this.health.isDepleted;
   }
 
-  public get x(): number {
-    return this.sprite.dimensions.getX();
-  }
-
-  public get y(): number {
-    return this.sprite.dimensions.getY();
-  }
-
-  public get width(): number {
-    return this.sprite.dimensions.getWidth();
-  }
-
-  public get height(): number {
-    return this.sprite.dimensions.getHeight();
-  }
-
-  public get dimensions() {
-    return this.sprite.dimensions;
-  }
-
+  /**
+   * Creates an invader using the selected sprite row and combat stats.
+   * @public
+   * @return {void}
+   */
   constructor(
     x: number,
     y: number,
     sourceY: number,
     points: number,
-    maximumHealth = 1
+    maximumHealth = 1,
+    width = 72,
+    height = 64
   ) {
-    this.points = points;
-    this.health = new Health(maximumHealth);
-    this.sprite = new Sprite(
+    const sheet = getSpriteSheet('eaglemorph');
+    super(new Sprite(
       GameLoader.getImage('eaglemorph'),
-      72,
-      64,
+      width,
+      height,
       x,
       y,
       0,
       0,
       0,
       sourceY,
-      80,
-      80,
-      8
-    );
+      sheet.frameWidth,
+      sheet.frameHeight,
+      sheet.animationFrames
+    ));
+    this.sourceY = sourceY;
+    this.points = points;
+    this.health = new Health(maximumHealth);
+    this.sprite.playClip(0, sourceY, sheet.animationFrames, 7, true);
   }
 
-  public draw(): void {
+  public override draw(): void {
     if (this.isAlive) {
       this.sprite.draw();
     }
   }
 
+  /**
+   * Advances the idle or impact animation and resolves its completion.
+   * @public
+   * @return {void}
+   */
   public update(deltaSeconds: number): void {
-    this.sprite.update(deltaSeconds);
+    this.updateSprite(deltaSeconds);
 
     if (this.isImpacting && !this.sprite.isAnimationPlaying) {
       this.isImpacting = false;
@@ -77,15 +108,16 @@ export class Enemy {
       if (this.health.isDepleted) {
         this.isAlive = false;
       } else {
-        this.sprite.setFrame(0);
+        this.sprite.playClip(0, this.sourceY, 4, 7, true);
       }
     }
   }
 
-  public moveBy(x: number, y: number): void {
-    this.sprite.dimensions.setPosition(this.x + x, this.y + y);
-  }
-
+  /**
+   * Applies a rectangular projectile hit and starts the impact animation.
+   * @public
+   * @return {boolean} Whether the projectile overlapped the enemy.
+   */
   public hit(
     x: number,
     y: number,
@@ -109,9 +141,11 @@ export class Enemy {
       if (!damage.wasDamaged) return false;
 
       this.isImpacting = true;
-      this.sprite.play(
-        damage.isDepleted ? 4 : 1,
-        damage.isDepleted ? 4 : 3,
+      const sheet = getSpriteSheet('eaglemorph');
+      this.sprite.playClip(
+        sheet.explosionX ?? 320,
+        this.sourceY,
+        sheet.explosionFrames ?? 5,
         14
       );
     }
