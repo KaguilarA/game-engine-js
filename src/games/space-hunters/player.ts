@@ -6,7 +6,6 @@ import GameLoader from '../../engine/loader';
 import { AnimatedShipEntity } from '../../engine/animated-ship-entity';
 import { Health } from '../../engine/health';
 import Sprite from '../../engine/sprite';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 type PlayerAnimation = 'idle' | 'moving' | 'shooting';
 
@@ -54,35 +53,22 @@ export class Player extends AnimatedShipEntity {
    * @return {void}
    */
   constructor(width = 70, height = 50) {
-    const jetSheet = getSpriteSheet('player_jets');
+    const shipAtlas = GameLoader.getAtlas('player');
+    const jetAtlas = GameLoader.getAtlas('player_jets');
     super(new Sprite(
       GameLoader.getImage('player'),
       width,
       height,
       0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      140,
-      120,
-      4,
-      8
+      0
     ), new Sprite(
       GameLoader.getImage('player_jets'),
       width,
       height,
       0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      jetSheet.frameWidth,
-      jetSheet.frameHeight,
-      jetSheet.animationFrames
-    ), jetSheet.animationFrames);
+      0
+    ), jetAtlas.getAnimation('idle'));
+    this.sprite.playAtlasClip(shipAtlas.getAnimation('idle'));
     const gameDimensions = GameContext.gameDimensionsModel;
 
     this.sprite.dimensions.setPosition(
@@ -184,14 +170,9 @@ export class Player extends AnimatedShipEntity {
       )
     ) {
       this.animation = nextAnimation;
-
-      if (nextAnimation === 'idle') {
-        this.sprite.setFrame(0);
-      } else if (nextAnimation === 'moving') {
-        this.sprite.play(1, 2, 8, true);
-      } else {
-        this.sprite.play(2, 2, 12);
-      }
+      this.sprite.playAtlasClip(
+        GameLoader.getAtlas('player').getAnimation(nextAnimation)
+      );
     }
 
     this.sprite.update(deltaSeconds);

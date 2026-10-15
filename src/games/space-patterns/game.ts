@@ -3,7 +3,6 @@ import GameEvents from '../../engine/events';
 import type { GamePointer } from '../../engine/events';
 import { BaseGame } from '../../engine/base-game';
 import GameLoader from '../../engine/loader';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 import type { BoardCell } from './board';
 import { PatternBoard } from './board';
@@ -357,6 +356,8 @@ export class SpacePatternsGame extends BaseGame {
     isSelected = false
   ): void {
     const icon = PATTERN_ICONS[pattern];
+    const region = GameLoader.getAtlas(icon.imageName)
+      .getRegion(icon.regionName);
     GameContext.drawRect(
       x - 3,
       y - 3,
@@ -366,10 +367,10 @@ export class SpacePatternsGame extends BaseGame {
     );
     GameContext.context.drawImage(
       GameLoader.getImage(icon.imageName),
-      icon.sourceX,
-      icon.sourceY,
-      icon.sourceWidth,
-      icon.sourceHeight,
+      region.x,
+      region.y,
+      region.width,
+      region.height,
       x + 4,
       y + 4,
       tileSize - 8,
@@ -428,23 +429,23 @@ export class SpacePatternsGame extends BaseGame {
 
     const layout = this.getBoardLayout();
     const explosion = GameLoader.getImage('boss');
-    const sheet = getSpriteSheet('boss');
+    const animation = GameLoader.getAtlas('boss').getAnimation('explosion');
     const frame = Math.min(
-      (sheet.explosionFrames ?? 1) - 1,
-      Math.floor(this.explosionElapsed * 12)
+      animation.frames.length - 1,
+      Math.floor(this.explosionElapsed * animation.frameRate)
     );
 
     this.resolutionMatches.forEach((cell) => {
       const x = layout.originX + cell.column * layout.tileSize;
       const y = layout.originY + cell.row * layout.tileSize;
 
+      const region = animation.frames[frame];
       GameContext.context.drawImage(
         explosion,
-        (sheet.explosionX ?? sheet.frameWidth * sheet.animationFrames)
-          + frame * sheet.frameWidth,
-        0,
-        sheet.frameWidth,
-        sheet.frameHeight,
+        region.x,
+        region.y,
+        region.width,
+        region.height,
         x,
         y,
         layout.tileSize,
@@ -579,8 +580,8 @@ export class SpacePatternsGame extends BaseGame {
     if (this.resolutionState !== 'exploding') return;
 
     this.explosionElapsed += deltaSeconds;
-    const explosionFrames = getSpriteSheet('boss').explosionFrames ?? 1;
-    if (this.explosionElapsed < explosionFrames / 12) return;
+    const explosion = GameLoader.getAtlas('boss').getAnimation('explosion');
+    if (this.explosionElapsed < explosion.frames.length / explosion.frameRate) return;
 
     this.board.collapse(this.resolutionMatches);
     const matches = this.board.findCurrentMatches();

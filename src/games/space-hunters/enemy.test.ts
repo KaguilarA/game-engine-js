@@ -8,7 +8,28 @@ const { drawImage } = vi.hoisted(() => ({
 
 vi.mock('../../engine/loader', () => ({
   default: {
-    getImage: vi.fn(() => ({}))
+    getImage: vi.fn(() => ({})),
+    getAtlas: vi.fn(() => ({
+      getAnimation: (name: string) => {
+        const isExplosion = name.startsWith('explosion-row-');
+        const row = name.endsWith('row-1') ? 80 : 0;
+        const frameCount = isExplosion ? 5 : 4;
+
+        return {
+          name,
+          frameRate: isExplosion ? 14 : 7,
+          loop: !isExplosion,
+          frames: Array.from({ length: frameCount }, (_, index) => ({
+            name,
+            index,
+            x: isExplosion ? 320 + index * 80 : index * 80,
+            y: row,
+            width: 80,
+            height: 80
+          }))
+        };
+      }
+    }))
   }
 }));
 
@@ -26,7 +47,7 @@ vi.mock('../../engine/context', () => ({
 
 describe('Enemy', () => {
   it('crops the enemy sheet using complete 80 by 80 cells', () => {
-    const enemy = new Enemy(10, 10, 80, 30);
+    const enemy = new Enemy(10, 10, 1, 30);
 
     enemy.draw();
 

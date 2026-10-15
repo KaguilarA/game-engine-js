@@ -1,7 +1,6 @@
 import GameLoader from '../../engine/loader';
 import Sprite from '../../engine/sprite';
 import { SpriteEntity } from '../../engine/sprite-entity';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 import type { Polarity } from './polarity';
 
@@ -18,12 +17,12 @@ export class PolarityVanguardEnemy extends SpriteEntity {
    */
   private readonly phase: number;
   /**
-   * Stores the source y state.
-   * @property {number} sourceY
+   * Variant row used to select idle and explosion clips from the atlas.
+   * @property {number} atlasRow
    * @private
    * @readonly
    */
-  private readonly sourceY: number;
+  private readonly atlasRow: number;
   /**
    * Stores the elapsed state.
    * @property {number} elapsed
@@ -65,8 +64,8 @@ export class PolarityVanguardEnemy extends SpriteEntity {
     width = 72,
     height = 64
   ) {
-    const sheet = getSpriteSheet('eaglemorph');
-    const sourceY = (phase % sheet.rows) * sheet.frameHeight;
+    const atlas = GameLoader.getAtlas('eaglemorph');
+    const atlasRow = phase % 4;
     super(new Sprite(
       GameLoader.getImage('eaglemorph'),
       width,
@@ -74,17 +73,12 @@ export class PolarityVanguardEnemy extends SpriteEntity {
       x,
       y,
       0.5,
-      0.5,
-      0,
-      sourceY,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames
+      0.5
     ));
     this.polarity = polarity;
     this.phase = phase;
-    this.sourceY = sourceY;
-    this.sprite.playClip(0, sourceY, sheet.animationFrames, 8, true);
+    this.atlasRow = atlasRow;
+    this.sprite.playAtlasClip(atlas.getAnimation(`idle-row-${atlasRow}`));
   }
 
   /**
@@ -124,13 +118,10 @@ export class PolarityVanguardEnemy extends SpriteEntity {
    */
   public defeat(): void {
     if (!this.active || this.dying) return;
-    const sheet = getSpriteSheet('eaglemorph');
     this.dying = true;
-    this.sprite.playClip(
-      sheet.explosionX ?? 320,
-      this.sourceY,
-      sheet.explosionFrames ?? 5,
-      14
+    this.sprite.playAtlasClip(
+      GameLoader.getAtlas('eaglemorph')
+        .getAnimation(`explosion-row-${this.atlasRow}`)
     );
   }
 

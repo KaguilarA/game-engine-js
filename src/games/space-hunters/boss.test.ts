@@ -8,7 +8,30 @@ const { drawImage } = vi.hoisted(() => ({
 
 vi.mock('../../engine/loader', () => ({
   default: {
-    getImage: vi.fn(() => ({}))
+    getImage: vi.fn(() => ({})),
+    getAtlas: vi.fn(() => ({
+      getAnimation: (name: string) => {
+        const isExplosion = name.startsWith('explosion-');
+        const row = name.endsWith('aegis-core') ? 400
+          : name.endsWith('void-empress') ? 800
+            : 0;
+        const frameCount = isExplosion ? 5 : 6;
+
+        return {
+          name,
+          frameRate: isExplosion ? 14 : 7,
+          loop: !isExplosion,
+          frames: Array.from({ length: frameCount }, (_, index) => ({
+            name,
+            index,
+            x: isExplosion ? 1200 + index * 200 : index * 200,
+            y: row,
+            width: 200,
+            height: 200
+          }))
+        };
+      }
+    }))
   }
 }));
 

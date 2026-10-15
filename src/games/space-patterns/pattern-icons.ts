@@ -6,29 +6,11 @@ export interface PatternIcon {
    */
   imageName: string;
   /**
-   * Height of one source animation frame.
-   * @property {number} sourceHeight
+   * Name of the static region in the sprite's atlas.
+   * @property {string} regionName
    * @public
    */
-  sourceHeight: number;
-  /**
-   * Width of one source animation frame.
-   * @property {number} sourceWidth
-   * @public
-   */
-  sourceWidth: number;
-  /**
-   * Horizontal offset of the first displayed frame.
-   * @property {number} sourceX
-   * @public
-   */
-  sourceX: number;
-  /**
-   * Vertical offset of the first displayed frame.
-   * @property {number} sourceY
-   * @public
-   */
-  sourceY: number;
+  regionName: string;
 }
 
 /**
@@ -37,44 +19,26 @@ export interface PatternIcon {
 export const PATTERN_ICONS: readonly PatternIcon[] = [
   {
     imageName: 'beetlemorph',
-    sourceHeight: 100,
-    sourceWidth: 100,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   },
   {
     imageName: 'eaglemorph',
-    sourceHeight: 80,
-    sourceWidth: 80,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   },
   {
     imageName: 'lobstermorph',
-    sourceHeight: 100,
-    sourceWidth: 100,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   },
   {
     imageName: 'phantommorph',
-    sourceHeight: 100,
-    sourceWidth: 100,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   },
   {
     imageName: 'rhinomorph',
-    sourceHeight: 80,
-    sourceWidth: 80,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   },
   {
     imageName: 'squidmorph',
-    sourceHeight: 80,
-    sourceWidth: 80,
-    sourceX: 0,
-    sourceY: 0
+    regionName: 'icon'
   }
 ];

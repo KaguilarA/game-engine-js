@@ -2,7 +2,6 @@ import GameLoader from '../../engine/loader';
 import { Health } from '../../engine/health';
 import Sprite from '../../engine/sprite';
 import { SpriteEntity } from '../../engine/sprite-entity';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 /**
  * Available boss encounters, each with its own health and attack phases.
@@ -57,6 +56,13 @@ export class Boss extends SpriteEntity {
    * @private
    */
   private destructionPlaying = false;
+  /**
+   * Named atlas clip associated with this boss type.
+   * @property {string} atlasClipName
+   * @private
+   * @readonly
+   */
+  private readonly atlasClipName: string;
 
   /**
    * Stores the type state.
@@ -142,8 +148,12 @@ export class Boss extends SpriteEntity {
     height?: number
   ) {
     const imageName = 'boss8';
-    const sourceY = type === 1 ? 0 : type === 2 ? 400 : 800;
-    const sheet = getSpriteSheet(imageName);
+    const atlas = GameLoader.getAtlas(imageName);
+    const atlasClipName = type === 1
+      ? 'boss-hive-mother'
+      : type === 2
+        ? 'boss-aegis-core'
+        : 'boss-void-empress';
     const defaultWidth = type === 1 ? 190 : 180;
     const defaultHeight = defaultWidth;
 
@@ -154,16 +164,12 @@ export class Boss extends SpriteEntity {
       x,
       y,
       0.5,
-      0.5,
-      0,
-      sourceY,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames + (sheet.explosionFrames ?? 0)
+      0.5
     ));
     this.type = type;
+    this.atlasClipName = atlasClipName;
     this.health = new Health(type === 1 ? 12 : type === 2 ? 18 : 24);
-    this.sprite.playClip(0, sourceY, sheet.animationFrames, 7, true);
+    this.sprite.playAtlasClip(atlas.getAnimation(atlasClipName));
   }
 
   /**
@@ -236,12 +242,10 @@ export class Boss extends SpriteEntity {
 
     if (damage.isDepleted) {
       this.destructionPlaying = true;
-      const sheet = getSpriteSheet('boss8');
-      this.sprite.playClip(
-        sheet.explosionX ?? sheet.frameWidth * sheet.animationFrames,
-        this.type === 3 ? 800 : 0,
-        sheet.explosionFrames ?? 4,
-        14
+      this.sprite.playAtlasClip(
+        GameLoader.getAtlas('boss8').getAnimation(
+          `explosion-${this.atlasClipName.slice(5)}`
+        )
       );
     }
 

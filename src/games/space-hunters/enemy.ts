@@ -2,7 +2,6 @@ import Sprite from '../../engine/sprite';
 import GameLoader from '../../engine/loader';
 import { Health } from '../../engine/health';
 import { SpriteEntity } from '../../engine/sprite-entity';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 /**
  * Enemy sprite sheets supported by Space Hunters formations.
@@ -28,12 +27,12 @@ export class Enemy extends SpriteEntity {
    */
   private isImpacting = false;
   /**
-   * Source row used by the selected enemy sheet.
-   * @property {number} sourceY
+   * Variant row used when this enemy sheet has directional clips.
+   * @property {number} atlasRow
    * @private
    * @readonly
    */
-  private readonly sourceY: number;
+  private readonly atlasRow: number;
   /**
    * Sprite sheet that provides this enemy's animation frames.
    * @property {EnemyKind} imageName
@@ -69,7 +68,7 @@ export class Enemy extends SpriteEntity {
    * Creates an invader with its selected sprite sheet and combat stats.
    * @param x - Horizontal position of the enemy.
    * @param y - Vertical position of the enemy.
-   * @param sourceY - Source row for the legacy eagle enemy sheet.
+   * @param atlasRow - Variant row for the eagle enemy atlas.
    * @param points - Score awarded on defeat.
    * @param maximumHealth - Number of hits required to defeat the enemy.
    * @param width - Rendered enemy width.
@@ -81,40 +80,33 @@ export class Enemy extends SpriteEntity {
   constructor(
     x: number,
     y: number,
-    sourceY: number,
+    atlasRow: number,
     points: number,
     maximumHealth = 1,
     width = 72,
     height = 64,
     imageName: EnemyKind = 'eaglemorph'
   ) {
-    const sheet = getSpriteSheet(imageName);
-    const initialRow = imageName === 'eaglemorph' ? sourceY : 0;
+    const atlas = GameLoader.getAtlas(imageName);
+    const selectedRow = imageName === 'eaglemorph' ? atlasRow : 0;
 
     super(new Sprite(
       GameLoader.getImage(imageName),
       width,
       height,
       x,
-      y,
-      0,
-      0,
-      0,
-      initialRow,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames
+      y
     ));
-    this.sourceY = initialRow;
+    this.atlasRow = selectedRow;
     this.imageName = imageName;
     this.points = points;
     this.health = new Health(maximumHealth);
-    this.sprite.playClip(
-      0,
-      initialRow,
-      imageName === 'lobstermorph' ? 3 : sheet.animationFrames,
-      7,
-      true
+    this.sprite.playAtlasClip(
+      atlas.getAnimation(
+        imageName === 'eaglemorph'
+          ? `idle-row-${selectedRow}`
+          : 'idle'
+      )
     );
   }
 
@@ -191,23 +183,18 @@ export class Enemy extends SpriteEntity {
    * @return {void}
    */
   private showDamageState(): void {
-    const sheet = getSpriteSheet(this.imageName);
+    const atlas = GameLoader.getAtlas(this.imageName);
     const damageTaken = this.health.maximum - this.health.current;
 
     if (this.imageName === 'rhinomorph') {
-      this.sprite.playClip(
-        0,
-        sheet.frameHeight * 2,
-        sheet.animationFrames,
-        7,
-        true
-      );
+      this.sprite.playAtlasClip(atlas.getAnimation('cracked'));
       return;
     }
 
     if (this.imageName === 'lobstermorph') {
-      this.sprite.playClip(0, this.sourceY, sheet.animationFrames, 7, true);
-      this.sprite.setFrame(Math.min(sheet.animationFrames - 1, damageTaken * 3));
+      this.sprite.playAtlasClip(
+        atlas.getAnimation(damageTaken === 1 ? 'swollen-1' : 'swollen-2')
+      );
     }
   }
 
@@ -217,27 +204,11 @@ export class Enemy extends SpriteEntity {
    * @return {void}
    */
   private playDestructionAnimation(): void {
-    const sheet = getSpriteSheet(this.imageName);
-    const explosionX = sheet.explosionX
-      ?? sheet.frameWidth * sheet.animationFrames;
-
-    if (this.imageName === 'beetlemorph' || this.imageName === 'rhinomorph') {
-      this.sprite.playClip(
-        explosionX,
-        0,
-        sheet.explosionFrames ?? sheet.rows,
-        14,
-        false,
-        1
-      );
-      return;
-    }
-
-    this.sprite.playClip(
-      explosionX,
-      this.sourceY,
-      sheet.explosionFrames ?? 5,
-      14
+    const animationName = this.imageName === 'eaglemorph'
+      ? `explosion-row-${this.atlasRow}`
+      : 'explosion';
+    this.sprite.playAtlasClip(
+      GameLoader.getAtlas(this.imageName).getAnimation(animationName)
     );
   }
 }

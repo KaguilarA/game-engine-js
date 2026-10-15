@@ -3,7 +3,6 @@ import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
 import { AnimatedShipEntity } from '../../engine/animated-ship-entity';
 import Sprite from '../../engine/sprite';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 import type { Polarity } from './polarity';
 import { oppositePolarity } from './polarity';
@@ -47,8 +46,8 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
    * @return {void}
    */
   public constructor(width = 84, height = 72) {
-    const sheet = getSpriteSheet('player');
-    const jetSheet = getSpriteSheet('player_jets');
+    const shipAtlas = GameLoader.getAtlas('player');
+    const jetAtlas = GameLoader.getAtlas('player_jets');
     super(new Sprite(
       GameLoader.getImage('player'),
       width,
@@ -56,12 +55,7 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
       0,
       0,
       0.5,
-      0.5,
-      0,
-      0,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames
+      0.5
     ), new Sprite(
       GameLoader.getImage('player_jets'),
       width,
@@ -69,14 +63,9 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
       0,
       0,
       0.5,
-      0.5,
-      0,
-      0,
-      jetSheet.frameWidth,
-      jetSheet.frameHeight,
-      jetSheet.animationFrames
-    ), jetSheet.animationFrames);
-    this.sprite.playClip(0, 0, sheet.animationFrames, 8, true);
+      0.5
+    ), jetAtlas.getAnimation('idle'));
+    this.sprite.playAtlasClip(shipAtlas.getAnimation('all'));
     this.reset();
   }
 

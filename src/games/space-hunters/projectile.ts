@@ -4,7 +4,6 @@ import GameContext from '../../engine/context';
 import GameLoader from '../../engine/loader';
 import Sprite from '../../engine/sprite';
 import { SpriteEntity } from '../../engine/sprite-entity';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 /**
  * Pooled animated projectile that travels vertically through the playfield.
@@ -39,23 +38,13 @@ export class Projectile extends SpriteEntity {
    * @return {void}
    */
   public constructor() {
-    const sheet = getSpriteSheet('enemyProjectile');
+    const atlas = GameLoader.getAtlas('enemyProjectile');
     super(new Sprite(
       GameLoader.getImage('enemyProjectile'),
       14,
-      28,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames,
-      12
+      28
     ));
-    this.sprite.playClip(0, 0, sheet.animationFrames, 12, true);
+    this.sprite.playAtlasClip(atlas.getAnimation('idle'));
   }
 
   public override draw(): void {

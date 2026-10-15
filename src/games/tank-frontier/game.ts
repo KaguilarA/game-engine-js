@@ -4,7 +4,6 @@ import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
 import Sprite from '../../engine/sprite';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
 import { TouchControls } from '../../engine/touch-controls';
 import { signalValue } from 'reactive-values';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
@@ -130,12 +129,12 @@ class Tank {
    */
   private deathAnimationRemaining = 0;
   /**
-   * Stores the source y state.
-   * @property {number} sourceY
+   * Stores the atlas row selected for this tank's behavior.
+   * @property {number} atlasRow
    * @private
    * @readonly
    */
-  private readonly sourceY: number;
+  private readonly atlasRow: number;
   /**
    * Stores the image name state.
    * @property {string} imageName
@@ -194,17 +193,16 @@ class Tank {
     maximumHealth = 1,
     enemyBehavior?: EnemyBehavior
   ) {
-    const sheet = getSpriteSheet(imageName);
+    const atlas = GameLoader.getAtlas(imageName);
     const rowByBehavior: Record<EnemyBehavior, number> = {
       hunter: 0,
       ambusher: 1,
       guardian: 2,
       skirmisher: 3
     };
-    const row = imageName === 'player'
+    const atlasRow = imageName === 'player'
       ? 0
-      : rowByBehavior[enemyBehavior ?? 'hunter'] % sheet.rows;
-    const sourceY = row * sheet.frameHeight;
+      : rowByBehavior[enemyBehavior ?? 'hunter'];
     this.sprite = new Sprite(
       GameLoader.getImage(imageName),
       size,
@@ -212,21 +210,20 @@ class Tank {
       x,
       y,
       0.5,
-      0.5,
-      0,
-      sourceY,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames + (sheet.explosionFrames ?? 0)
+      0.5
     );
     this.size = size;
     this.imageName = imageName;
     this.health.set(maximumHealth);
     this.enemyBehavior = enemyBehavior;
-    this.sourceY = sourceY;
+    this.atlasRow = atlasRow;
     this.x.set(x);
     this.y.set(y);
-    this.sprite.playClip(0, sourceY, sheet.animationFrames, 8, true);
+    this.sprite.playAtlasClip(
+      atlas.getAnimation(
+        imageName === 'player' ? 'idle' : `idle-row-${atlasRow}`
+      )
+    );
   }
 
   /**
@@ -278,18 +275,17 @@ class Tank {
     this.health.set(Math.max(0, this.health() - 1));
     if (this.health() === 0) {
       this.alive.set(false);
-      const sheet = getSpriteSheet(this.imageName);
-      if (sheet.explosionX !== undefined && sheet.explosionFrames !== undefined) {
+      if (this.imageName !== 'player') {
+        const atlas = GameLoader.getAtlas(this.imageName);
+        const animationName = this.imageName === 'eaglemorph'
+          ? `explosion-row-${this.atlasRow}`
+          : 'explosion';
+        const animation = atlas.getAnimation(animationName);
         this.isDying = true;
-        this.deathAnimationRemaining = sheet.explosionFrames > 1
-          ? (sheet.explosionFrames - 1) / 14
+        this.deathAnimationRemaining = animation.frames.length > 1
+          ? (animation.frames.length - 1) / animation.frameRate
           : 0.2;
-        this.sprite.playClip(
-          sheet.explosionX,
-          this.sourceY,
-          sheet.explosionFrames,
-          14
-        );
+        this.sprite.playAtlasClip(animation);
       }
     }
 
@@ -446,7 +442,7 @@ class Bullet {
    * @return {void}
    */
   public constructor() {
-    const sheet = getSpriteSheet('enemyProjectile');
+    const atlas = GameLoader.getAtlas('enemyProjectile');
     this.sprite = new Sprite(
       GameLoader.getImage('enemyProjectile'),
       14,
@@ -454,14 +450,9 @@ class Bullet {
       0,
       0,
       0.5,
-      0.5,
-      0,
-      0,
-      sheet.frameWidth,
-      sheet.frameHeight,
-      sheet.animationFrames
+      0.5
     );
-    this.sprite.playClip(0, 0, sheet.animationFrames, 12, true);
+    this.sprite.playAtlasClip(atlas.getAnimation('idle'));
   }
 
   /**
