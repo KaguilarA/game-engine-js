@@ -10,26 +10,99 @@ import Dimensions from './dimensions';
  * optional frame settings support a single horizontal animation row; asset
  * loading remains the responsibility of the loader.
  *
+ * @class Sprite
+ *
  * `x` and `y` identify the image pivot. A pivot of `(0, 0)` draws from the
  * top-left corner, while `(0.5, 0.5)` draws from the center.
  */
 export default class Sprite {
   /**
    * The reactive geometry used for position, size, scale, pivot, and bounds.
+   * @property {Dimensions} dimensions
+   * @public
+   * @readonly
    */
   public readonly dimensions: Dimensions;
+  /**
+   * Image, canvas, or video source used to render this sprite.
+   * @property {CanvasImageSource} image
+   * @private
+   * @readonly
+   */
   private readonly image: CanvasImageSource;
+  /**
+   * Stores the source x state.
+   * @property {number} sourceX
+   * @private
+   */
   private sourceX: number;
+  /**
+   * Stores the source y state.
+   * @property {number} sourceY
+   * @private
+   */
   private sourceY: number;
+  /**
+   * Stores the source width state.
+   * @property {number | undefined} sourceWidth
+   * @private
+   * @readonly
+   */
   private readonly sourceWidth: number | undefined;
+  /**
+   * Stores the source height state.
+   * @property {number | undefined} sourceHeight
+   * @private
+   * @readonly
+   */
   private readonly sourceHeight: number | undefined;
+  /**
+   * Stores the frame count state.
+   * @property {number} frameCount
+   * @private
+   */
   private frameCount: number;
+  /**
+   * Stores the animation frame rate state.
+   * @property {number} animationFrameRate
+   * @private
+   */
   private animationFrameRate = 0;
+  /**
+   * Stores the animation start state.
+   * @property {number} animationStart
+   * @private
+   */
   private animationStart = 0;
+  /**
+   * Stores the animation end state.
+   * @property {number} animationEnd
+   * @private
+   */
   private animationEnd = 0;
+  /**
+   * Stores the animation loop state.
+   * @property {boolean} animationLoop
+   * @private
+   */
   private animationLoop = false;
+  /**
+   * Stores the animation playing state.
+   * @property {boolean} animationPlaying
+   * @private
+   */
   private animationPlaying = false;
+  /**
+   * Stores the frame index state.
+   * @property {number} frameIndex
+   * @private
+   */
   private frameIndex = 0;
+  /**
+   * Stores the frame elapsed state.
+   * @property {number} frameElapsed
+   * @private
+   */
   private frameElapsed = 0;
 
   /**
@@ -48,6 +121,8 @@ export default class Sprite {
    * @param sourceHeight - The source frame's height. Defaults to the full image.
    * @param frameCount - The number of horizontal frames. Defaults to `1`.
    * @param frameRate - The animation speed in frames per second. Defaults to `0`.
+   * @public
+   * @return {void}
    */
   constructor(
     image: CanvasImageSource,
@@ -86,6 +161,8 @@ export default class Sprite {
    * Advances the horizontal sprite-sheet animation.
    *
    * @param deltaSeconds - The elapsed time since the previous update.
+   * @public
+   * @return {void}
    */
   public update(deltaSeconds: number): void {
     if (!this.animationPlaying || this.animationFrameRate <= 0) return;
@@ -121,6 +198,8 @@ export default class Sprite {
    * @param frameCount - The number of frames to play.
    * @param frameRate - The animation speed in frames per second.
    * @param loop - Whether to restart at the first frame after the last frame.
+   * @public
+   * @return {void}
    */
   public play(
     startFrame: number,
@@ -148,7 +227,16 @@ export default class Sprite {
     this.frameElapsed = 0;
   }
 
-  /** Starts an animation clip at an explicit cell in a multi-row sprite sheet. */
+  /**
+   * Starts an animation clip at an explicit cell in a multi-row sprite sheet.
+   * @param sourceX - Horizontal source coordinate of the first frame.
+   * @param sourceY - Vertical source coordinate of the first frame.
+   * @param frameCount - Number of horizontal frames in the clip.
+   * @param frameRate - Playback speed in frames per second.
+   * @param loop - Whether playback returns to the first frame at the end.
+   * @public
+   * @return {void}
+   */
   public playClip(
     sourceX: number,
     sourceY: number,
@@ -170,6 +258,8 @@ export default class Sprite {
    * Stops the current animation and selects a single frame.
    *
    * @param frame - The horizontal frame to display.
+   * @public
+   * @return {void}
    */
   public setFrame(frame: number): void {
     if (frame < 0 || frame >= this.frameCount) {
@@ -183,6 +273,9 @@ export default class Sprite {
 
   /**
    * Indicates whether a non-looping animation is still playing.
+   *
+   * @public
+   * @return {boolean} Whether the current animation is still playing.
    */
   public get isAnimationPlaying(): boolean {
     return this.animationPlaying;
@@ -192,6 +285,10 @@ export default class Sprite {
    * Draws the image at its pivot position using the current scale.
    *
    * Negative scale values mirror the image around its pivot.
+   *
+   * @param rotation - The rotation around the pivot, in radians.
+   * @public
+   * @return {void}
    */
   public draw(rotation = 0): void {
     const drawingContext = GameContext.context;

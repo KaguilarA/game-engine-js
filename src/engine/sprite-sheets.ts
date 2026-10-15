@@ -1,10 +1,42 @@
-/** Grid and animation clip dimensions for the PNG sprite sheets in assets/. */
+/**
+ * Grid and animation clip dimensions for the PNG sprite sheets in assets/.
+ */
 export interface SpriteSheetDefinition {
+  /**
+   * Width of one source frame in pixels.
+   * @property {number} frameWidth
+   * @public
+   */
   frameWidth: number;
+  /**
+   * Height of one source frame in pixels.
+   * @property {number} frameHeight
+   * @public
+   */
   frameHeight: number;
+  /**
+   * Number of animation rows in the sheet.
+   * @property {number} rows
+   * @public
+   */
   rows: number;
+  /**
+   * Number of living or looping frames in one row.
+   * @property {number} animationFrames
+   * @public
+   */
   animationFrames: number;
+  /**
+   * Horizontal source offset where the death animation begins.
+   * @property {number} explosionX
+   * @public
+   */
   explosionX?: number;
+  /**
+   * Number of frames in the death animation.
+   * @property {number} explosionFrames
+   * @public
+   */
   explosionFrames?: number;
 }
 
@@ -46,6 +78,9 @@ export const SPRITE_SHEETS: Readonly<Record<string, SpriteSheetDefinition>> = {
   }
 };
 
+/**
+ * Looks up sprite-sheet metadata or throws when the asset has no definition.
+ */
 export function getSpriteSheet(name: string): SpriteSheetDefinition {
   const sheet = SPRITE_SHEETS[name];
   if (!sheet) throw new Error(`Sprite sheet metadata is missing for "${name}".`);
