@@ -1,63 +1,117 @@
 import GameContext from '../../engine/context';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
+import { AnimatedShipEntity } from '../../engine/animated-ship-entity';
 import Sprite from '../../engine/sprite';
+import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 import type { Polarity } from './polarity';
 import { oppositePolarity } from './polarity';
 
-export class PolarityVanguardPlayer {
-  private readonly sprite = new Sprite(
-    GameLoader.getImage('player'),
-    84,
-    72,
-    0,
-    0,
-    0.5,
-    0.5,
-    0,
-    0,
-    140,
-    120,
-    4
-  );
+/**
+ * Player ship with four-direction movement and switchable polarity.
+ * @class PolarityVanguardPlayer
+ */
+export class PolarityVanguardPlayer extends AnimatedShipEntity {
+  /**
+   * Stores the polarity state.
+   * @property {Polarity} polarity
+   * @private
+   */
   private polarity: Polarity = 'light';
+  /**
+   * Stores the polarity key was pressed state.
+   * @property {boolean} polarityKeyWasPressed
+   * @private
+   */
   private polarityKeyWasPressed = false;
+  /**
+   * Stores the bottom margin state.
+   * @property {number} bottomMargin
+   * @private
+   */
   private bottomMargin = 32;
 
-  public get x(): number {
-    return this.sprite.dimensions.getX();
-  }
-
-  public get y(): number {
-    return this.sprite.dimensions.getY();
-  }
-
-  public get width(): number {
-    return this.sprite.dimensions.getWidth();
-  }
-
-  public get height(): number {
-    return this.sprite.dimensions.getHeight();
-  }
-
+  /**
+   * Returns the polarity currently used to absorb or match projectiles.
+   * @public
+   * @return {Polarity}
+   */
   public get currentPolarity(): Polarity {
     return this.polarity;
   }
 
-  public constructor() {
+  /**
+   * Creates the ship sprites and initializes the player at the field bottom.
+   * @public
+   * @return {void}
+   */
+  public constructor(width = 84, height = 72) {
+    const sheet = getSpriteSheet('player');
+    const jetSheet = getSpriteSheet('player_jets');
+    super(new Sprite(
+      GameLoader.getImage('player'),
+      width,
+      height,
+      0,
+      0,
+      0.5,
+      0.5,
+      0,
+      0,
+      sheet.frameWidth,
+      sheet.frameHeight,
+      sheet.animationFrames
+    ), new Sprite(
+      GameLoader.getImage('player_jets'),
+      width,
+      height,
+      0,
+      0,
+      0.5,
+      0.5,
+      0,
+      0,
+      jetSheet.frameWidth,
+      jetSheet.frameHeight,
+      jetSheet.animationFrames
+    ), jetSheet.animationFrames);
+    this.sprite.playClip(0, 0, sheet.animationFrames, 8, true);
     this.reset();
   }
 
+  private updateSize(): void {
+    const dimensions = GameContext.gameDimensionsModel;
+    const unit = Math.min(dimensions.getWidth(), dimensions.getHeight());
+    const scale = Math.max(0.5, Math.min(1, unit / 1000));
+    const targetWidth = Math.round(84 * scale);
+    const targetHeight = Math.round(72 * scale);
+    if (this.width !== targetWidth || this.height !== targetHeight) {
+      this.sprite.dimensions.setSize(targetWidth, targetHeight);
+    }
+  }
+
+  /**
+   * Restores polarity and places the player at its starting position.
+   * @public
+   * @return {void}
+   */
   public reset(): void {
+    this.updateSize();
     const dimensions = GameContext.gameDimensionsModel;
     this.sprite.dimensions.setPosition(
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() - this.height * 0.5 - this.bottomMargin
     );
+    this.syncJetsToShip();
     this.polarity = 'light';
   }
 
+  /**
+   * Reserves space below the player for controls or interface elements.
+   * @public
+   * @return {void}
+   */
   public setBottomMargin(margin: number): void {
     if (!Number.isFinite(margin) || margin < 0) {
       throw new RangeError('Bottom margin must be a finite non-negative number.');
@@ -66,9 +120,15 @@ export class PolarityVanguardPlayer {
     this.bottomMargin = margin;
   }
 
+  /**
+   * Updates movement, engine animation, and edge-triggered polarity input.
+   * @public
+   * @return {void}
+   */
   public update(deltaSeconds: number): void {
+    this.updateSize();
     const dimensions = GameContext.gameDimensionsModel;
-    const speed = 560;
+    const speed = 280;
     const horizontal = (
       Number(GameEvents.isKeyPressed('ArrowRight') || GameEvents.isKeyPressed('d'))
       - Number(GameEvents.isKeyPressed('ArrowLeft') || GameEvents.isKeyPressed('a'))
@@ -91,6 +151,8 @@ export class PolarityVanguardPlayer {
         this.y + vertical * speed * deltaSeconds
       )
     );
+    this.updateSprite(deltaSeconds);
+    this.updateJets(deltaSeconds);
     const polarityKeyPressed = (
       GameEvents.isKeyPressed('Shift')
       || GameEvents.isKeyPressed('c')
@@ -102,9 +164,6 @@ export class PolarityVanguardPlayer {
 
     this.polarityKeyWasPressed = polarityKeyPressed;
     this.sprite.dimensions.setPosition(x, y);
-  }
-
-  public draw(): void {
-    this.sprite.draw();
+    this.syncJetsToShip();
   }
 }

@@ -1,4 +1,6 @@
 import GameContext from '../../engine/context';
+import GameEvents from '../../engine/events';
+import type { GamePointer } from '../../engine/events';
 import { BaseGame } from '../../engine/base-game';
 import GameLoader from '../../engine/loader';
 import { getSpriteSheet } from '../../engine/sprite-sheets';
@@ -153,7 +155,7 @@ export class SpacePatternsGame extends BaseGame {
   public constructor(onReturnToMenu?: () => void) {
     super(onReturnToMenu);
     this.registerCleanup(
-      GameContext.addPointerDownListener(this.handlePointerDown)
+      GameEvents.addPointerDownListener(this.handlePointerDown)
     );
     this.start();
   }
@@ -447,8 +449,9 @@ export class SpacePatternsGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly handlePointerDown = (x: number, y: number): void => {
+  private readonly handlePointerDown = (pointer: GamePointer): void => {
     if (this.gameEnded || this.controls.isPaused) return;
+    const { x, y } = pointer;
 
     const cell = this.getCellAt(x, y);
     if (cell === undefined) {

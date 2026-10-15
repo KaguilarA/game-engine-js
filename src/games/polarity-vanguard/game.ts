@@ -1,9 +1,10 @@
 import GameContext from '../../engine/context';
-import type { GamePointer } from '../../engine/context';
 import { BaseGame } from '../../engine/base-game';
 import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
+import { TouchControls } from '../../engine/touch-controls';
+import type { TouchControlCircle } from '../../engine/touch-controls';
 import { signalValue } from 'reactive-values';
 
 import { PolarityVanguardEnemy } from './enemy';
@@ -12,67 +13,192 @@ import { POLARITY_COLORS } from './polarity';
 import { PolarityVanguardPlayer } from './player';
 import { PolarityProjectile } from './projectile';
 import arrowLeftRightSvg from 'lucide-static/icons/arrow-left-right.svg?raw';
-import chevronLeftSvg from 'lucide-static/icons/chevron-left.svg?raw';
-import chevronRightSvg from 'lucide-static/icons/chevron-right.svg?raw';
-import chevronDownSvg from 'lucide-static/icons/chevron-down.svg?raw';
-import chevronUpSvg from 'lucide-static/icons/chevron-up.svg?raw';
-import crosshairSvg from 'lucide-static/icons/crosshair.svg?raw';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
 
-interface Circle {
-  x: number;
-  y: number;
-  radius: number;
-}
-
+/**
+ * Falling heart that restores one missing life when collected.
+ */
 interface LifePickup {
+  /**
+   * Stores the x state.
+   * @property {number} x
+   * @public
+   */
   x: number;
+  /**
+   * Stores the y state.
+   * @property {number} y
+   * @public
+   */
   y: number;
+  /**
+   * Stores the size state.
+   * @property {number} size
+   * @public
+   */
   size: number;
 }
 
+/**
+ * Polarity shooter with absorbable shots and a score-chain system.
+ * @class PolarityVanguardGame
+ */
 export class PolarityVanguardGame extends BaseGame {
-  private readonly leftIcon = new CanvasIcon(chevronLeftSvg);
-  private readonly rightIcon = new CanvasIcon(chevronRightSvg);
-  private readonly upIcon = new CanvasIcon(chevronUpSvg);
-  private readonly downIcon = new CanvasIcon(chevronDownSvg);
-  private readonly shootIcon = new CanvasIcon(crosshairSvg);
+  /**
+   * Stores the touch controls state.
+   * @property {TouchControls} touchControls
+   * @private
+   * @readonly
+   */
+  private readonly touchControls = new TouchControls({ singleRow: true, slotCount: 6 });
+  /**
+   * Stores the polarity icon state.
+   * @property {CanvasIcon} polarityIcon
+   * @private
+   * @readonly
+   */
   private readonly polarityIcon = new CanvasIcon(arrowLeftRightSvg);
+  /**
+   * Stores the full heart icon state.
+   * @property {CanvasIcon} fullHeartIcon
+   * @private
+   * @readonly
+   */
   private readonly fullHeartIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
+  /**
+   * Stores the empty heart icon state.
+   * @property {CanvasIcon} emptyHeartIcon
+   * @private
+   * @readonly
+   */
   private readonly emptyHeartIcon = new CanvasIcon(heartSvg, '#5c657d');
+  /**
+   * Stores the life pickup icon state.
+   * @property {CanvasIcon} lifePickupIcon
+   * @private
+   * @readonly
+   */
   private readonly lifePickupIcon = new CanvasIcon(heartSvg, '#ff5a6b', true);
+  /**
+   * Stores the player state.
+   * @property {PolarityVanguardPlayer} player
+   * @private
+   * @readonly
+   */
   private readonly player = new PolarityVanguardPlayer();
+  /**
+   * Stores the enemies state.
+   * @property {PolarityVanguardEnemy[]} enemies
+   * @private
+   * @readonly
+   */
   private readonly enemies: PolarityVanguardEnemy[] = [];
+  /**
+   * Stores the player projectiles state.
+   * @property {PolarityProjectile[]} playerProjectiles
+   * @private
+   * @readonly
+   */
   private readonly playerProjectiles: PolarityProjectile[] = [];
+  /**
+   * Stores the enemy projectiles state.
+   * @property {PolarityProjectile[]} enemyProjectiles
+   * @private
+   * @readonly
+   */
   private readonly enemyProjectiles: PolarityProjectile[] = [];
+  /**
+   * Stores the shoot cooldown state.
+   * @property {number} shootCooldown
+   * @private
+   */
   private shootCooldown = 0;
+  /**
+   * Stores the enemy shot cooldown state.
+   * @property {number} enemyShotCooldown
+   * @private
+   */
   private enemyShotCooldown = 1;
+  /**
+   * Stores the score state.
+   * @property {number} score
+   * @private
+   */
   private score = 0;
+  /**
+   * Stores the absorbed shots state.
+   * @property {number} absorbedShots
+   * @private
+   */
   private absorbedShots = 0;
+  /**
+   * Stores the chain state.
+   * @property {number} chain
+   * @private
+   */
   private chain = 0;
+  /**
+   * Stores the game over state.
+   * @property {boolean} gameOver
+   * @private
+   */
   private gameOver = false;
+  /**
+   * Stores the lives state.
+   * @property {Signal} lives
+   * @private
+   * @readonly
+   */
   private readonly lives = signalValue(3);
+  /**
+   * Stores the next life score state.
+   * @property {Signal} nextLifeScore
+   * @private
+   * @readonly
+   */
   private readonly nextLifeScore = signalValue(1000);
+  /**
+   * Stores the life pickup state.
+   * @property {Signal} lifePickup
+   * @private
+   * @readonly
+   */
   private readonly lifePickup = signalValue<LifePickup | undefined>(undefined);
+  /**
+   * Stores the damage cooldown state.
+   * @property {Signal} damageCooldown
+   * @private
+   * @readonly
+   */
   private readonly damageCooldown = signalValue(0);
-  private readonly pointerListenerCleanup: Array<() => void> = [];
 
+  /**
+   * Initializes the player, controls, projectile pools, and enemy formation.
+   * @public
+   * @return {void}
+   */
   public constructor(onReturnToMenu?: () => void) {
     super(onReturnToMenu);
     this.createProjectiles();
     this.createFormation();
-    this.pointerListenerCleanup.push(
-      GameContext.addPointerStartListener(this.handleTouchStart),
-      GameContext.addPointerMoveListener(this.handleTouchMove),
-      GameContext.addPointerEndListener(this.handleTouchEnd)
-    );
+    this.registerCleanup(() => this.touchControls.dispose());
     this.start();
   }
 
+  /**
+   * Reports whether the player has lost all lives.
+   * @protected
+   * @return {boolean}
+   */
   protected get isGameOver(): boolean {
     return this.gameOver;
   }
 
+  /**
+   * Advances player input, projectiles, enemies, and collision resolution.
+   * @protected
+   * @return {void}
+   */
   protected updateGame(deltaSeconds: number): void {
     this.player.setBottomMargin(this.getPlayerBottomMargin());
     this.player.update(deltaSeconds);
@@ -90,8 +216,30 @@ export class PolarityVanguardGame extends BaseGame {
     if (this.enemies.every((enemy) => !enemy.alive)) {
       this.createFormation();
     }
+
   }
 
+  /**
+   * Reflows player, enemy formation, and projectile positions on resize.
+   * @protected
+   * @return {void}
+   */
+  protected onViewportChanged(): void {
+    this.player.reset();
+    this.createFormation();
+    this.playerProjectiles.forEach((projectile) => {
+      projectile.active = false;
+    });
+    this.enemyProjectiles.forEach((projectile) => {
+      projectile.active = false;
+    });
+  }
+
+  /**
+   * Fires player shots while the fire key is held and cooldown is clear.
+   * @private
+   * @return {void}
+   */
   private updateShooting(deltaSeconds: number): void {
     this.shootCooldown -= deltaSeconds;
     const wantsToShoot = (
@@ -115,6 +263,11 @@ export class PolarityVanguardGame extends BaseGame {
     GameLoader.playAudio('slide');
   }
 
+  /**
+   * Schedules formation shots and activates available enemy projectiles.
+   * @private
+   * @return {void}
+   */
   private updateEnemyFire(deltaSeconds: number): void {
     this.enemyShotCooldown -= deltaSeconds;
     if (this.enemyShotCooldown > 0) return;
@@ -135,6 +288,11 @@ export class PolarityVanguardGame extends BaseGame {
     this.enemyShotCooldown = 0.35 + Math.random() * 0.35;
   }
 
+  /**
+   * Resolves polarity absorption, enemy hits, and player damage.
+   * @private
+   * @return {void}
+   */
   private checkCollisions(): void {
     this.playerProjectiles.forEach((projectile) => {
       if (!projectile.active) return;
@@ -155,7 +313,7 @@ export class PolarityVanguardGame extends BaseGame {
       if (!enemy) return;
 
       projectile.active = false;
-      enemy.alive = false;
+      enemy.defeat();
       this.chain = enemy.polarity === this.player.currentPolarity
         ? this.chain + 1
         : 0;
@@ -194,8 +352,15 @@ export class PolarityVanguardGame extends BaseGame {
     });
   }
 
+  /**
+   * Draws the background, combat entities, HUD, and touch controls.
+   * @protected
+   * @return {void}
+   */
   protected drawGame(): void {
-    const hudScale = GameContext.isPortrait ? 1.35 : 1;
+    const hudScale = GameContext.isPortrait ? 1.2 : 1;
+    const dimensions = GameContext.gameDimensionsModel;
+    const unit = GameContext.viewportUnit();
     GameContext.clear();
     this.drawBackground();
     this.enemies.forEach((enemy) => enemy.draw());
@@ -204,46 +369,53 @@ export class PolarityVanguardGame extends BaseGame {
     this.playerProjectiles.forEach((projectile) => projectile.draw());
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
 
-    const dimensions = GameContext.gameDimensionsModel;
     GameContext.drawText(
       `SCORE ${this.score}`,
-      40 * hudScale,
-      60 * hudScale,
       30 * hudScale,
-      '#ffffff'
+      44 * hudScale,
+      Math.max(14, Math.min(unit * 0.035, 22)) * hudScale,
+      '#ffffff',
+      'left',
+      dimensions.getWidth() * 0.35
     );
     this.drawLives();
     GameContext.drawText(
       `CHAIN ${this.chain}`,
-      40 * hudScale,
-      154 * hudScale,
-      24 * hudScale,
-      '#ffffff'
+      30 * hudScale,
+      126 * hudScale,
+      Math.max(12, Math.min(unit * 0.028, 18)) * hudScale,
+      '#ffffff',
+      'left',
+      dimensions.getWidth() * 0.35
     );
     GameContext.drawText(
       `ABSORB ${this.absorbedShots}`,
-      40 * hudScale,
-      190 * hudScale,
-      24 * hudScale,
-      '#ffffff'
+      30 * hudScale,
+      156 * hudScale,
+      Math.max(12, Math.min(unit * 0.028, 18)) * hudScale,
+      '#ffffff',
+      'left',
+      dimensions.getWidth() * 0.35
     );
     GameContext.drawText(
       `POLARITY ${this.player.currentPolarity.toUpperCase()}`,
-      dimensions.getWidth() - 40 * hudScale,
-      60 * hudScale,
-      28 * hudScale,
+      dimensions.getWidth() - 30 * hudScale,
+      44 * hudScale,
+      Math.max(13, Math.min(unit * 0.032, 20)) * hudScale,
       POLARITY_COLORS[this.player.currentPolarity],
-      'right'
+      'right',
+      dimensions.getWidth() * 0.38
     );
     GameContext.drawText(
       GameContext.isMobileDevice
         ? 'ABSORB MATCHING FIRE. SWITCH POLARITY TO SURVIVE.'
         : 'ARROWS / WASD MOVE   SPACE FIRE   SHIFT OR C SWITCH',
       dimensions.getWidth() * 0.5,
-      dimensions.getHeight() - 28,
-      18,
+      dimensions.getHeight() - 26,
+      Math.max(10, Math.min(unit * 0.022, 14)),
       '#d9e1ff',
-      'center'
+      'center',
+      dimensions.getWidth() * 0.9
     );
     this.drawTouchControls();
 
@@ -253,21 +425,28 @@ export class PolarityVanguardGame extends BaseGame {
         'VANGUARD DESTROYED',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.45,
-        58,
+        Math.max(22, Math.min(unit * 0.065, 42)),
         '#ff6584',
-        'center'
+        'center',
+        dimensions.getWidth() * 0.85
       );
       GameContext.drawText(
         'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
-        dimensions.getHeight() * 0.55,
-        28,
+        dimensions.getHeight() * 0.54,
+        Math.max(12, Math.min(unit * 0.026, 18)),
         '#ffffff',
-        'center'
+        'center',
+        dimensions.getWidth() * 0.85
       );
     }
   }
 
+  /**
+   * Draws the selected portrait or landscape background image.
+   * @private
+   * @return {void}
+   */
   private drawBackground(): void {
     const dimensions = GameContext.gameDimensionsModel;
     GameContext.drawImage(
@@ -283,6 +462,11 @@ export class PolarityVanguardGame extends BaseGame {
     );
   }
 
+  /**
+   * Draws the player's remaining hearts in the HUD.
+   * @private
+   * @return {void}
+   */
   private drawLives(): void {
     const x = GameContext.isPortrait ? 42 : 32;
     const y = GameContext.isPortrait ? 112 : 80;
@@ -301,6 +485,11 @@ export class PolarityVanguardGame extends BaseGame {
     }
   }
 
+  /**
+   * Draws the current falling life pickup when present.
+   * @private
+   * @return {void}
+   */
   private drawLifePickup(): void {
     const pickup = this.lifePickup();
     if (pickup === undefined) return;
@@ -312,182 +501,75 @@ export class PolarityVanguardGame extends BaseGame {
     );
   }
 
+  /**
+   * Draws shared movement/fire controls and the polarity switch button.
+   * @private
+   * @return {void}
+   */
   private drawTouchControls(): void {
     if (!GameContext.isMobileDevice) return;
 
+    this.touchControls.draw();
     const controls = this.getTouchControlsLayout();
-    this.drawTouchControl(controls.left, this.leftIcon, '#3867d6');
-    this.drawTouchControl(controls.up, this.upIcon, '#3867d6');
-    this.drawTouchControl(controls.shoot, this.shootIcon, '#9c3e45');
-    this.drawTouchControl(controls.down, this.downIcon, '#3867d6');
-    this.drawTouchControl(controls.right, this.rightIcon, '#3867d6');
-    this.drawTouchControl(
+    this.touchControls.setExtraKeys([[controls.polarity, 'c']]);
+    this.touchControls.drawExtra(
       controls.polarity,
       this.polarityIcon,
       POLARITY_COLORS[this.player.currentPolarity]
     );
   }
 
-  private drawTouchControl(
-    circle: Circle,
-    icon: CanvasIcon,
-    color: string
-  ): void {
-    GameContext.drawCircle(
-      circle.x,
-      circle.y,
-      circle.radius,
-      'rgba(9, 14, 38, 0.78)'
-    );
-    GameContext.drawCircle(
-      circle.x,
-      circle.y,
-      circle.radius - 4,
-      `${color}aa`
-    );
-    GameContext.drawCircle(
-      circle.x,
-      circle.y,
-      circle.radius - 10,
-      'rgba(19, 31, 76, 0.42)'
-    );
-    GameContext.drawCircle(
-      circle.x - circle.radius * 0.28,
-      circle.y - circle.radius * 0.28,
-      circle.radius * 0.16,
-      'rgba(255, 255, 255, 0.35)'
-    );
-    icon.draw(
-      circle.x - circle.radius * 0.525,
-      circle.y - circle.radius * 0.525,
-      circle.radius * 1.05
-    );
-  }
-
+  /**
+   * Returns the position reserved for the extra polarity control.
+   * @private
+   * @return {void}
+   */
   private getTouchControlsLayout(): {
-    left: Circle;
-    right: Circle;
-    up: Circle;
-    down: Circle;
-    shoot: Circle;
-    polarity: Circle;
+    polarity: TouchControlCircle;
   } {
-    const dimensions = GameContext.gameDimensionsModel;
-    const radius = Math.min(90, dimensions.getWidth() * 0.085);
-    const margin = 44;
-    const y = dimensions.getHeight() - radius - 52;
-
+    const { shoot } = this.touchControls.layout;
     return {
-      left: {
-        x: margin + radius,
-        y,
-        radius
-      },
-      right: {
-        x: dimensions.getWidth() - margin - radius,
-        y,
-        radius
-      },
-      up: {
-        x: dimensions.getWidth() * 0.5 - radius * 2.1,
-        y,
-        radius
-      },
-      shoot: {
-        x: dimensions.getWidth() * 0.5,
-        y,
-        radius
-      },
-      down: {
-        x: dimensions.getWidth() * 0.5 + radius * 2.1,
-        y,
-        radius
-      },
       polarity: {
-        x: dimensions.getWidth() * 0.5,
-        y: y - radius * 2.25,
-        radius: radius * 0.78
+        x: GameContext.gameDimensionsModel.getWidth() * 0.78,
+        y: shoot.y,
+        radius: shoot.radius
       }
     };
   }
 
+  /**
+   * Calculates the player boundary above the bottom control row.
+   * @private
+   * @return {number}
+   */
   private getPlayerBottomMargin(): number {
     if (!GameContext.isMobileDevice) return 32;
 
-    const controls = this.getTouchControlsLayout();
-    const controlsTop = Math.min(
-      controls.left.y - controls.left.radius,
-      controls.right.y - controls.right.radius,
-      controls.up.y - controls.up.radius,
-      controls.down.y - controls.down.radius,
-      controls.shoot.y - controls.shoot.radius,
-      controls.polarity.y - controls.polarity.radius
+    const shared = this.touchControls.layout;
+    const polarity = this.getTouchControlsLayout().polarity;
+    const top = Math.min(
+      GameContext.gameDimensionsModel.getHeight() - shared.reservedBottom,
+      polarity.y - polarity.radius
     );
-
-    return GameContext.gameDimensionsModel.getHeight() - controlsTop + 32;
+    return GameContext.gameDimensionsModel.getHeight() - top + 32;
   }
 
-  private readonly handleTouchStart = (pointer: GamePointer): void => {
-    this.updateTouchPointer(pointer);
-  };
-
-  private readonly handleTouchMove = (pointer: GamePointer): void => {
-    this.updateTouchPointer(pointer);
-  };
-
-  private readonly handleTouchEnd = (pointer: GamePointer): void => {
-    GameEvents.setPointerKey(pointer.id, undefined);
-  };
-
-  private updateTouchPointer(pointer: GamePointer): void {
-    if (!GameContext.isMobileDevice) return;
-
-    const controls = this.getTouchControlsLayout();
-    let key: string | undefined;
-
-    if (this.containsPointInCircle(controls.left, pointer.x, pointer.y)) {
-      key = 'ArrowLeft';
-    } else if (
-      this.containsPointInCircle(controls.right, pointer.x, pointer.y)
-    ) {
-      key = 'ArrowRight';
-    } else if (
-      this.containsPointInCircle(controls.up, pointer.x, pointer.y)
-    ) {
-      key = 'ArrowUp';
-    } else if (
-      this.containsPointInCircle(controls.down, pointer.x, pointer.y)
-    ) {
-      key = 'ArrowDown';
-    } else if (
-      this.containsPointInCircle(controls.shoot, pointer.x, pointer.y)
-    ) {
-      key = ' ';
-    } else if (
-      this.containsPointInCircle(controls.polarity, pointer.x, pointer.y)
-    ) {
-      key = 'c';
-    }
-
-    GameEvents.setPointerKey(pointer.id, key);
-  }
-
-  private containsPointInCircle(
-    circle: Circle,
-    x: number,
-    y: number
-  ): boolean {
-    const distanceX = x - circle.x;
-    const distanceY = y - circle.y;
-
-    return distanceX * distanceX + distanceY * distanceY <= circle.radius ** 2;
-  }
-
+  /**
+   * Replaces the enemy formation with a fresh phase and polarity pattern.
+   * @private
+   * @return {void}
+   */
   private createFormation(): void {
     this.enemies.length = 0;
     const dimensions = GameContext.gameDimensionsModel;
-    const columns = GameContext.isPortrait ? 5 : 8;
-    const spacing = 145;
+    const unit = GameContext.viewportUnit();
+    const columns = Math.max(
+      3,
+      Math.min(8, Math.floor(dimensions.getWidth() / 100))
+    );
+    const enemyWidth = Math.max(28, Math.min(unit * 0.052, 48));
+    const enemyHeight = enemyWidth * (64 / 72);
+    const spacing = dimensions.getWidth() / (columns + 1);
     const startX = (dimensions.getWidth() - (columns - 1) * spacing) * 0.5;
 
     for (let row = 0; row < 3; row++) {
@@ -496,18 +578,24 @@ export class PolarityVanguardGame extends BaseGame {
         this.enemies.push(
           new PolarityVanguardEnemy(
             startX + column * spacing,
-            180 + row * 110,
+            Math.max(80, unit * 0.14) + row * spacing * 0.58,
             polarity,
-            row * columns + column
+            row * columns + column,
+            enemyWidth,
+            enemyHeight
           )
         );
       }
-
     }
 
     this.enemyShotCooldown = 0.8;
   }
 
+  /**
+   * Adds score and advances the next extra-life threshold.
+   * @private
+   * @return {void}
+   */
   private addScore(points: number): void {
     this.score += points;
 
@@ -520,6 +608,11 @@ export class PolarityVanguardGame extends BaseGame {
     }
   }
 
+  /**
+   * Creates a falling heart when the score milestone grants one.
+   * @private
+   * @return {void}
+   */
   private spawnLifePickup(): void {
     const dimensions = GameContext.gameDimensionsModel;
     const size = GameContext.isPortrait ? 58 : 42;
@@ -531,6 +624,11 @@ export class PolarityVanguardGame extends BaseGame {
     });
   }
 
+  /**
+   * Moves the heart and restores a life when it overlaps the player.
+   * @private
+   * @return {void}
+   */
   private updateLifePickup(deltaSeconds: number): void {
     const pickup = this.lifePickup();
     if (pickup === undefined) return;
@@ -560,6 +658,11 @@ export class PolarityVanguardGame extends BaseGame {
     this.lifePickup.set({ ...pickup, y: nextY });
   }
 
+  /**
+   * Preallocates reusable player and enemy projectile pools.
+   * @private
+   * @return {void}
+   */
   private createProjectiles(): void {
     for (let index = 0; index < 18; index++) {
       this.playerProjectiles.push(
@@ -572,12 +675,17 @@ export class PolarityVanguardGame extends BaseGame {
         new PolarityProjectile(
           360,
           index % 2 === 0 ? 'light' : 'dark',
-          11
+          7
         )
       );
     }
   }
 
+  /**
+   * Resets score, lives, projectiles, enemies, and player state.
+   * @protected
+   * @return {void}
+   */
   protected restartGame(): void {
     this.score = 0;
     this.absorbedShots = 0;
@@ -599,11 +707,11 @@ export class PolarityVanguardGame extends BaseGame {
     GameLoader.playAudio('newgame');
   }
 
-  protected disposeGame(): void {
-    this.pointerListenerCleanup.forEach((cleanup) => cleanup());
-    this.pointerListenerCleanup.length = 0;
-  }
-
+  /**
+   * Tests a rectangle against a circular projectile hit area.
+   * @private
+   * @return {boolean} Whether the shapes overlap.
+   */
   private overlapsCircle(
     circleX: number,
     circleY: number,
