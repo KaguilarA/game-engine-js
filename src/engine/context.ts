@@ -188,7 +188,7 @@ class Context {
   /**
    * Recalculates logical viewport dimensions after a browser resize.
    *
-   * The application entry point subscribes this method through `GameEvents`.
+   * `GameEvents` invokes this method when the browser viewport changes.
    *
    * @public
    * @return {void}

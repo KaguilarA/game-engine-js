@@ -103,10 +103,7 @@ describe('GameContext', () => {
   it('updates the game area to match the viewport on resize', async () => {
     const { default: gameContext } = await import('./context');
     const { default: gameEvents } = await import('./events');
-    gameEvents.initViewportEvents(
-      null,
-      () => gameContext.updateViewport()
-    );
+    gameEvents.initEvents();
     viewportWidth = 390;
     viewportHeight = 844;
 
@@ -131,13 +128,9 @@ describe('GameContext', () => {
   });
 
   it('maps canvas pointer input to logical game coordinates', async () => {
-    const { default: gameContext } = await import('./context');
     const { default: gameEvents } = await import('./events');
     const listener = vi.fn();
-    gameEvents.initPointerEvents(
-      gameContext.canvas,
-      gameContext.gameDimensionsModel
-    );
+    gameEvents.initEvents();
     gameEvents.addPointerDownListener(listener);
 
     pointerDownListener?.({

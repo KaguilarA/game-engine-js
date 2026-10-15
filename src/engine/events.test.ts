@@ -16,6 +16,23 @@ describe('GameEvents', () => {
       }
     }
   );
+  const canvas = {
+    addEventListener: vi.fn(),
+    getBoundingClientRect: vi.fn(() => ({
+      bottom: 600,
+      height: 600,
+      left: 0,
+      right: 800,
+      top: 0,
+      width: 800
+    })),
+    getContext: vi.fn(() => ({ setTransform: vi.fn() })),
+    height: 0,
+    parentElement: null,
+    removeEventListener: vi.fn(),
+    style: {},
+    width: 0
+  } as unknown as HTMLCanvasElement;
 
   beforeEach(() => {
     listeners.clear();
@@ -26,6 +43,11 @@ describe('GameEvents', () => {
       addEventListener,
       removeEventListener
     });
+    vi.stubGlobal('document', {
+      documentElement: { clientHeight: 600, clientWidth: 800 },
+      fullscreenElement: null,
+      getElementById: vi.fn(() => canvas)
+    });
   });
 
   afterEach(() => {
@@ -35,13 +57,13 @@ describe('GameEvents', () => {
   it('registers keyboard listeners once and tracks pressed keys', async () => {
     const { default: gameEvents } = await import('./events');
 
-    expect(addEventListener).toHaveBeenCalledTimes(2);
+    expect(addEventListener).toHaveBeenCalledTimes(3);
 
     listeners.get('keydown')?.({ key: 'ArrowLeft' } as KeyboardEvent);
     expect(gameEvents.isKeyPressed('ArrowLeft')).toBe(true);
 
     gameEvents.initEvents();
-    expect(addEventListener).toHaveBeenCalledTimes(2);
+    expect(addEventListener).toHaveBeenCalledTimes(3);
 
     listeners.get('keyup')?.({ key: 'ArrowLeft' } as KeyboardEvent);
     expect(gameEvents.isKeyPressed('ArrowLeft')).toBe(false);
@@ -54,10 +76,10 @@ describe('GameEvents', () => {
     gameEvents.destroy();
 
     expect(gameEvents.isKeyPressed('ArrowRight')).toBe(false);
-    expect(removeEventListener).toHaveBeenCalledTimes(2);
+    expect(removeEventListener).toHaveBeenCalledTimes(3);
 
     gameEvents.initEvents();
-    expect(addEventListener).toHaveBeenCalledTimes(4);
+    expect(addEventListener).toHaveBeenCalledTimes(6);
   });
 
   it('tracks virtual keys independently for each active touch pointer', async () => {

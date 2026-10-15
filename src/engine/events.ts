@@ -1,5 +1,5 @@
 import { signalValue } from 'reactive-values';
-import type Dimensions from './dimensions';
+import GameContext from './context';
 
 /**
  * Pointer position normalized to the logical canvas coordinate system.
@@ -75,12 +75,6 @@ class Events {
    * @private
    */
   private pointerCanvas: HTMLCanvasElement | undefined;
-  /**
-   * Logical dimensions used to map browser coordinates to the game viewport.
-   * @property {Dimensions | undefined} pointerDimensions
-   * @private
-   */
-  private pointerDimensions: Dimensions | undefined;
   /**
    * Observer that forwards container size changes to the viewport owner.
    * @property {ResizeObserver | undefined} resizeObserver
@@ -176,28 +170,27 @@ class Events {
    * @return {void}
    */
   public initEvents(): void {
-    if (this.initialized()) return;
+    if (!this.initialized()) {
+      window.addEventListener('keydown', this.onKeyDown);
+      window.addEventListener('keyup', this.onKeyUp);
+      this.initialized.set(true);
+    }
 
-    window.addEventListener('keydown', this.onKeyDown);
-    window.addEventListener('keyup', this.onKeyUp);
-
-    this.initialized.set(true);
+    this.initViewportEvents();
+    this.initPointerEvents();
   }
 
   /**
-   * Installs pointer input on the canvas and maps it to the supplied logical
-   * dimensions. Repeated initialization for the same canvas is ignored.
-   *
-   * @param canvas - Canvas receiving pointer input.
-   * @param dimensions - Reactive logical dimensions used for coordinate scaling.
+   * Installs pointer input on the shared game canvas. Repeated initialization
+   * is ignored when the canvas is already registered.
    * @public
    * @return {void}
    */
-  public initPointerEvents(canvas: HTMLCanvasElement, dimensions: Dimensions): void {
+  public initPointerEvents(): void {
+    const canvas = GameContext.canvas;
     if (this.pointerCanvas === canvas) return;
     this.removePointerEvents();
     this.pointerCanvas = canvas;
-    this.pointerDimensions = dimensions;
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerEnd);
@@ -207,18 +200,14 @@ class Events {
   /**
    * Registers browser resize sources and forwards them to the viewport owner.
    *
-   * @param target - Element whose size changes should be observed, if present.
-   * @param onResize - Callback that recalculates logical and canvas dimensions.
    * @public
    * @return {void}
    */
-  public initViewportEvents(
-    target: Element | null,
-    onResize: () => void
-  ): void {
-    this.removeViewportEvents();
-    this.onViewportResize = onResize;
+  public initViewportEvents(): void {
+    if (this.onViewportResize !== undefined) return;
+    this.onViewportResize = () => GameContext.updateViewport();
     window.addEventListener('resize', this.handleViewportResize);
+    const target = GameContext.canvas.parentElement;
     if (typeof ResizeObserver !== 'undefined' && target !== null) {
       this.resizeObserver = new ResizeObserver(this.handleViewportResize);
       this.resizeObserver.observe(target);
@@ -295,11 +284,11 @@ class Events {
    */
   private getGamePointer(event: PointerEvent): GamePointer {
     const canvas = this.pointerCanvas;
-    const dimensions = this.pointerDimensions;
-    if (canvas === undefined || dimensions === undefined) {
+    if (canvas === undefined) {
       throw new Error('Pointer input has not been initialized.');
     }
 
+    const dimensions = GameContext.gameDimensionsModel;
     const bounds = canvas.getBoundingClientRect();
     const clientWidth = bounds.width > 0 ? bounds.width : dimensions.getWidth();
     const clientHeight = bounds.height > 0 ? bounds.height : dimensions.getHeight();
@@ -322,7 +311,6 @@ class Events {
     this.pointerCanvas.removeEventListener('pointerup', this.onPointerEnd);
     this.pointerCanvas.removeEventListener('pointercancel', this.onPointerEnd);
     this.pointerCanvas = undefined;
-    this.pointerDimensions = undefined;
   }
 
   /**
