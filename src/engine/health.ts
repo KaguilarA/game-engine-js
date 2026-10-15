@@ -1,3 +1,6 @@
+import { computedValue, signalValue } from 'reactive-values';
+import type { ComputedValue, SignalValue } from 'reactive-values';
+
 export interface DamageResult {
   /**
    * Whether this call reduced the current health.
@@ -30,7 +33,14 @@ export class Health {
    * @property {number} currentHealth
    * @private
    */
-  private currentHealth: number;
+  private readonly currentHealth: SignalValue<number>;
+  /**
+   * Derives whether the health pool has reached zero from the current hit points.
+   * @property {ComputedValue<boolean>} depleted
+   * @private
+   * @readonly
+   */
+  private readonly depleted: ComputedValue<boolean>;
 
   /**
    * Returns the current hit points.
@@ -38,7 +48,7 @@ export class Health {
    * @return {number}
    */
   public get current(): number {
-    return this.currentHealth;
+    return this.currentHealth();
   }
 
   /**
@@ -47,7 +57,7 @@ export class Health {
    * @return {boolean}
    */
   public get isDepleted(): boolean {
-    return this.currentHealth === 0;
+    return this.depleted();
   }
 
   /**
@@ -61,7 +71,11 @@ export class Health {
     }
 
     this.maximum = maximum;
-    this.currentHealth = maximum;
+    this.currentHealth = signalValue(maximum);
+    this.depleted = computedValue(
+      () => this.currentHealth() === 0,
+      [this.currentHealth]
+    );
   }
 
   /**
@@ -81,7 +95,7 @@ export class Health {
       };
     }
 
-    this.currentHealth = Math.max(0, this.currentHealth - amount);
+    this.currentHealth.set(Math.max(0, this.currentHealth() - amount));
 
     return {
       wasDamaged: true,
@@ -95,6 +109,7 @@ export class Health {
    * @return {void}
    */
   public restore(): void {
-    this.currentHealth = this.maximum;
+    this.currentHealth.set(this.maximum);
   }
 }
+

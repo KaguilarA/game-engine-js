@@ -31,6 +31,18 @@ export interface GameControlCircle {
   radius: number;
 }
 
+/**
+ * Configures which optional controls appear in the shared game HUD.
+ */
+export interface GameControlsOptions {
+  /**
+   * Determines whether the top HUD includes the restart control.
+   * @property {boolean} showResetButton
+   * @public
+   */
+  showResetButton?: boolean;
+}
+
 export interface GameControlsLayout {
   /**
    * Fullscreen toggle position.
@@ -63,6 +75,13 @@ export interface GameControlsLayout {
  * @class GameControls
  */
 export class GameControls {
+  /**
+   * Determines whether the reset icon is displayed and accepts pointer input.
+   * @property {boolean} showResetButton
+   * @private
+   * @readonly
+   */
+  private readonly showResetButton: boolean;
   /**
    * Stores the pause icon state.
    * @property {CanvasIcon} pauseIcon
@@ -124,13 +143,21 @@ export class GameControls {
   private readonly fullscreenOnly = signalValue(false);
 
   /**
-   * Registers shared control input and the callbacks for restart and menu.
+   * Registers shared control input, its callbacks, and optional HUD visibility.
+   * @param onReset - Callback that restarts the active game.
+   * @param onReturnToMenu - Optional callback that returns to the game selector.
+   * @param options - Visibility configuration for optional shared controls.
    * @public
    * @return {void}
    */
-  public constructor(onReset: () => void, onReturnToMenu?: () => void) {
+  public constructor(
+    onReset: () => void,
+    onReturnToMenu?: () => void,
+    options: GameControlsOptions = {}
+  ) {
     this.onReset = onReset;
     this.onReturnToMenu = onReturnToMenu;
+    this.showResetButton = options.showResetButton ?? true;
     this.removePointerListener = GameEvents.addPointerDownListener(
       this.handlePointerDown
     );
@@ -171,13 +198,15 @@ export class GameControls {
       layout.fullscreenButton.y,
       layout.fullscreenButton.radius * 1.05
     );
-    this.drawArcadeButton(layout.resetButton, '#9c3e45');
-    this.drawIcon(
-      this.resetIcon,
-      layout.resetButton.x,
-      layout.resetButton.y,
-      layout.resetButton.radius * 1.05
-    );
+    if (this.showResetButton) {
+      this.drawArcadeButton(layout.resetButton, '#9c3e45');
+      this.drawIcon(
+        this.resetIcon,
+        layout.resetButton.x,
+        layout.resetButton.y,
+        layout.resetButton.radius * 1.05
+      );
+    }
     this.drawArcadeButton(layout.menuButton, '#72549b');
     this.drawIcon(
       this.menuIcon,
@@ -318,7 +347,10 @@ export class GameControls {
       return;
     }
 
-    if (this.containsPoint(layout.resetButton, x, y)) {
+    if (
+      this.showResetButton
+      && this.containsPoint(layout.resetButton, x, y)
+    ) {
       this.paused.set(false);
       this.onReset();
       return;

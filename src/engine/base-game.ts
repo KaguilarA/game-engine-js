@@ -1,4 +1,5 @@
 import { GameControls } from './game-controls';
+import type { GameControlsOptions } from './game-controls';
 import { signalValue } from 'reactive-values';
 import GameContext from './context';
 
@@ -57,17 +58,22 @@ export abstract class BaseGame {
   private readonly cleanups: Array<() => void> = [];
 
   /**
-   * Creates shared controls and stores the optional selector callback.
+   * Creates shared controls and stores the optional selector callback and HUD options.
    * @constructor
    * @protected
    * @param {Function} [onReturnToMenu] Callback used to return to the selector.
+   * @param {GameControlsOptions} [controlOptions] Visibility options for shared controls.
    * @return {void}
    */
-  protected constructor(onReturnToMenu?: () => void) {
+  protected constructor(
+    onReturnToMenu?: () => void,
+    controlOptions: GameControlsOptions = {}
+  ) {
     this.onReturnToMenu = onReturnToMenu;
     this.controls = new GameControls(
       () => this.restart(),
-      () => this.returnToMenu()
+      () => this.returnToMenu(),
+      controlOptions
     );
   }
 
@@ -158,9 +164,9 @@ export abstract class BaseGame {
   private gameLoop = (time = performance.now()): void => {
     if (!this.running()) return;
 
-    const deltaSeconds = Math.min(
-      (time - this.lastFrameTime()) / 1000,
-      0.05
+    const deltaSeconds = Math.max(
+      0,
+      Math.min((time - this.lastFrameTime()) / 1000, 0.05)
     );
     this.lastFrameTime.set(time);
     const viewportWidth = GameContext.viewportWidth();

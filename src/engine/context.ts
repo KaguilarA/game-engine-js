@@ -247,6 +247,34 @@ class Context {
   }
 
   /**
+   * Draws content constrained to a rectangular canvas region.
+   * @param x - Left edge of the clipping region.
+   * @param y - Top edge of the clipping region.
+   * @param width - Width of the clipping region.
+   * @param height - Height of the clipping region.
+   * @param draw - Drawing callback executed while the clip is active.
+   * @public
+   * @return {void}
+   */
+  public withClip(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    draw: () => void
+  ): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.rect(x, y, width, height);
+    this.ctx.clip();
+    try {
+      draw();
+    } finally {
+      this.ctx.restore();
+    }
+  }
+
+  /**
    * Draws fitted text with the requested alignment and fill color.
    * @public
    * @return {void}
