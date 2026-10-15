@@ -152,6 +152,8 @@ export abstract class BaseGame {
    * @private
    * @param {number} time Current browser animation timestamp.
    * @return {void}
+   * @property {(time?: number) => void} gameLoop
+   * @private
    */
   private gameLoop = (time = performance.now()): void => {
     if (!this.running()) return;

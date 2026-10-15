@@ -102,6 +102,11 @@ describe('GameContext', () => {
 
   it('updates the game area to match the viewport on resize', async () => {
     const { default: gameContext } = await import('./context');
+    const { default: gameEvents } = await import('./events');
+    gameEvents.initViewportEvents(
+      null,
+      () => gameContext.updateViewport()
+    );
     viewportWidth = 390;
     viewportHeight = 844;
 
@@ -127,15 +132,21 @@ describe('GameContext', () => {
 
   it('maps canvas pointer input to logical game coordinates', async () => {
     const { default: gameContext } = await import('./context');
+    const { default: gameEvents } = await import('./events');
     const listener = vi.fn();
-    gameContext.addPointerDownListener(listener);
+    gameEvents.initPointerEvents(
+      gameContext.canvas,
+      gameContext.gameDimensionsModel
+    );
+    gameEvents.addPointerDownListener(listener);
 
     pointerDownListener?.({
       clientX: 960,
-      clientY: 540
+      clientY: 540,
+      pointerId: 1
     } as PointerEvent);
 
-    expect(listener).toHaveBeenCalledWith(960, 540);
+    expect(listener).toHaveBeenCalledWith({ id: 1, x: 960, y: 540 });
   });
 
   it('draws circles in logical game coordinates', async () => {

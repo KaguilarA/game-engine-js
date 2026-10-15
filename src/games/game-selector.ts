@@ -1,5 +1,6 @@
 import GameContext from '../engine/context';
 import GameEvents from '../engine/events';
+import type { GamePointer } from '../engine/events';
 import { GameControls } from '../engine/game-controls';
 import GameLoader from '../engine/loader';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
@@ -8,31 +9,105 @@ import { TankFrontierGame } from './tank-frontier/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 
-type GameChoice =
-  | 'space-hunters'
-  | 'polarity-vanguard'
-  | 'space-patterns'
-  | 'tank-frontier';
+/**
+ * Display information and factory for one selectable game.
+ */
+interface GameChoice {
+  /**
+   * Stores the title state.
+   * @property {string} title
+   * @public
+   */
+  title: string;
+  /**
+   * Stores the description state.
+   * @property {string} description
+   * @public
+   */
+  description: string;
+  start: (onReturnToMenu: () => void) => void;
+}
 
+/**
+ * Presents the game list and starts the selected game.
+ * @class GameSelector
+ */
 export class GameSelector {
+  /**
+   * Stores the choices state.
+   * @property {GameChoice[]} choices
+   * @private
+   * @readonly
+   */
   private readonly choices: GameChoice[] = [
-    'space-hunters',
-    'polarity-vanguard',
-    'space-patterns',
-    'tank-frontier'
+    {
+      title: 'SPACE HUNTERS',
+      description: 'INSPIRED BY SPACE INVADERS',
+      start: (onReturnToMenu) => { new SpaceHuntersGame(onReturnToMenu); }
+    },
+    {
+      title: 'POLARITY VANGUARD',
+      description: 'INSPIRED BY IKARUGA',
+      start: (onReturnToMenu) => { new PolarityVanguardGame(onReturnToMenu); }
+    },
+    {
+      title: 'SPACE PATTERNS',
+      description: 'INSPIRED BY CANDY CRUSH',
+      start: (onReturnToMenu) => { new SpacePatternsGame(onReturnToMenu); }
+    },
+    {
+      title: 'TANK FRONTIER',
+      description: 'INSPIRED BY BATTLE CITY',
+      start: (onReturnToMenu) => { new TankFrontierGame(onReturnToMenu); }
+    }
   ];
+  /**
+   * Stores the selected index state.
+   * @property {number} selectedIndex
+   * @private
+   */
   private selectedIndex = 0;
+  /**
+   * Stores the direction was pressed state.
+   * @property {boolean} directionWasPressed
+   * @private
+   */
   private directionWasPressed = false;
+  /**
+   * Stores the started state.
+   * @property {boolean} started
+   * @private
+   */
   private started = false;
+  /**
+   * Stores the last frame time state.
+   * @property {number} lastFrameTime
+   * @private
+   */
   private lastFrameTime = performance.now();
+  /**
+   * Stores the controls state.
+   * @property {GameControls} controls
+   * @private
+   */
   private controls: GameControls;
 
+  /**
+   * Creates the selector, installs its controls, and starts its render loop.
+   * @public
+   * @return {void}
+   */
   public constructor() {
     this.controls = new GameControls(() => {});
-    GameContext.addPointerDownListener(this.handlePointerDown);
+    GameEvents.addPointerDownListener(this.handlePointerDown);
     this.gameLoop();
   }
 
+  /**
+   * Runs one selector update/draw cycle and schedules the next frame.
+   * @property {(time?: number) => void} gameLoop
+   * @private
+   */
   private gameLoop = (time = performance.now()): void => {
     if (this.started) return;
 
@@ -43,6 +118,11 @@ export class GameSelector {
     requestAnimationFrame(this.gameLoop);
   };
 
+  /**
+   * Updates mission selection from keyboard input.
+   * @private
+   * @return {void}
+   */
   private update(_: number): void {
     const directionPressed = (
       GameEvents.isKeyPressed('ArrowUp')
@@ -65,6 +145,11 @@ export class GameSelector {
     }
   }
 
+  /**
+   * Draws the selector background, title, choices, and shared controls.
+   * @private
+   * @return {void}
+   */
   private draw(): void {
     const dimensions = GameContext.gameDimensionsModel;
     GameContext.clear();
@@ -106,16 +191,10 @@ export class GameSelector {
       dimensions.getWidth() * 0.85
     );
 
-    const choices = [
-      ['SPACE HUNTERS', 'INSPIRED BY SPACE INVADERS'],
-      ['POLARITY VANGUARD', 'INSPIRED BY IKARUGA'],
-      ['SPACE PATTERNS', 'INSPIRED BY CANDY CRUSH'],
-      ['TANK FRONTIER', 'INSPIRED BY BATTLE CITY']
-    ];
-    choices.forEach(([title, description], index) => {
+    this.choices.forEach((choice, index) => {
       this.drawChoice(
-        title,
-        description,
+        choice.title,
+        choice.description,
         this.getChoiceY(index),
         this.selectedIndex === index
       );
@@ -131,12 +210,22 @@ export class GameSelector {
     );
   }
 
+  /**
+   * Calculates a choice card height for the current viewport.
+   * @private
+   * @return {number}
+   */
   private getChoiceHeight(): number {
     const dimensions = GameContext.gameDimensionsModel;
     const availableHeight = dimensions.getHeight() * 0.48;
     return Math.max(36, Math.min(availableHeight / 4.5, 54));
   }
 
+  /**
+   * Returns the vertical center of a mission card.
+   * @private
+   * @return {number}
+   */
   private getChoiceY(index: number): number {
     const dimensions = GameContext.gameDimensionsModel;
     const choiceHeight = this.getChoiceHeight();
@@ -146,6 +235,11 @@ export class GameSelector {
     return startY + index * (choiceHeight + gap) + choiceHeight * 0.5;
   }
 
+  /**
+   * Draws one mission card with a selected or idle style.
+   * @private
+   * @return {void}
+   */
   private drawChoice(
     title: string,
     description: string,
@@ -184,8 +278,15 @@ export class GameSelector {
     );
   }
 
-  private readonly handlePointerDown = (x: number, y: number): void => {
+  /**
+   * Selects and launches the mission card tapped by the pointer.
+   * @property {(x: number, y: number) => void} handlePointerDown
+   * @private
+   * @readonly
+   */
+  private readonly handlePointerDown = (pointer: GamePointer): void => {
     if (this.started) return;
+    const { x, y } = pointer;
 
     const dimensions = GameContext.gameDimensionsModel;
     const width = Math.min(460, dimensions.getWidth() * 0.8);
@@ -208,23 +309,26 @@ export class GameSelector {
     }
   };
 
+  /**
+   * Starts the selected game's factory and stops the selector loop.
+   * @private
+   * @return {void}
+   */
   private startSelectedGame(): void {
     if (this.started) return;
 
     this.started = true;
     this.controls.dispose();
 
-    if (this.choices[this.selectedIndex] === 'space-hunters') {
-      new SpaceHuntersGame(this.returnToMenu);
-    } else if (this.choices[this.selectedIndex] === 'polarity-vanguard') {
-      new PolarityVanguardGame(this.returnToMenu);
-    } else if (this.choices[this.selectedIndex] === 'space-patterns') {
-      new SpacePatternsGame(this.returnToMenu);
-    } else {
-      new TankFrontierGame(this.returnToMenu);
-    }
+    this.choices[this.selectedIndex].start(this.returnToMenu);
   }
 
+  /**
+   * Restarts the selector loop when a game returns to the menu.
+   * @property {() => void} returnToMenu
+   * @private
+   * @readonly
+   */
   private readonly returnToMenu = (): void => {
     this.started = false;
     this.lastFrameTime = performance.now();

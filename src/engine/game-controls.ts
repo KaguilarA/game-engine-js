@@ -6,49 +6,150 @@ import houseSvg from 'lucide-static/icons/house.svg?raw';
 
 import CanvasIcon from './canvas-icon';
 import GameContext from './context';
+import GameEvents from './events';
+import type { GamePointer } from './events';
 import { signalValue } from 'reactive-values';
 
 export interface GameControlCircle {
+  /**
+   * Horizontal canvas coordinate at the button center.
+   * @property {number} x
+   * @public
+   */
   x: number;
+  /**
+   * Vertical canvas coordinate at the button center.
+   * @property {number} y
+   * @public
+   */
   y: number;
+  /**
+   * Button radius in canvas units.
+   * @property {number} radius
+   * @public
+   */
   radius: number;
 }
 
 export interface GameControlsLayout {
+  /**
+   * Fullscreen toggle position.
+   * @property {GameControlCircle} fullscreenButton
+   * @public
+   */
   fullscreenButton: GameControlCircle;
+  /**
+   * Pause or resume position.
+   * @property {GameControlCircle} pauseButton
+   * @public
+   */
   pauseButton: GameControlCircle;
+  /**
+   * Restart position.
+   * @property {GameControlCircle} resetButton
+   * @public
+   */
   resetButton: GameControlCircle;
+  /**
+   * Return-to-selector position.
+   * @property {GameControlCircle} menuButton
+   * @public
+   */
   menuButton: GameControlCircle;
 }
 
 /**
  * Renders and handles the shared pause, fullscreen, and reset controls.
+ * @class GameControls
  */
 export class GameControls {
+  /**
+   * Stores the pause icon state.
+   * @property {CanvasIcon} pauseIcon
+   * @private
+   * @readonly
+   */
   private readonly pauseIcon = new CanvasIcon(pauseSvg);
+  /**
+   * Stores the maximize icon state.
+   * @property {CanvasIcon} maximizeIcon
+   * @private
+   * @readonly
+   */
   private readonly maximizeIcon = new CanvasIcon(maximizeSvg);
+  /**
+   * Stores the minimize icon state.
+   * @property {CanvasIcon} minimizeIcon
+   * @private
+   * @readonly
+   */
   private readonly minimizeIcon = new CanvasIcon(minimizeSvg);
+  /**
+   * Stores the reset icon state.
+   * @property {CanvasIcon} resetIcon
+   * @private
+   * @readonly
+   */
   private readonly resetIcon = new CanvasIcon(resetSvg);
+  /**
+   * Stores the menu icon state.
+   * @property {CanvasIcon} menuIcon
+   * @private
+   * @readonly
+   */
   private readonly menuIcon = new CanvasIcon(houseSvg);
   private readonly removePointerListener: () => void;
   private readonly onReset: () => void;
   private readonly onReturnToMenu: (() => void) | undefined;
+  /**
+   * Stores the paused state.
+   * @property {Signal} paused
+   * @private
+   * @readonly
+   */
   private readonly paused = signalValue(false);
+  /**
+   * Stores the end actions visible state.
+   * @property {Signal} endActionsVisible
+   * @private
+   * @readonly
+   */
   private readonly endActionsVisible = signalValue(false);
+  /**
+   * Stores the fullscreen only state.
+   * @property {Signal} fullscreenOnly
+   * @private
+   * @readonly
+   */
   private readonly fullscreenOnly = signalValue(false);
 
+  /**
+   * Registers shared control input and the callbacks for restart and menu.
+   * @public
+   * @return {void}
+   */
   public constructor(onReset: () => void, onReturnToMenu?: () => void) {
     this.onReset = onReset;
     this.onReturnToMenu = onReturnToMenu;
-    this.removePointerListener = GameContext.addPointerDownListener(
+    this.removePointerListener = GameEvents.addPointerDownListener(
       this.handlePointerDown
     );
   }
 
+  /**
+   * Reports whether gameplay updates are paused.
+   * @public
+   * @return {boolean}
+   */
   public get isPaused(): boolean {
     return this.paused();
   }
 
+  /**
+   * Draws all shared controls and the pause overlay when paused.
+   * @public
+   * @return {void}
+   */
   public draw(): void {
     this.fullscreenOnly.set(false);
     const layout = this.getLayout();
@@ -100,6 +201,11 @@ export class GameControls {
     }
   }
 
+  /**
+   * Draws only fullscreen control while the game-over actions are shown.
+   * @public
+   * @return {void}
+   */
   public drawFullscreenOnly(): void {
     this.fullscreenOnly.set(true);
     const fullscreenButton = this.getLayout().fullscreenButton;
@@ -113,6 +219,11 @@ export class GameControls {
     );
   }
 
+  /**
+   * Draws restart and selector buttons after a game ends.
+   * @public
+   * @return {void}
+   */
   public drawEndActions(): void {
     this.endActionsVisible.set(true);
     const dimensions = GameContext.gameDimensionsModel;
@@ -127,10 +238,20 @@ export class GameControls {
     this.drawActionButton(x, menuY, width, height, '#72549b', 'GAME SELECTOR');
   }
 
+  /**
+   * Hides the end-of-game action buttons.
+   * @public
+   * @return {void}
+   */
   public hideEndActions(): void {
     this.endActionsVisible.set(false);
   }
 
+  /**
+   * Calculates positions for the shared controls in the current viewport.
+   * @public
+   * @return {GameControlsLayout}
+   */
   public getLayout(): GameControlsLayout {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
@@ -169,11 +290,23 @@ export class GameControls {
     };
   }
 
+  /**
+   * Removes the registered pointer listener.
+   * @public
+   * @return {void}
+   */
   public dispose(): void {
     this.removePointerListener();
   }
 
-  private readonly handlePointerDown = (x: number, y: number): void => {
+  /**
+   * Stores the handle pointer down state.
+   * @property {(x: number, y: number) => void} handlePointerDown
+   * @private
+   * @readonly
+   */
+  private readonly handlePointerDown = (pointer: GamePointer): void => {
+    const { x, y } = pointer;
     const layout = this.getLayout();
 
     if (this.fullscreenOnly()) {
@@ -214,6 +347,11 @@ export class GameControls {
     }
   };
 
+  /**
+   * Dispatches pointer input to the visible restart or selector action.
+   * @private
+   * @return {void}
+   */
   private handleEndActionPointer(x: number, y: number): void {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
@@ -235,6 +373,11 @@ export class GameControls {
     }
   }
 
+  /**
+   * Draws a rectangular text action used by the end-state overlay.
+   * @private
+   * @return {void}
+   */
   private drawActionButton(
     x: number,
     y: number,
@@ -256,6 +399,11 @@ export class GameControls {
     );
   }
 
+  /**
+   * Draws a circular arcade-style button background.
+   * @private
+   * @return {void}
+   */
   private drawArcadeButton(circle: GameControlCircle, color: string): void {
     const inset1 = Math.max(2, Math.round(circle.radius * 0.16));
     const inset2 = Math.max(4, Math.round(circle.radius * 0.4));
@@ -280,6 +428,11 @@ export class GameControls {
     );
   }
 
+  /**
+   * Centers an icon within a button.
+   * @private
+   * @return {void}
+   */
   private drawIcon(
     icon: CanvasIcon,
     x: number,
@@ -289,6 +442,11 @@ export class GameControls {
     icon.draw(x - size * 0.5, y - size * 0.5, size);
   }
 
+  /**
+   * Tests whether a point is inside a circular control.
+   * @private
+   * @return {boolean}
+   */
   private containsPoint(circle: GameControlCircle, x: number, y: number): boolean {
     const distanceX = x - circle.x;
     const distanceY = y - circle.y;
@@ -296,6 +454,11 @@ export class GameControls {
     return distanceX * distanceX + distanceY * distanceY <= circle.radius ** 2;
   }
 
+  /**
+   * Tests whether a point is inside an axis-aligned rectangle.
+   * @private
+   * @return {boolean} Whether the point lies within the rectangle.
+   */
   private containsRectangle(
     rectangleX: number,
     rectangleY: number,
@@ -312,6 +475,11 @@ export class GameControls {
     );
   }
 
+  /**
+   * Toggles fullscreen and logs browser failures without breaking gameplay.
+   * @private
+   * @return {Promise<void>}
+   */
   private async toggleFullscreen(): Promise<void> {
     try {
       await GameContext.toggleFullscreen();

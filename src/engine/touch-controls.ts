@@ -1,5 +1,5 @@
 import GameContext from './context';
-import type { GamePointer } from './context';
+import type { GamePointer } from './events';
 import CanvasIcon from './canvas-icon';
 import GameEvents from './events';
 import chevronDownSvg from 'lucide-static/icons/chevron-down.svg?raw';
@@ -9,22 +9,76 @@ import chevronUpSvg from 'lucide-static/icons/chevron-up.svg?raw';
 import crosshairSvg from 'lucide-static/icons/crosshair.svg?raw';
 
 export interface TouchControlCircle {
+  /**
+   * Horizontal canvas coordinate at the circle center.
+   * @property {number} x
+   * @public
+   */
   x: number;
+  /**
+   * Vertical canvas coordinate at the circle center.
+   * @property {number} y
+   * @public
+   */
   y: number;
+  /**
+   * Hit-area and rendered button radius in canvas units.
+   * @property {number} radius
+   * @public
+   */
   radius: number;
 }
 
 export interface TouchControlsLayout {
+  /**
+   * Left movement button.
+   * @property {TouchControlCircle} left
+   * @public
+   */
   left: TouchControlCircle;
+  /**
+   * Right movement button.
+   * @property {TouchControlCircle} right
+   * @public
+   */
   right: TouchControlCircle;
+  /**
+   * Up movement button, when vertical movement is enabled.
+   * @property {TouchControlCircle} up
+   * @public
+   */
   up: TouchControlCircle;
+  /**
+   * Down movement button, when vertical movement is enabled.
+   * @property {TouchControlCircle} down
+   * @public
+   */
   down: TouchControlCircle;
+  /**
+   * Fire button, centered in the single-row layout.
+   * @property {TouchControlCircle} shoot
+   * @public
+   */
   shoot: TouchControlCircle;
+  /**
+   * Height reserved below the playfield to keep controls unobstructed.
+   * @property {number} reservedBottom
+   * @public
+   */
   reservedBottom: number;
 }
 
-/** Shared directional and fire controls for touch capable phones and tablets. */
+/**
+ * Shared directional and fire controls for touch capable phones and tablets.
+ * @class TouchControls
+ */
 export class TouchControls {
+  /**
+   * SVG icons used to draw the four movement directions and fire control.
+   * @property {Record<'left' | 'right' | 'up' | 'down' | 'shoot', CanvasIcon>} icons
+   * @private
+   * @readonly
+   */
   private readonly icons = {
     left: new CanvasIcon(chevronLeftSvg),
     right: new CanvasIcon(chevronRightSvg),
@@ -33,23 +87,62 @@ export class TouchControls {
     shoot: new CanvasIcon(crosshairSvg)
   };
   private readonly removeListeners: Array<() => void>;
+  /**
+   * Stores the active pointers state.
+   * @property {Set<number>} activePointers
+   * @private
+   * @readonly
+   */
   private readonly activePointers = new Set<number>();
+  /**
+   * Stores the show vertical controls state.
+   * @property {boolean} showVerticalControls
+   * @private
+   * @readonly
+   */
   private readonly showVerticalControls: boolean;
+  /**
+   * Stores the single row state.
+   * @property {boolean} singleRow
+   * @private
+   * @readonly
+   */
   private readonly singleRow: boolean;
+  /**
+   * Stores the slot count state.
+   * @property {number} slotCount
+   * @private
+   * @readonly
+   */
   private readonly slotCount: number;
+  /**
+   * Stores the extra keys state.
+   * @property {Array<[TouchControlCircle, string]>} extraKeys
+   * @private
+   */
   private extraKeys: Array<[TouchControlCircle, string]> = [];
 
+  /**
+   * Registers touch listeners and configures the visible control layout.
+   * @public
+   * @return {void}
+   */
   public constructor(options: { showVerticalControls?: boolean; singleRow?: boolean; slotCount?: number } = {}) {
     this.showVerticalControls = options.showVerticalControls ?? true;
     this.singleRow = options.singleRow ?? false;
     this.slotCount = Math.max(3, options.slotCount ?? 5);
     this.removeListeners = [
-      GameContext.addPointerStartListener(this.handlePointer),
-      GameContext.addPointerMoveListener(this.handlePointer),
-      GameContext.addPointerEndListener(this.handlePointerEnd)
+      GameEvents.addPointerDownListener(this.handlePointer),
+      GameEvents.addPointerMoveListener(this.handlePointer),
+      GameEvents.addPointerEndListener(this.handlePointerEnd)
     ];
   }
 
+  /**
+   * Returns control positions and the playfield space reserved for them.
+   * @public
+   * @return {TouchControlsLayout}
+   */
   public get layout(): TouchControlsLayout {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
@@ -79,6 +172,11 @@ export class TouchControls {
     return { left, right, up, down, shoot, reservedBottom: dimensions.getHeight() - top + 24 };
   }
 
+  /**
+   * Draws enabled movement and fire controls on touch devices.
+   * @public
+   * @return {void}
+   */
   public draw(): void {
     if (!GameContext.isMobileDevice) return;
     const layout = this.layout;
@@ -91,21 +189,41 @@ export class TouchControls {
     this.drawButton(layout.shoot, this.icons.shoot, 'rgba(156, 62, 69, 0.68)');
   }
 
+  /**
+   * Draws a game-specific touch button using the shared button style.
+   * @public
+   * @return {void}
+   */
   public drawExtra(circle: TouchControlCircle, icon: CanvasIcon, color: string): void {
     if (!GameContext.isMobileDevice) return;
     this.drawButton(circle, icon, `${color}aa`);
   }
 
+  /**
+   * Adds game-specific hit regions that map to keyboard-compatible keys.
+   * @public
+   * @return {void}
+   */
   public setExtraKeys(entries: Array<[TouchControlCircle, string]>): void {
     this.extraKeys = entries;
   }
 
+  /**
+   * Removes pointer listeners and releases any keys still held by pointers.
+   * @public
+   * @return {void}
+   */
   public dispose(): void {
     this.removeListeners.forEach((remove) => remove());
     this.activePointers.forEach((pointerId) => GameEvents.setPointerKey(pointerId, undefined));
     this.activePointers.clear();
   }
 
+  /**
+   * Draws a shared circular button with its icon and highlight.
+   * @private
+   * @return {void}
+   */
   private drawButton(circle: TouchControlCircle, icon: CanvasIcon, color = 'rgba(56, 103, 214, 0.66)'): void {
     const inset1 = Math.max(2, Math.round(circle.radius * 0.16));
     const inset2 = Math.max(4, Math.round(circle.radius * 0.4));
@@ -116,6 +234,12 @@ export class TouchControls {
     icon.draw(circle.x - circle.radius * 0.525, circle.y - circle.radius * 0.525, circle.radius * 1.05);
   }
 
+  /**
+   * Stores the handle pointer state.
+   * @property {(pointer: GamePointer) => void} handlePointer
+   * @private
+   * @readonly
+   */
   private readonly handlePointer = (pointer: GamePointer): void => {
     if (!GameContext.isMobileDevice) return;
     this.activePointers.add(pointer.id);
@@ -131,11 +255,22 @@ export class TouchControls {
     GameEvents.setPointerKey(pointer.id, hit?.[1]);
   };
 
+  /**
+   * Stores the handle pointer end state.
+   * @property {(pointer: GamePointer) => void} handlePointerEnd
+   * @private
+   * @readonly
+   */
   private readonly handlePointerEnd = (pointer: GamePointer): void => {
     GameEvents.setPointerKey(pointer.id, undefined);
     this.activePointers.delete(pointer.id);
   };
 
+  /**
+   * Tests whether a pointer coordinate lies within a control circle.
+   * @private
+   * @return {boolean}
+   */
   private contains(circle: TouchControlCircle, x: number, y: number): boolean {
     const dx = x - circle.x;
     const dy = y - circle.y;

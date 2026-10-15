@@ -1,33 +1,50 @@
 import Dimensions from './dimensions';
 import { computedValue, signalValue } from 'reactive-values';
 
-type PointerDownListener = (x: number, y: number) => void;
-type PointerListener = (pointer: GamePointer) => void;
-
-export interface GamePointer {
-  id: number;
-  x: number;
-  y: number;
-}
-
+/**
+ * Owns canvas sizing, responsive dimensions, and drawing helpers.
+ * @class Context
+ */
 class Context {
+  /**
+   * Canvas element owned by this engine context.
+   * @property {HTMLCanvasElement} canvas
+   * @public
+   * @readonly
+   */
   public readonly canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  /**
+   * Stores the dimensions state.
+   * @property {Dimensions} dimensions
+   * @private
+   * @readonly
+   */
   private readonly dimensions = new Dimensions(
     this.getParentDimensions().width,
     this.getParentDimensions().height
   );
+  /**
+   * Stores the game dimensions state.
+   * @property {Dimensions} gameDimensions
+   * @private
+   * @readonly
+   */
   private readonly gameDimensions = new Dimensions(
     this.getParentDimensions().width,
     this.getParentDimensions().height
   );
+  /**
+   * Stores the ctx state.
+   * @property {CanvasRenderingContext2D} ctx
+   * @private
+   * @readonly
+   */
   private readonly ctx: CanvasRenderingContext2D;
-  private readonly pointerDownListeners = new Set<PointerDownListener>();
-  private readonly pointerStartListeners = new Set<PointerListener>();
-  private readonly pointerMoveListeners = new Set<PointerListener>();
-  private readonly pointerEndListeners = new Set<PointerListener>();
-  private readonly resizeObserver: ResizeObserver | null = null;
   /**
    * Reactive viewport width in CSS pixels.
+   * @property {Signal} viewportWidth
+   * @public
+   * @readonly
    */
   public readonly viewportWidth = signalValue(
     this.getParentDimensions().width
@@ -35,19 +52,31 @@ class Context {
 
   /**
    * Reactive viewport height in CSS pixels.
+   * @property {Signal} viewportHeight
+   * @public
+   * @readonly
    */
   public readonly viewportHeight = signalValue(
     this.getParentDimensions().height
   );
 
   /**
-   * Reactive base unit for responsive game geometry.
+   * Reactive minimum viewport dimension, used as a stable scale for
+   * responsive game geometry.
+   * @property {() => number} viewportUnit
+   * @public
+   * @readonly
    */
   public readonly viewportUnit = computedValue(
     () => Math.min(this.viewportWidth(), this.viewportHeight()),
     [this.viewportWidth, this.viewportHeight]
   );
 
+  /**
+   * Returns dimensions for the full canvas viewport.
+   * @public
+   * @return {Dimensions}
+   */
   public get dimensionsModel(): Dimensions {
     return this.dimensions;
   }
@@ -68,7 +97,9 @@ class Context {
   }
 
   /**
-   * Indicates whether the current device is a phone or tablet with touch input.
+   * Reports touch-oriented devices, including tablets.
+   * @public
+   * @return {boolean}
    */
   public get isMobileDevice(): boolean {
     const userAgent = navigator.userAgent;
@@ -87,17 +118,29 @@ class Context {
     return isMobileUserAgent || isIPadOS || isPhoneOrTabletTouchScreen;
   }
 
+  /**
+   * Exposes the 2D rendering context for advanced game-specific drawing.
+   * @public
+   * @return {CanvasRenderingContext2D}
+   */
   public get context(): CanvasRenderingContext2D {
     return this.ctx;
   }
 
   /**
-   * Indicates whether the game canvas is currently displayed fullscreen.
+   * Reports whether the game canvas currently fills the browser display.
+   * @public
+   * @return {boolean}
    */
   public get isFullscreen(): boolean {
     return document.fullscreenElement === this.canvas;
   }
 
+  /**
+   * Measures the containing element before calculating canvas scale.
+   * @private
+   * @return {void}
+   */
   private getParentDimensions(): { width: number; height: number } {
     const parent = this.canvas?.parentElement;
     const width = (parent && parent.clientWidth > 0)
@@ -113,38 +156,6 @@ class Context {
     };
   }
 
-  private getGamePointer(event: PointerEvent): GamePointer {
-    const bounds = this.canvas.getBoundingClientRect();
-    const clientWidth = bounds.width > 0 ? bounds.width : this.dimensions.getWidth();
-    const clientHeight = bounds.height > 0 ? bounds.height : this.dimensions.getHeight();
-    const scaleX = this.dimensions.getWidth() / clientWidth;
-    const scaleY = this.dimensions.getHeight() / clientHeight;
-
-    return {
-      id: event.pointerId,
-      x: (event.clientX - bounds.left) * scaleX,
-      y: (event.clientY - bounds.top) * scaleY
-    };
-  }
-
-  private readonly onPointerDown = (event: PointerEvent): void => {
-    const pointer = this.getGamePointer(event);
-    this.pointerDownListeners.forEach((listener) => {
-      listener(pointer.x, pointer.y);
-    });
-    this.pointerStartListeners.forEach((listener) => listener(pointer));
-  };
-
-  private readonly onPointerMove = (event: PointerEvent): void => {
-    const pointer = this.getGamePointer(event);
-    this.pointerMoveListeners.forEach((listener) => listener(pointer));
-  };
-
-  private readonly onPointerEnd = (event: PointerEvent): void => {
-    const pointer = this.getGamePointer(event);
-    this.pointerEndListeners.forEach((listener) => listener(pointer));
-  };
-
   constructor() {
     if (!this.canvas) {
       throw new Error('Failed to find the canvas element with id "game-canvas".');
@@ -157,17 +168,13 @@ class Context {
     this.ctx = context;
 
     this.resizeCanvas();
-    window.addEventListener('resize', this.resizeCanvas);
-    if (typeof ResizeObserver !== 'undefined' && this.canvas.parentElement) {
-      this.resizeObserver = new ResizeObserver(this.resizeCanvas);
-      this.resizeObserver.observe(this.canvas.parentElement);
-    }
-    this.canvas.addEventListener('pointerdown', this.onPointerDown);
-    this.canvas.addEventListener('pointermove', this.onPointerMove);
-    this.canvas.addEventListener('pointerup', this.onPointerEnd);
-    this.canvas.addEventListener('pointercancel', this.onPointerEnd);
   }
 
+  /**
+   * Stores the resize canvas state.
+   * @property {() => void} resizeCanvas
+   * @private
+   */
   private resizeCanvas = (): void => {
     const { width, height } = this.getParentDimensions();
 
@@ -179,9 +186,21 @@ class Context {
   };
 
   /**
-   * Syncs the physical pixel buffer and CSS style of the canvas with the
-   * viewport. Device pixel ratio improves raster clarity without changing the
-   * game coordinate system.
+   * Recalculates logical viewport dimensions after a browser resize.
+   *
+   * The application entry point subscribes this method through `GameEvents`.
+   *
+   * @public
+   * @return {void}
+   */
+  public updateViewport(): void {
+    this.resizeCanvas();
+  }
+
+  /**
+   * Synchronizes backing-store size and scale with the logical viewport.
+   * @public
+   * @return {void}
    */
   public syncCanvasDimensions(pixelRatio = window.devicePixelRatio || 1): void {
     const viewportWidth = this.dimensions.getWidth();
@@ -200,6 +219,11 @@ class Context {
     );
   }
 
+  /**
+   * Clears the full logical canvas.
+   * @public
+   * @return {void}
+   */
   public clear(): void {
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -209,6 +233,8 @@ class Context {
 
   /**
    * Draws an image in logical game coordinates.
+   * @public
+   * @return {void}
    */
   public drawImage(
     image: CanvasImageSource,
@@ -220,6 +246,11 @@ class Context {
     this.ctx.drawImage(image, x, y, width, height);
   }
 
+  /**
+   * Draws fitted text with the requested alignment and fill color.
+   * @public
+   * @return {void}
+   */
   public drawText(
     text: string,
     x: number,
@@ -262,6 +293,11 @@ class Context {
     }
   }
 
+  /**
+   * Draws a filled rectangle in logical canvas coordinates.
+   * @public
+   * @return {void}
+   */
   public drawRect(
     x: number,
     y: number,
@@ -274,7 +310,9 @@ class Context {
   }
 
   /**
-   * Draws a filled circle in logical game coordinates.
+   * Draws a filled circle in logical canvas coordinates.
+   * @public
+   * @return {void}
    */
   public drawCircle(
     x: number,
@@ -289,7 +327,9 @@ class Context {
   }
 
   /**
-   * Enters or exits fullscreen mode for the game canvas.
+   * Enters or exits fullscreen mode for the game container.
+   * @public
+   * @return {Promise<void>}
    */
   public async toggleFullscreen(): Promise<void> {
     if (this.isFullscreen) {
@@ -308,55 +348,6 @@ class Context {
     await this.canvas.requestFullscreen();
   }
 
-  /**
-   * Registers a listener that receives pointer positions in game coordinates.
-   *
-   * @returns A function that unregisters the listener.
-   */
-  public addPointerDownListener(listener: PointerDownListener): () => void {
-    this.pointerDownListeners.add(listener);
-
-    return () => {
-      this.pointerDownListeners.delete(listener);
-    };
-  }
-
-  public addPointerStartListener(listener: PointerListener): () => void {
-    this.pointerStartListeners.add(listener);
-
-    return () => {
-      this.pointerStartListeners.delete(listener);
-    };
-  }
-
-  public addPointerMoveListener(listener: PointerListener): () => void {
-    this.pointerMoveListeners.add(listener);
-
-    return () => {
-      this.pointerMoveListeners.delete(listener);
-    };
-  }
-
-  public addPointerEndListener(listener: PointerListener): () => void {
-    this.pointerEndListeners.add(listener);
-
-    return () => {
-      this.pointerEndListeners.delete(listener);
-    };
-  }
-
-  public destroy(): void {
-    window.removeEventListener('resize', this.resizeCanvas);
-    this.resizeObserver?.disconnect();
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-    this.canvas.removeEventListener('pointermove', this.onPointerMove);
-    this.canvas.removeEventListener('pointerup', this.onPointerEnd);
-    this.canvas.removeEventListener('pointercancel', this.onPointerEnd);
-    this.pointerDownListeners.clear();
-    this.pointerStartListeners.clear();
-    this.pointerMoveListeners.clear();
-    this.pointerEndListeners.clear();
-  }
 }
 
 const GameContext = new Context();
