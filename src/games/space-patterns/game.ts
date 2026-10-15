@@ -4,9 +4,11 @@ import type { GamePointer } from '../../engine/events';
 import { BaseGame } from '../../engine/base-game';
 import GameLoader from '../../engine/loader';
 
-import type { BoardCell } from './board';
+import type { BoardCell, PatternFall } from './board';
 import { PatternBoard } from './board';
 import { PATTERN_ICONS } from './pattern-icons';
+import { PhysicsBody } from '../../engine/physics';
+import { signalValue } from 'reactive-values';
 
 /**
  * Pixel geometry for the board's visible grid.
@@ -74,12 +76,27 @@ interface SwapAnimation {
   elapsed: number;
 }
 
+/**
+ * Holds one tile's physics-driven movement during gravity resolution.
+ * @interface FallingPattern
+ */
+interface FallingPattern extends PatternFall {
+  /**
+   * Integrates the pattern's vertical fall through the board grid.
+   * @property {PhysicsBody} motion
+   * @public
+   * @readonly
+   */
+  readonly motion: PhysicsBody;
+}
+
 const SWAP_ANIMATION_SECONDS = 0.16;
+const FALL_ACCELERATION = 42;
 
 /**
  * Current step in match clearing and cascade resolution.
  */
-type ResolutionState = 'exploding' | 'idle';
+type ResolutionState = 'exploding' | 'falling' | 'idle';
 
 /**
  * Match-three game with timed cascades, animated sprites, and score goals.
@@ -130,16 +147,16 @@ export class SpacePatternsGame extends BaseGame {
   private gameEnded = false;
   /**
    * Stores the resolution state state.
-   * @property {ResolutionState} resolutionState
+   * @property {SignalValue<ResolutionState>} resolutionState
    * @private
    */
-  private resolutionState: ResolutionState = 'idle';
+  private readonly resolutionState = signalValue<ResolutionState>('idle');
   /**
    * Stores the resolution matches state.
-   * @property {BoardCell[]} resolutionMatches
+   * @property {SignalValue<readonly BoardCell[]>} resolutionMatches
    * @private
    */
-  private resolutionMatches: BoardCell[] = [];
+  private readonly resolutionMatches = signalValue<readonly BoardCell[]>([]);
   /**
    * Stores the cascade state.
    * @property {number} cascade
@@ -148,10 +165,17 @@ export class SpacePatternsGame extends BaseGame {
   private cascade = 0;
   /**
    * Stores the explosion elapsed state.
-   * @property {number} explosionElapsed
+   * @property {SignalValue<number>} explosionElapsed
    * @private
    */
-  private explosionElapsed = 0;
+  private readonly explosionElapsed = signalValue(0);
+  /**
+   * Stores patterns currently falling toward cells opened by the latest match.
+   * @property {SignalValue<readonly FallingPattern[]>} fallAnimations
+   * @private
+   * @readonly
+   */
+  private readonly fallAnimations = signalValue<readonly FallingPattern[]>([]);
 
   /**
    * Creates the initial board, registers pointer input, and starts the loop.
@@ -159,7 +183,7 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   public constructor(onReturnToMenu?: () => void) {
-    super(onReturnToMenu);
+    super(onReturnToMenu, { showResetButton: false });
     this.registerCleanup(
       GameEvents.addPointerDownListener(this.handlePointerDown)
     );
@@ -197,8 +221,8 @@ export class SpacePatternsGame extends BaseGame {
   protected onViewportChanged(): void {
     this.selectedCell = undefined;
     this.swapAnimation = undefined;
-    this.resolutionState = 'idle';
-    this.resolutionMatches = [];
+    this.resolutionState.set('idle');
+    this.resolutionMatches.set([]);
   }
 
   /**
@@ -230,6 +254,7 @@ export class SpacePatternsGame extends BaseGame {
     this.drawHud();
     this.drawBoard();
     this.drawSwapAnimation();
+    this.drawFallingPatterns();
     this.drawExplosions();
 
     if (this.gameEnded) {
@@ -305,8 +330,13 @@ export class SpacePatternsGame extends BaseGame {
     const layout = this.getBoardLayout();
     const hiddenCells = new Set<string>();
 
-    if (this.resolutionState === 'exploding') {
-      this.resolutionMatches.forEach((cell) => hiddenCells.add(this.cellKey(cell)));
+    if (this.resolutionState() === 'exploding') {
+      this.resolutionMatches().forEach((cell) => hiddenCells.add(this.cellKey(cell)));
+    }
+    if (this.resolutionState() === 'falling') {
+      this.fallAnimations().forEach(({ column, toRow }) => {
+        hiddenCells.add(this.cellKey({ column, row: toRow }));
+      });
     }
     if (this.swapAnimation !== undefined) {
       hiddenCells.add(this.cellKey(this.swapAnimation.first));
@@ -425,17 +455,17 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   private drawExplosions(): void {
-    if (this.resolutionState !== 'exploding') return;
+    if (this.resolutionState() !== 'exploding') return;
 
     const layout = this.getBoardLayout();
     const explosion = GameLoader.getImage('boss');
     const animation = GameLoader.getAtlas('boss').getAnimation('explosion');
     const frame = Math.min(
       animation.frames.length - 1,
-      Math.floor(this.explosionElapsed * animation.frameRate)
+      Math.floor(this.explosionElapsed() * animation.frameRate)
     );
 
-    this.resolutionMatches.forEach((cell) => {
+    this.resolutionMatches().forEach((cell) => {
       const x = layout.originX + cell.column * layout.tileSize;
       const y = layout.originY + cell.row * layout.tileSize;
 
@@ -449,6 +479,25 @@ export class SpacePatternsGame extends BaseGame {
         x,
         y,
         layout.tileSize,
+        layout.tileSize
+      );
+    });
+  }
+
+  /**
+   * Draws replacement and surviving patterns while gravity moves them into place.
+   * @private
+   * @return {void}
+   */
+  private drawFallingPatterns(): void {
+    if (this.resolutionState() !== 'falling') return;
+
+    const layout = this.getBoardLayout();
+    this.fallAnimations().forEach(({ column, pattern, motion }) => {
+      this.drawPatternAt(
+        pattern,
+        layout.originX + column * layout.tileSize,
+        layout.originY + motion.y() * layout.tileSize,
         layout.tileSize
       );
     });
@@ -511,7 +560,7 @@ export class SpacePatternsGame extends BaseGame {
       this.gameEnded
       || this.controls.isPaused
       || this.swapAnimation !== undefined
-      || this.resolutionState !== 'idle'
+      || this.resolutionState() !== 'idle'
     ) return;
     const { x, y } = pointer;
 
@@ -577,13 +626,49 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   private updateResolution(deltaSeconds: number): void {
-    if (this.resolutionState !== 'exploding') return;
+    if (this.resolutionState() === 'falling') {
+      const remainingFalls: FallingPattern[] = [];
+      this.fallAnimations().forEach((fall) => {
+        fall.motion.update(deltaSeconds, FALL_ACCELERATION);
+        if (fall.motion.y() >= fall.toRow) {
+          fall.motion.setPosition(fall.column, fall.toRow);
+          fall.motion.stop();
+        } else {
+          remainingFalls.push(fall);
+        }
+      });
+      this.fallAnimations.set(remainingFalls);
+      if (remainingFalls.length === 0) this.finishGravityResolution();
+      return;
+    }
 
-    this.explosionElapsed += deltaSeconds;
+    if (this.resolutionState() !== 'exploding') return;
+
+    this.explosionElapsed.set(this.explosionElapsed() + deltaSeconds);
     const explosion = GameLoader.getAtlas('boss').getAnimation('explosion');
-    if (this.explosionElapsed < explosion.frames.length / explosion.frameRate) return;
+    if (this.explosionElapsed() < explosion.frames.length / explosion.frameRate) return;
 
-    this.board.collapse(this.resolutionMatches);
+    const falls = this.board.collapse(this.resolutionMatches());
+    const fallAnimations = falls.map((fall) => ({
+      ...fall,
+      motion: new PhysicsBody(fall.column, fall.fromRow)
+    }));
+    this.fallAnimations.set(fallAnimations);
+    if (fallAnimations.length > 0) {
+      this.resolutionState.set('falling');
+      return;
+    }
+
+    this.finishGravityResolution();
+  }
+
+  /**
+   * Starts another cascade after every pattern has landed in its destination cell.
+   * @private
+   * @return {void}
+   */
+  private finishGravityResolution(): void {
+    this.fallAnimations.set([]);
     const matches = this.board.findCurrentMatches();
     if (matches.length > 0) {
       this.cascade += 1;
@@ -591,7 +676,7 @@ export class SpacePatternsGame extends BaseGame {
       return;
     }
 
-    this.resolutionState = 'idle';
+    this.resolutionState.set('idle');
     if (this.score >= this.targetScore) {
       this.gameEnded = true;
       GameLoader.playAudio('win');
@@ -607,9 +692,10 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   private startExplosion(matches: BoardCell[]): void {
-    this.resolutionMatches = matches;
-    this.resolutionState = 'exploding';
-    this.explosionElapsed = 0;
+    this.resolutionMatches.set(matches);
+    this.resolutionState.set('exploding');
+    this.explosionElapsed.set(0);
+    this.fallAnimations.set([]);
     this.score += matches.length * 100 * this.cascade;
     GameLoader.playAudio(`boom${1 + Math.floor(Math.random() * 4)}`);
   }
@@ -690,10 +776,11 @@ export class SpacePatternsGame extends BaseGame {
     this.score = 0;
     this.gameEnded = false;
     this.controls.hideEndActions();
-    this.resolutionState = 'idle';
-    this.resolutionMatches = [];
+    this.resolutionState.set('idle');
+    this.resolutionMatches.set([]);
+    this.fallAnimations.set([]);
     this.cascade = 0;
-    this.explosionElapsed = 0;
+    this.explosionElapsed.set(0);
     GameLoader.playAudio('newgame');
   }
 

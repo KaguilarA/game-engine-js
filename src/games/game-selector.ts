@@ -6,6 +6,8 @@ import GameLoader from '../engine/loader';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
 import { SpacePatternsGame } from './space-patterns/game';
 import { TankFrontierGame } from './tank-frontier/game';
+import { SlotMachineGame } from './slot-machine/game';
+import { ShootEmAllGame } from './shoot-em-all/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 
@@ -59,6 +61,16 @@ export class GameSelector {
       title: 'TANK FRONTIER',
       description: 'INSPIRED BY BATTLE CITY',
       start: (onReturnToMenu) => { new TankFrontierGame(onReturnToMenu); }
+    },
+    {
+      title: 'COSMIC JACKPOT',
+      description: 'THREE-REEL SLOT MACHINE',
+      start: (onReturnToMenu) => { new SlotMachineGame(onReturnToMenu); }
+    },
+    {
+      title: 'SHOOT ’EM ALL',
+      description: 'SURVIVE THE INVASION',
+      start: (onReturnToMenu) => { new ShootEmAllGame(onReturnToMenu); }
     }
   ];
   /**
