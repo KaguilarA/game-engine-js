@@ -1,71 +1,150 @@
+import { signalValue } from 'reactive-values';
+
 /**
- * Integrates two-dimensional position and velocity with optional gravity.
+ * Shared two-dimensional position, velocity, and acceleration integrator.
  * @class PhysicsBody
  */
 export class PhysicsBody {
   /**
-   * Stores the x state.
-   * @property {ReturnType<typeof signalValue<number>>} x
+   * Horizontal world position.
+   * @property {Signal<number>} x
    * @public
    * @readonly
    */
-  public readonly x: ReturnType<typeof signalValue<number>>;
+  public readonly x = signalValue(0);
   /**
-   * Stores the y state.
-   * @property {ReturnType<typeof signalValue<number>>} y
+   * Vertical world position.
+   * @property {Signal<number>} y
    * @public
    * @readonly
    */
-  public readonly y: ReturnType<typeof signalValue<number>>;
+  public readonly y = signalValue(0);
   /**
-   * Stores the velocity x state.
-   * @property {Signal} velocityX
+   * Horizontal velocity in world units per second.
+   * @property {Signal<number>} velocityX
    * @public
    * @readonly
    */
   public readonly velocityX = signalValue(0);
   /**
-   * Stores the velocity y state.
-   * @property {Signal} velocityY
+   * Vertical velocity in world units per second.
+   * @property {Signal<number>} velocityY
    * @public
    * @readonly
    */
   public readonly velocityY = signalValue(0);
+  /**
+   * Horizontal acceleration in world units per second squared.
+   * @property {Signal<number>} accelerationX
+   * @public
+   * @readonly
+   */
+  public readonly accelerationX = signalValue(0);
+  /**
+   * Vertical acceleration in world units per second squared.
+   * @property {Signal<number>} accelerationY
+   * @public
+   * @readonly
+   */
+  public readonly accelerationY = signalValue(0);
 
   /**
-   * Creates a body at the supplied position with zero initial velocity.
-   * @param x - Initial horizontal position.
-   * @param y - Initial vertical position.
+   * Creates a body at the supplied position with no initial motion.
+   * @param x - Initial horizontal coordinate.
+   * @param y - Initial vertical coordinate.
    * @public
    * @return {void}
    */
   public constructor(x = 0, y = 0) {
-    this.x = signalValue(x);
-    this.y = signalValue(y);
+    this.setPosition(x, y);
   }
 
   /**
-   * Integrates velocity and optional vertical gravity for one frame.
-   * @param deltaSeconds - Elapsed frame time in seconds.
-   * @param gravityY - Vertical acceleration in world units per second squared.
+   * Integrates velocity and acceleration for one frame.
+   * @param deltaSeconds - Elapsed time since the previous frame.
+   * @param verticalAcceleration - Optional vertical acceleration override.
    * @public
    * @return {void}
    */
-  public update(deltaSeconds: number, gravityY = 0): void {
-    if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) {
-      throw new RangeError('Delta seconds must be a finite non-negative number.');
+  public update(deltaSeconds: number, verticalAcceleration?: number): void {
+    this.assertFinite(deltaSeconds, 'Delta seconds');
+    if (deltaSeconds < 0) {
+      throw new RangeError('Delta seconds must be non-negative.');
     }
 
-    if (!Number.isFinite(gravityY)) {
-      throw new RangeError('Gravity must be finite.');
-    }
+    const accelerationX = this.accelerationX();
+    const accelerationY = verticalAcceleration ?? this.accelerationY();
+    this.assertFinite(this.velocityX(), 'Horizontal velocity');
+    this.assertFinite(this.velocityY(), 'Vertical velocity');
+    this.assertFinite(accelerationX, 'Horizontal acceleration');
+    this.assertFinite(accelerationY, 'Vertical acceleration');
 
+    this.x.set(
+      this.x() + this.velocityX() * deltaSeconds
+      + accelerationX * deltaSeconds ** 2 * 0.5
+    );
     this.y.set(
       this.y() + this.velocityY() * deltaSeconds
-      + gravityY * deltaSeconds ** 2 * 0.5
+      + accelerationY * deltaSeconds ** 2 * 0.5
     );
-    this.x.set(this.x() + this.velocityX() * deltaSeconds);
-    this.velocityY.set(this.velocityY() + gravityY * deltaSeconds);
+    this.velocityX.set(this.velocityX() + accelerationX * deltaSeconds);
+    this.velocityY.set(this.velocityY() + accelerationY * deltaSeconds);
+  }
+
+  /**
+   * Sets the body's position without changing its motion.
+   * @param x - Horizontal world coordinate.
+   * @param y - Vertical world coordinate.
+   * @public
+   * @return {void}
+   */
+  public setPosition(x: number, y: number): void {
+    this.assertFinite(x, 'x');
+    this.assertFinite(y, 'y');
+    this.x.set(x);
+    this.y.set(y);
+  }
+
+  /**
+   * Sets both velocity components in world units per second.
+   * @param x - Horizontal velocity.
+   * @param y - Vertical velocity.
+   * @public
+   * @return {void}
+   */
+  public setVelocity(x: number, y: number): void {
+    this.assertFinite(x, 'velocityX');
+    this.assertFinite(y, 'velocityY');
+    this.velocityX.set(x);
+    this.velocityY.set(y);
+  }
+
+  /**
+   * Applies an immediate positional displacement.
+   * @param x - Horizontal displacement.
+   * @param y - Vertical displacement.
+   * @public
+   * @return {void}
+   */
+  public translate(x: number, y: number): void {
+    this.setPosition(this.x() + x, this.y() + y);
+  }
+
+  /**
+   * Clears velocity and acceleration without changing position.
+   * @public
+   * @return {void}
+   */
+  public stop(): void {
+    this.setVelocity(0, 0);
+    this.accelerationX.set(0);
+    this.accelerationY.set(0);
+  }
+
+  /** Rejects invalid coordinates, timing, and motion values. */
+  private assertFinite(value: number, label: string): void {
+    if (!Number.isFinite(value)) {
+      throw new RangeError(`${label} must be finite.`);
+    }
   }
 }
-import { signalValue } from 'reactive-values';

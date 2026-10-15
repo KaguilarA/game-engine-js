@@ -1,4 +1,5 @@
 import Sprite from './sprite';
+import { PhysicsBody } from './physics';
 
 /**
  * Shared position, size, animation, and drawing behavior for sprite entities.
@@ -13,6 +14,13 @@ export abstract class SpriteEntity {
    * @readonly
    */
   protected readonly sprite: Sprite;
+  /**
+   * Shared position, velocity, and acceleration for this entity.
+   * @property {PhysicsBody} physics
+   * @protected
+   * @readonly
+   */
+  protected readonly physics: PhysicsBody;
 
   /**
    * Wraps a sprite so subclasses can use entity-level geometry helpers.
@@ -21,6 +29,10 @@ export abstract class SpriteEntity {
    */
   protected constructor(sprite: Sprite) {
     this.sprite = sprite;
+    this.physics = new PhysicsBody(
+      sprite.dimensions.getX(),
+      sprite.dimensions.getY()
+    );
   }
 
   /**
@@ -76,6 +88,7 @@ export abstract class SpriteEntity {
    * @param y - The vertical pivot position.
    */
   public setPosition(x: number, y: number): void {
+    this.physics.setPosition(x, y);
     this.sprite.dimensions.setPosition(x, y);
   }
 
@@ -98,7 +111,56 @@ export abstract class SpriteEntity {
    * @param y - The vertical displacement.
    */
   public moveBy(x: number, y: number): void {
-    this.setPosition(this.x + x, this.y + y);
+    this.physics.translate(x, y);
+    this.syncPhysicsPosition();
+  }
+
+  /**
+   * Sets a frame velocity, advances the body, and updates the sprite position.
+   * @param deltaSeconds - Elapsed time since the previous frame.
+   * @param velocityX - Horizontal velocity in world units per second.
+   * @param velocityY - Vertical velocity in world units per second.
+   * @param verticalAcceleration - Optional vertical acceleration override.
+   * @public
+   * @return {void}
+   */
+  public advanceMovement(
+    deltaSeconds: number,
+    velocityX: number,
+    velocityY: number,
+    verticalAcceleration?: number
+  ): void {
+    this.physics.setVelocity(velocityX, velocityY);
+    this.physics.update(deltaSeconds, verticalAcceleration);
+    this.syncPhysicsPosition();
+  }
+
+  /**
+   * Sets the entity's velocity for the next physics step.
+   * @param x - Horizontal velocity in world units per second.
+   * @param y - Vertical velocity in world units per second.
+   * @protected
+   * @return {void}
+   */
+  protected setVelocity(x: number, y: number): void {
+    this.physics.setVelocity(x, y);
+  }
+
+  /**
+   * Advances physics and synchronizes the sprite to the resulting position.
+   * @param deltaSeconds - Elapsed time since the previous frame.
+   * @param verticalAcceleration - Optional vertical acceleration override.
+   * @protected
+   * @return {void}
+   */
+  protected updatePhysics(deltaSeconds: number, verticalAcceleration?: number): void {
+    this.physics.update(deltaSeconds, verticalAcceleration);
+    this.syncPhysicsPosition();
+  }
+
+  /** Synchronizes the wrapped sprite to the physics body's position. */
+  private syncPhysicsPosition(): void {
+    this.sprite.dimensions.setPosition(this.physics.x(), this.physics.y());
   }
 
   /**
