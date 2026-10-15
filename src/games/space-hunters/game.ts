@@ -4,6 +4,7 @@ import CanvasIcon from '../../engine/canvas-icon';
 import GameEvents from '../../engine/events';
 import { TouchControls } from '../../engine/touch-controls';
 import GameLoader from '../../engine/loader';
+import { PhysicsBody } from '../../engine/physics';
 import { Boss } from './boss';
 import type { BossType } from './boss';
 import { Enemy } from './enemy';
@@ -140,7 +141,12 @@ export class Game extends BaseGame {
    * @property {{ x: number} lifePickup
    * @private
    */
-  private lifePickup: { x: number; y: number; size: number } | undefined;
+  private lifePickup: {
+    x: number;
+    y: number;
+    size: number;
+    physics: PhysicsBody;
+  } | undefined;
   /**
    * Stores the game over state.
    * @property {boolean} gameOver
@@ -569,11 +575,7 @@ export class Game extends BaseGame {
   private updatePlayerShooting(deltaSeconds: number): void {
     this.shootCooldown -= deltaSeconds;
 
-    const wantsToShoot = (
-      GameEvents.isKeyPressed(' ')
-      || GameEvents.isKeyPressed('Space')
-      || GameEvents.isKeyPressed('1')
-    );
+    const wantsToShoot = GameEvents.isKeyPressed(' ');
 
     if (wantsToShoot && this.shootCooldown <= 0) {
       this.shootProjectile();
@@ -731,11 +733,9 @@ export class Game extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const size = GameContext.isPortrait ? 58 : 42;
 
-    this.lifePickup = {
-      x: 32 + Math.random() * (dimensions.getWidth() - size - 64),
-      y: -size,
-      size
-    };
+    const x = 32 + Math.random() * (dimensions.getWidth() - size - 64);
+    const y = -size;
+    this.lifePickup = { x, y, size, physics: new PhysicsBody(x, y) };
   }
 
   /**
@@ -746,9 +746,12 @@ export class Game extends BaseGame {
   private updateLifePickup(deltaSeconds: number): void {
     if (this.lifePickup === undefined) return;
 
-    this.lifePickup.y += 180 * deltaSeconds;
     const pickup = this.lifePickup;
     const dimensions = GameContext.gameDimensionsModel;
+    pickup.physics.setVelocity(0, 180);
+    pickup.physics.update(deltaSeconds);
+    pickup.x = pickup.physics.x();
+    pickup.y = pickup.physics.y();
 
     if (pickup.y > dimensions.getHeight() + pickup.size) {
       this.lifePickup = undefined;

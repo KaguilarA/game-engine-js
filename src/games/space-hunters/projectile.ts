@@ -60,7 +60,7 @@ export class Projectile extends SpriteEntity {
    */
   public start(x: number, y: number, direction = -1): void {
     this.direction = direction;
-    this.sprite.dimensions.setPosition(
+    this.setPosition(
       x - this.width * 0.5,
       y
     );
@@ -85,14 +85,11 @@ export class Projectile extends SpriteEntity {
     if (this.isFree()) return;
 
     this.sprite.update(deltaSeconds);
-    const nextY = this.y + this.speed * this.direction * deltaSeconds;
+    this.advanceMovement(deltaSeconds, 0, this.speed * this.direction);
     const gameHeight = GameContext.gameDimensionsModel.getHeight();
 
-    if (nextY < -this.height || nextY > gameHeight + this.height) {
+    if (this.y < -this.height || this.y > gameHeight + this.height) {
       this.stop();
-      return;
     }
-
-    this.sprite.dimensions.setPosition(this.x, nextY);
   }
 }

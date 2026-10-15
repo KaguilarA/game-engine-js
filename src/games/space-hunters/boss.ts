@@ -191,21 +191,27 @@ export class Boss extends SpriteEntity {
     if (this.destructionPlaying) return;
 
     const speed = this.type === 3 ? 180 : this.type === 2 ? 90 : 125;
-    let nextX = this.x + this.direction * speed * deltaSeconds;
+    let velocityX = this.direction * speed;
+    let nextX = this.x + velocityX * deltaSeconds;
 
     if (nextX - this.width * 0.5 <= 24) {
       this.direction = 1;
       nextX = this.width * 0.5 + 24;
+      velocityX = 0;
     } else if (nextX + this.width * 0.5 >= gameWidth - 24) {
       this.direction = -1;
       nextX = gameWidth - this.width * 0.5 - 24;
+      velocityX = 0;
     }
 
     const nextY = this.type === 3
       ? 220 + Math.sin(this.elapsed * 2.5) * 70
       : this.y;
-
-    this.sprite.dimensions.setPosition(nextX, nextY);
+    const velocityY = deltaSeconds > 0
+      ? (nextY - this.y) / deltaSeconds
+      : 0;
+    if (velocityX === 0) this.setPosition(nextX, this.y);
+    this.advanceMovement(deltaSeconds, velocityX, velocityY);
   }
 
   public override draw(): void {

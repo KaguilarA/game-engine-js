@@ -2,6 +2,8 @@ import Sprite from '../../engine/sprite';
 import GameLoader from '../../engine/loader';
 import { Health } from '../../engine/health';
 import { SpriteEntity } from '../../engine/sprite-entity';
+import { signalValue } from 'reactive-values';
+import type { SignalValue } from 'reactive-values';
 
 /**
  * Enemy sprite sheets supported by Space Hunters formations.
@@ -25,7 +27,7 @@ export class Enemy extends SpriteEntity {
    * @property {boolean} isImpacting
    * @private
    */
-  private isImpacting = false;
+  private readonly isImpacting: SignalValue<boolean> = signalValue(false);
   /**
    * Variant row used when this enemy sheet has directional clips.
    * @property {number} atlasRow
@@ -49,11 +51,23 @@ export class Enemy extends SpriteEntity {
    */
   public readonly points: number;
   /**
-   * Whether this enemy remains in the formation.
+   * Stores whether this enemy remains active in its formation.
+   * @property {SignalValue<boolean>} alive
+   * @private
+   * @readonly
+   */
+  private readonly alive: SignalValue<boolean> = signalValue(true);
+
+  /**
+   * Reports whether this enemy remains active in the formation and can be drawn
+   * or damaged by gameplay systems.
    * @property {boolean} isAlive
    * @public
+   * @return {boolean} Whether the enemy is alive.
    */
-  public isAlive = true;
+  public get isAlive(): boolean {
+    return this.alive();
+  }
 
   /**
    * Reports whether the enemy's health has been depleted.
@@ -130,9 +144,9 @@ export class Enemy extends SpriteEntity {
   public update(deltaSeconds: number): void {
     this.updateSprite(deltaSeconds);
 
-    if (this.isImpacting && !this.sprite.isAnimationPlaying) {
-      this.isImpacting = false;
-      this.isAlive = false;
+    if (this.isImpacting() && !this.sprite.isAnimationPlaying) {
+      this.isImpacting.set(false);
+      this.alive.set(false);
     }
   }
 
@@ -168,7 +182,7 @@ export class Enemy extends SpriteEntity {
     if (!damage.wasDamaged) return false;
 
     if (damage.isDepleted) {
-      this.isImpacting = true;
+      this.isImpacting.set(true);
       this.playDestructionAnimation();
     } else {
       this.showDamageState();

@@ -71,7 +71,7 @@ export class Player extends AnimatedShipEntity {
     this.sprite.playAtlasClip(shipAtlas.getAnimation('idle'));
     const gameDimensions = GameContext.gameDimensionsModel;
 
-    this.sprite.dimensions.setPosition(
+    this.setPosition(
       (gameDimensions.getWidth() - this.width) * 0.5,
       gameDimensions.getHeight() - this.height - this.bottomMargin
     );
@@ -104,7 +104,7 @@ export class Player extends AnimatedShipEntity {
       gameDimensions.getWidth() - this.width
     );
 
-    this.sprite.dimensions.setPosition(
+    this.setPosition(
       Math.max(0, Math.min(this.x, maxX)),
       gameDimensions.getHeight() - this.height - this.bottomMargin
     );
@@ -193,12 +193,8 @@ export class Player extends AnimatedShipEntity {
   }
 
   private updatePosition(deltaSeconds: number): void {
-    const nextX = this.x + this.speed() * deltaSeconds;
+    this.advanceMovement(deltaSeconds, this.speed(), 0);
     const maxX = GameContext.gameDimensionsModel.getWidth() - this.width;
-
-    this.sprite.dimensions.setPosition(
-      Math.max(0, Math.min(nextX, maxX)),
-      this.y
-    );
+    this.setPosition(Math.max(0, Math.min(this.x, maxX)), this.y);
   }
 }
