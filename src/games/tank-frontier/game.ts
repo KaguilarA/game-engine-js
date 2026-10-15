@@ -5,6 +5,7 @@ import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
 import Sprite from '../../engine/sprite';
 import { TouchControls } from '../../engine/touch-controls';
+import { PhysicsBody } from '../../engine/physics';
 import { signalValue } from 'reactive-values';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
 
@@ -93,14 +94,15 @@ class Tank {
    * @public
    * @readonly
    */
-  public readonly x = signalValue(0);
+  private readonly physics = new PhysicsBody();
+  public readonly x = this.physics.x;
   /**
    * Stores the y state.
    * @property {Signal} y
    * @public
    * @readonly
    */
-  public readonly y = signalValue(0);
+  public readonly y = this.physics.y;
   /**
    * Stores the alive state.
    * @property {Signal} alive
@@ -217,8 +219,7 @@ class Tank {
     this.health.set(maximumHealth);
     this.enemyBehavior = enemyBehavior;
     this.atlasRow = atlasRow;
-    this.x.set(x);
-    this.y.set(y);
+    this.physics.setPosition(x, y);
     this.sprite.playAtlasClip(
       atlas.getAnimation(
         imageName === 'player' ? 'idle' : `idle-row-${atlasRow}`
@@ -232,9 +233,28 @@ class Tank {
    * @return {void}
    */
   public setPosition(x: number, y: number): void {
-    this.x.set(x);
-    this.y.set(y);
+    this.physics.setPosition(x, y);
     this.sprite.dimensions.setPosition(x, y);
+  }
+
+  /**
+   * Advances the tank along its current cardinal direction through physics.
+   * @param direction - Cardinal direction, or undefined to remain still.
+   * @param speed - Movement speed in world units per second.
+   * @param deltaSeconds - Elapsed time since the previous frame.
+   * @public
+   * @return {void}
+   */
+  public advanceMovement(direction: Direction | undefined, speed: number, deltaSeconds: number): void {
+    const velocityX = direction === 'left'
+      ? -speed
+      : direction === 'right' ? speed : 0;
+    const velocityY = direction === 'up'
+      ? -speed
+      : direction === 'down' ? speed : 0;
+    this.physics.setVelocity(velocityX, velocityY);
+    this.physics.update(deltaSeconds);
+    this.sprite.dimensions.setPosition(this.x(), this.y());
   }
 
   /**
@@ -414,14 +434,15 @@ class Bullet {
    * @public
    * @readonly
    */
-  public readonly x = signalValue(0);
+  private readonly physics = new PhysicsBody();
+  public readonly x = this.physics.x;
   /**
    * Stores the y state.
    * @property {Signal} y
    * @public
    * @readonly
    */
-  public readonly y = signalValue(0);
+  public readonly y = this.physics.y;
   /**
    * Stores the active state.
    * @property {Signal} active
@@ -493,8 +514,8 @@ class Bullet {
    * @return {void}
    */
   public start(x: number, y: number, direction: Direction): void {
-    this.x.set(x);
-    this.y.set(y);
+    this.physics.setPosition(x, y);
+    this.physics.stop();
     this.direction = direction;
     this.sprite.dimensions.setPosition(x, y);
     this.active.set(true);
@@ -507,6 +528,7 @@ class Bullet {
    */
   public stop(): void {
     this.active.set(false);
+    this.physics.stop();
   }
 
   /**
@@ -519,10 +541,14 @@ class Bullet {
     this.sprite.update(deltaSeconds);
 
     const speed = 780;
-    if (this.direction === 'up') this.y.set(this.y() - speed * deltaSeconds);
-    if (this.direction === 'down') this.y.set(this.y() + speed * deltaSeconds);
-    if (this.direction === 'left') this.x.set(this.x() - speed * deltaSeconds);
-    if (this.direction === 'right') this.x.set(this.x() + speed * deltaSeconds);
+    const velocityX = this.direction === 'left'
+      ? -speed
+      : this.direction === 'right' ? speed : 0;
+    const velocityY = this.direction === 'up'
+      ? -speed
+      : this.direction === 'down' ? speed : 0;
+    this.physics.setVelocity(velocityX, velocityY);
+    this.physics.update(deltaSeconds);
 
     const dimensions = GameContext.gameDimensionsModel;
     if (
@@ -1090,22 +1116,23 @@ export class TankFrontierGame extends BaseGame {
     const direction = this.getInputDirection();
     if (direction !== undefined) this.player.direction = direction;
     const speed = 260;
+    const previousX = this.player.x();
+    const previousY = this.player.y();
+    this.player.advanceMovement(direction, speed, deltaSeconds);
     const next = this.movePosition(
       this.player.x(),
       this.player.y(),
-      direction,
-      speed * deltaSeconds
+      undefined,
+      0
     );
     if (!this.collidesWithWalls(this.player, next.x, next.y)) {
       this.player.setPosition(next.x, next.y);
+    } else {
+      this.player.setPosition(previousX, previousY);
     }
 
     this.shootCooldown.set(Math.max(0, this.shootCooldown() - deltaSeconds));
-    const wantsToShoot = (
-      GameEvents.isKeyPressed(' ')
-      || GameEvents.isKeyPressed('Space')
-      || GameEvents.isKeyPressed('1')
-    );
+    const wantsToShoot = GameEvents.isKeyPressed(' ');
     if (wantsToShoot && this.shootCooldown() === 0) {
       this.fire(this.player, this.playerBullets);
       this.shootCooldown.set(0.28);
@@ -1230,7 +1257,19 @@ export class TankFrontierGame extends BaseGame {
           };
           enemy.startAiDirectionCooldown(cooldownByBehavior[behavior]);
         }
-        enemy.setPosition(move.next.x, move.next.y);
+        enemy.advanceMovement(
+          move.direction,
+          deltaSeconds > 0 && !hasReachedTarget ? distance / deltaSeconds : 0,
+          deltaSeconds
+        );
+        const constrained = this.movePosition(
+          enemy.x(),
+          enemy.y(),
+          undefined,
+          0,
+          enemy.size
+        );
+        enemy.setPosition(constrained.x, constrained.y);
       } else {
         enemy.direction = preferredDirection;
         const next = this.movePosition(

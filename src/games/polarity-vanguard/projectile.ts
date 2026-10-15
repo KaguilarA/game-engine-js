@@ -1,4 +1,5 @@
 import GameContext from '../../engine/context';
+import { PhysicsBody } from '../../engine/physics';
 
 import type { Polarity } from './polarity';
 import { POLARITY_COLORS } from './polarity';
@@ -19,13 +20,12 @@ export class PolarityProjectile {
    * @property {number} x
    * @public
    */
-  public x = 0;
+  private readonly motion = new PhysicsBody();
   /**
    * Stores the y state.
    * @property {number} y
    * @public
    */
-  public y = 0;
   /**
    * Stores the radius state.
    * @property {number} radius
@@ -64,6 +64,16 @@ export class PolarityProjectile {
     this.radius = radius;
   }
 
+  /** Current horizontal world coordinate. */
+  public get x(): number {
+    return this.motion.x();
+  }
+
+  /** Current vertical world coordinate. */
+  public get y(): number {
+    return this.motion.y();
+  }
+
   /**
    * Activates or reuses the projectile at a position and travel direction.
    * @public
@@ -75,8 +85,8 @@ export class PolarityProjectile {
     direction: -1 | 1,
     polarity = this.polarity
   ): void {
-    this.x = x;
-    this.y = y;
+    this.motion.setPosition(x, y);
+    this.motion.setVelocity(0, this.direction * this.speed);
     this.direction = direction;
     this.polarity = polarity;
     this.active = true;
@@ -90,7 +100,7 @@ export class PolarityProjectile {
   public update(deltaSeconds: number): void {
     if (!this.active) return;
 
-    this.y += this.direction * this.speed * deltaSeconds;
+    this.motion.update(deltaSeconds);
 
     const height = GameContext.gameDimensionsModel.getHeight();
     if (this.y < -this.radius || this.y > height + this.radius) {

@@ -105,9 +105,10 @@ export class PolarityVanguardEnemy extends SpriteEntity {
     }
 
     this.elapsed += deltaSeconds;
-    this.sprite.dimensions.setPosition(
-      this.x + Math.sin(this.elapsed * 2 + this.phase) * 48 * deltaSeconds,
-      this.y + 20 * deltaSeconds
+    this.advanceMovement(
+      deltaSeconds,
+      Math.sin(this.elapsed * 2 + this.phase) * 48,
+      20
     );
   }
 

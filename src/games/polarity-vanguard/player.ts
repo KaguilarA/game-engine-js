@@ -88,7 +88,7 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
   public reset(): void {
     this.updateSize();
     const dimensions = GameContext.gameDimensionsModel;
-    this.sprite.dimensions.setPosition(
+    this.setPosition(
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() - this.height * 0.5 - this.bottomMargin
     );
@@ -126,18 +126,23 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
       Number(GameEvents.isKeyPressed('ArrowDown') || GameEvents.isKeyPressed('s'))
       - Number(GameEvents.isKeyPressed('ArrowUp') || GameEvents.isKeyPressed('w'))
     );
+    this.advanceMovement(
+      deltaSeconds,
+      horizontal * speed,
+      vertical * speed
+    );
     const x = Math.max(
       this.width * 0.5,
       Math.min(
         dimensions.getWidth() - this.width * 0.5,
-        this.x + horizontal * speed * deltaSeconds
+        this.x
       )
     );
     const y = Math.max(
       dimensions.getHeight() * 0.45,
       Math.min(
         dimensions.getHeight() - this.height * 0.5 - this.bottomMargin,
-        this.y + vertical * speed * deltaSeconds
+        this.y
       )
     );
     this.updateSprite(deltaSeconds);
@@ -152,7 +157,7 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
     }
 
     this.polarityKeyWasPressed = polarityKeyPressed;
-    this.sprite.dimensions.setPosition(x, y);
+    this.setPosition(x, y);
     this.syncJetsToShip();
   }
 }

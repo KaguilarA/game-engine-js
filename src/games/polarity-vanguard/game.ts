@@ -6,6 +6,7 @@ import GameLoader from '../../engine/loader';
 import { TouchControls } from '../../engine/touch-controls';
 import type { TouchControlCircle } from '../../engine/touch-controls';
 import { signalValue } from 'reactive-values';
+import { PhysicsBody } from '../../engine/physics';
 
 import { PolarityVanguardEnemy } from './enemy';
 import type { Polarity } from './polarity';
@@ -37,6 +38,8 @@ interface LifePickup {
    * @public
    */
   size: number;
+  /** Physics state used for the falling movement. */
+  physics: PhysicsBody;
 }
 
 /**
@@ -242,11 +245,7 @@ export class PolarityVanguardGame extends BaseGame {
    */
   private updateShooting(deltaSeconds: number): void {
     this.shootCooldown -= deltaSeconds;
-    const wantsToShoot = (
-      GameEvents.isKeyPressed(' ')
-      || GameEvents.isKeyPressed('Space')
-      || GameEvents.isKeyPressed('1')
-    );
+    const wantsToShoot = GameEvents.isKeyPressed(' ');
 
     if (!wantsToShoot || this.shootCooldown > 0) return;
 
@@ -617,11 +616,9 @@ export class PolarityVanguardGame extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const size = GameContext.isPortrait ? 58 : 42;
 
-    this.lifePickup.set({
-      x: size * 0.5 + Math.random() * (dimensions.getWidth() - size),
-      y: -size * 0.5,
-      size
-    });
+    const x = size * 0.5 + Math.random() * (dimensions.getWidth() - size);
+    const y = -size * 0.5;
+    this.lifePickup.set({ x, y, size, physics: new PhysicsBody(x, y) });
   }
 
   /**
@@ -633,7 +630,9 @@ export class PolarityVanguardGame extends BaseGame {
     const pickup = this.lifePickup();
     if (pickup === undefined) return;
 
-    const nextY = pickup.y + 180 * deltaSeconds;
+    pickup.physics.setVelocity(0, 180);
+    pickup.physics.update(deltaSeconds);
+    const nextY = pickup.physics.y();
     const dimensions = GameContext.gameDimensionsModel;
     if (nextY > dimensions.getHeight() + pickup.size * 0.5) {
       this.lifePickup.set(undefined);
