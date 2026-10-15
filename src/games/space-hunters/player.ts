@@ -3,61 +3,93 @@ import { signalValue } from 'reactive-values';
 import GameContext from '../../engine/context';
 import GameEvents from '../../engine/events';
 import GameLoader from '../../engine/loader';
+import { AnimatedShipEntity } from '../../engine/animated-ship-entity';
 import { Health } from '../../engine/health';
 import Sprite from '../../engine/sprite';
+import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 type PlayerAnimation = 'idle' | 'moving' | 'shooting';
 
-export class Player {
-  private readonly sprite = new Sprite(
-    GameLoader.getImage('player'),
-    70,
-    50,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    140,
-    120,
-    4,
-    8
-  );
-
+/**
+ * Player ship with horizontal movement, animated firing, and two-hit health.
+ * @class Player
+ */
+export class Player extends AnimatedShipEntity {
+  /**
+   * Current horizontal movement speed in canvas pixels per second.
+   * @property {Signal} speed
+   * @public
+   * @readonly
+   */
   public readonly speed = signalValue(0);
+  /**
+   * Stores the health state.
+   * @property {Health} health
+   * @private
+   * @readonly
+   */
   private readonly health = new Health(2);
+  /**
+   * Stores the animation state.
+   * @property {PlayerAnimation} animation
+   * @private
+   */
   private animation: PlayerAnimation = 'idle';
+  /**
+   * Stores the bottom margin state.
+   * @property {number} bottomMargin
+   * @private
+   */
   private bottomMargin = 40;
+  /**
+   * Stores the shooting time state.
+   * @property {number} shootingTime
+   * @private
+   */
   private shootingTime = 0;
 
-  public get height(): number {
-    return this.sprite.dimensions.getHeight();
-  }
-
-  public get width(): number {
-    return this.sprite.dimensions.getWidth();
-  }
-
-  public get x(): number {
-    return this.sprite.dimensions.getX();
-  }
-
-  public get y(): number {
-    return this.sprite.dimensions.getY();
-  }
-
-  public get dimensions() {
-    return this.sprite.dimensions;
-  }
-
-  constructor() {
+  /**
+   * Creates the player ship and its animated engine trail.
+   * @public
+   * @return {void}
+   */
+  constructor(width = 70, height = 50) {
+    const jetSheet = getSpriteSheet('player_jets');
+    super(new Sprite(
+      GameLoader.getImage('player'),
+      width,
+      height,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      140,
+      120,
+      4,
+      8
+    ), new Sprite(
+      GameLoader.getImage('player_jets'),
+      width,
+      height,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      jetSheet.frameWidth,
+      jetSheet.frameHeight,
+      jetSheet.animationFrames
+    ), jetSheet.animationFrames);
     const gameDimensions = GameContext.gameDimensionsModel;
 
     this.sprite.dimensions.setPosition(
       (gameDimensions.getWidth() - this.width) * 0.5,
       gameDimensions.getHeight() - this.height - this.bottomMargin
     );
+    this.syncJetsToShip();
   }
 
   /**
@@ -73,6 +105,14 @@ export class Player {
 
   private updateLayout(): void {
     const gameDimensions = GameContext.gameDimensionsModel;
+    const unit = Math.min(gameDimensions.getWidth(), gameDimensions.getHeight());
+    const scale = Math.max(0.5, Math.min(1, unit / 1080));
+    const targetWidth = Math.round(70 * scale);
+    const targetHeight = Math.round(50 * scale);
+    if (this.width !== targetWidth || this.height !== targetHeight) {
+      this.sprite.dimensions.setSize(targetWidth, targetHeight);
+    }
+
     const maxX = Math.max(
       0,
       gameDimensions.getWidth() - this.width
@@ -82,20 +122,28 @@ export class Player {
       Math.max(0, Math.min(this.x, maxX)),
       gameDimensions.getHeight() - this.height - this.bottomMargin
     );
+    this.syncJetsToShip();
   }
 
-  public draw(): void {
-    this.sprite.draw();
-  }
-
+  /**
+   * Updates movement, animation, and the temporary shooting pose.
+   * @public
+   * @return {void}
+   */
   public update(deltaSeconds: number): void {
     this.shootingTime = Math.max(0, this.shootingTime - deltaSeconds);
     this.updateLayout();
     this.updateSpeed();
     this.updateAnimation(deltaSeconds);
-    this.updatePosition();
+    this.updateJets(deltaSeconds);
+    this.updatePosition(deltaSeconds);
   }
 
+  /**
+   * Displays the shooting animation for a short interval.
+   * @public
+   * @return {void}
+   */
   public shoot(): void {
     this.shootingTime = 0.2;
   }
@@ -112,6 +160,11 @@ export class Player {
     return true;
   }
 
+  /**
+   * Restores both hit points after losing a life.
+   * @public
+   * @return {void}
+   */
   public restoreHealth(): void {
     this.health.restore();
   }
@@ -146,20 +199,20 @@ export class Player {
 
   private updateSpeed(): void {
     if (GameEvents.isKeyPressed('ArrowLeft')) {
-      this.speed.set(-8);
+      this.speed.set(-240);
       return;
     }
 
     if (GameEvents.isKeyPressed('ArrowRight')) {
-      this.speed.set(8);
+      this.speed.set(240);
       return;
     }
 
     this.speed.set(0);
   }
 
-  private updatePosition(): void {
-    const nextX = this.x + this.speed();
+  private updatePosition(deltaSeconds: number): void {
+    const nextX = this.x + this.speed() * deltaSeconds;
     const maxX = GameContext.gameDimensionsModel.getWidth() - this.width;
 
     this.sprite.dimensions.setPosition(
