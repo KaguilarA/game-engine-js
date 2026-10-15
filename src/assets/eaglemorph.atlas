@@ -1,0 +1,237 @@
+eaglemorph.png
+  size: 720, 320
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle-row-0
+  index: 0
+  bounds: 0, 0, 80, 80
+  fps: 7
+  loop: true
+idle-row-0
+  index: 1
+  bounds: 80, 0, 80, 80
+  fps: 7
+  loop: true
+idle-row-0
+  index: 2
+  bounds: 160, 0, 80, 80
+  fps: 7
+  loop: true
+idle-row-0
+  index: 3
+  bounds: 240, 0, 80, 80
+  fps: 7
+  loop: true
+explosion-row-0
+  index: 0
+  bounds: 320, 0, 80, 80
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 1
+  bounds: 400, 0, 80, 80
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 2
+  bounds: 480, 0, 80, 80
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 3
+  bounds: 560, 0, 80, 80
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 4
+  bounds: 640, 0, 80, 80
+  fps: 14
+  loop: false
+idle-row-1
+  index: 0
+  bounds: 0, 80, 80, 80
+  fps: 7
+  loop: true
+idle-row-1
+  index: 1
+  bounds: 80, 80, 80, 80
+  fps: 7
+  loop: true
+idle-row-1
+  index: 2
+  bounds: 160, 80, 80, 80
+  fps: 7
+  loop: true
+idle-row-1
+  index: 3
+  bounds: 240, 80, 80, 80
+  fps: 7
+  loop: true
+explosion-row-1
+  index: 0
+  bounds: 320, 80, 80, 80
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 1
+  bounds: 400, 80, 80, 80
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 2
+  bounds: 480, 80, 80, 80
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 3
+  bounds: 560, 80, 80, 80
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 4
+  bounds: 640, 80, 80, 80
+  fps: 14
+  loop: false
+idle-row-2
+  index: 0
+  bounds: 0, 160, 80, 80
+  fps: 7
+  loop: true
+idle-row-2
+  index: 1
+  bounds: 80, 160, 80, 80
+  fps: 7
+  loop: true
+idle-row-2
+  index: 2
+  bounds: 160, 160, 80, 80
+  fps: 7
+  loop: true
+idle-row-2
+  index: 3
+  bounds: 240, 160, 80, 80
+  fps: 7
+  loop: true
+explosion-row-2
+  index: 0
+  bounds: 320, 160, 80, 80
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 1
+  bounds: 400, 160, 80, 80
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 2
+  bounds: 480, 160, 80, 80
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 3
+  bounds: 560, 160, 80, 80
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 4
+  bounds: 640, 160, 80, 80
+  fps: 14
+  loop: false
+idle-row-3
+  index: 0
+  bounds: 0, 240, 80, 80
+  fps: 7
+  loop: true
+idle-row-3
+  index: 1
+  bounds: 80, 240, 80, 80
+  fps: 7
+  loop: true
+idle-row-3
+  index: 2
+  bounds: 160, 240, 80, 80
+  fps: 7
+  loop: true
+idle-row-3
+  index: 3
+  bounds: 240, 240, 80, 80
+  fps: 7
+  loop: true
+explosion-row-3
+  index: 0
+  bounds: 320, 240, 80, 80
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 1
+  bounds: 400, 240, 80, 80
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 2
+  bounds: 480, 240, 80, 80
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 3
+  bounds: 560, 240, 80, 80
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 4
+  bounds: 640, 240, 80, 80
+  fps: 14
+  loop: false
+idle
+  index: 0
+  bounds: 0, 0, 80, 80
+  fps: 7
+  loop: true
+idle
+  index: 1
+  bounds: 80, 0, 80, 80
+  fps: 7
+  loop: true
+idle
+  index: 2
+  bounds: 160, 0, 80, 80
+  fps: 7
+  loop: true
+idle
+  index: 3
+  bounds: 240, 0, 80, 80
+  fps: 7
+  loop: true
+explosion
+  index: 0
+  bounds: 320, 0, 80, 80
+  fps: 14
+  loop: false
+explosion
+  index: 1
+  bounds: 400, 0, 80, 80
+  fps: 14
+  loop: false
+explosion
+  index: 2
+  bounds: 480, 0, 80, 80
+  fps: 14
+  loop: false
+explosion
+  index: 3
+  bounds: 560, 0, 80, 80
+  fps: 14
+  loop: false
+explosion
+  index: 4
+  bounds: 640, 0, 80, 80
+  fps: 14
+  loop: false
+icon
+  index: 0
+  bounds: 0, 0, 80, 80
+  fps: 0
+  loop: false

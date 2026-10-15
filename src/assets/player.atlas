@@ -1,0 +1,57 @@
+player.png
+  size: 560, 120
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+all
+  index: 0
+  bounds: 0, 0, 140, 120
+  fps: 8
+  loop: true
+all
+  index: 1
+  bounds: 140, 0, 140, 120
+  fps: 8
+  loop: true
+all
+  index: 2
+  bounds: 280, 0, 140, 120
+  fps: 8
+  loop: true
+all
+  index: 3
+  bounds: 420, 0, 140, 120
+  fps: 8
+  loop: true
+idle
+  index: 0
+  bounds: 0, 0, 140, 120
+  fps: 0
+  loop: false
+moving
+  index: 0
+  bounds: 140, 0, 140, 120
+  fps: 8
+  loop: true
+moving
+  index: 1
+  bounds: 280, 0, 140, 120
+  fps: 8
+  loop: true
+shooting
+  index: 0
+  bounds: 280, 0, 140, 120
+  fps: 12
+  loop: false
+shooting
+  index: 1
+  bounds: 420, 0, 140, 120
+  fps: 12
+  loop: false
+icon
+  index: 0
+  bounds: 0, 0, 140, 120
+  fps: 0
+  loop: false

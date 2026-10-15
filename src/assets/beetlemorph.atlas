@@ -1,0 +1,102 @@
+beetlemorph.png
+  size: 300, 400
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle-row-0
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 1
+  bounds: 100, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 0
+  bounds: 0, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 1
+  bounds: 100, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 0
+  bounds: 0, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 1
+  bounds: 100, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 0
+  bounds: 0, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 1
+  bounds: 100, 300, 100, 100
+  fps: 7
+  loop: true
+idle
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 7
+  loop: true
+idle
+  index: 1
+  bounds: 100, 0, 100, 100
+  fps: 7
+  loop: true
+explosion
+  index: 0
+  bounds: 200, 0, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 1
+  bounds: 200, 100, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 2
+  bounds: 200, 200, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 3
+  bounds: 200, 300, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 0
+  bounds: 200, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 1
+  bounds: 200, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 2
+  bounds: 200, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 3
+  bounds: 200, 300, 100, 100
+  fps: 14
+  loop: false
+icon
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 0
+  loop: false

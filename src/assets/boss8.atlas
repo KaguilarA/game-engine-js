@@ -1,0 +1,617 @@
+boss8.png
+  size: 2200, 1600
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle-row-0
+  index: 0
+  bounds: 0, 0, 200, 200
+  fps: 7
+  loop: true
+idle-row-0
+  index: 1
+  bounds: 200, 0, 200, 200
+  fps: 7
+  loop: true
+idle-row-0
+  index: 2
+  bounds: 400, 0, 200, 200
+  fps: 7
+  loop: true
+idle-row-0
+  index: 3
+  bounds: 600, 0, 200, 200
+  fps: 7
+  loop: true
+idle-row-0
+  index: 4
+  bounds: 800, 0, 200, 200
+  fps: 7
+  loop: true
+idle-row-0
+  index: 5
+  bounds: 1000, 0, 200, 200
+  fps: 7
+  loop: true
+explosion-row-0
+  index: 0
+  bounds: 1200, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 1
+  bounds: 1400, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 2
+  bounds: 1600, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 3
+  bounds: 1800, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 4
+  bounds: 2000, 0, 200, 200
+  fps: 14
+  loop: false
+idle-row-1
+  index: 0
+  bounds: 0, 200, 200, 200
+  fps: 7
+  loop: true
+idle-row-1
+  index: 1
+  bounds: 200, 200, 200, 200
+  fps: 7
+  loop: true
+idle-row-1
+  index: 2
+  bounds: 400, 200, 200, 200
+  fps: 7
+  loop: true
+idle-row-1
+  index: 3
+  bounds: 600, 200, 200, 200
+  fps: 7
+  loop: true
+idle-row-1
+  index: 4
+  bounds: 800, 200, 200, 200
+  fps: 7
+  loop: true
+idle-row-1
+  index: 5
+  bounds: 1000, 200, 200, 200
+  fps: 7
+  loop: true
+explosion-row-1
+  index: 0
+  bounds: 1200, 200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 1
+  bounds: 1400, 200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 2
+  bounds: 1600, 200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 3
+  bounds: 1800, 200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 4
+  bounds: 2000, 200, 200, 200
+  fps: 14
+  loop: false
+idle-row-2
+  index: 0
+  bounds: 0, 400, 200, 200
+  fps: 7
+  loop: true
+idle-row-2
+  index: 1
+  bounds: 200, 400, 200, 200
+  fps: 7
+  loop: true
+idle-row-2
+  index: 2
+  bounds: 400, 400, 200, 200
+  fps: 7
+  loop: true
+idle-row-2
+  index: 3
+  bounds: 600, 400, 200, 200
+  fps: 7
+  loop: true
+idle-row-2
+  index: 4
+  bounds: 800, 400, 200, 200
+  fps: 7
+  loop: true
+idle-row-2
+  index: 5
+  bounds: 1000, 400, 200, 200
+  fps: 7
+  loop: true
+explosion-row-2
+  index: 0
+  bounds: 1200, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 1
+  bounds: 1400, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 2
+  bounds: 1600, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 3
+  bounds: 1800, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 4
+  bounds: 2000, 400, 200, 200
+  fps: 14
+  loop: false
+idle-row-3
+  index: 0
+  bounds: 0, 600, 200, 200
+  fps: 7
+  loop: true
+idle-row-3
+  index: 1
+  bounds: 200, 600, 200, 200
+  fps: 7
+  loop: true
+idle-row-3
+  index: 2
+  bounds: 400, 600, 200, 200
+  fps: 7
+  loop: true
+idle-row-3
+  index: 3
+  bounds: 600, 600, 200, 200
+  fps: 7
+  loop: true
+idle-row-3
+  index: 4
+  bounds: 800, 600, 200, 200
+  fps: 7
+  loop: true
+idle-row-3
+  index: 5
+  bounds: 1000, 600, 200, 200
+  fps: 7
+  loop: true
+explosion-row-3
+  index: 0
+  bounds: 1200, 600, 200, 200
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 1
+  bounds: 1400, 600, 200, 200
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 2
+  bounds: 1600, 600, 200, 200
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 3
+  bounds: 1800, 600, 200, 200
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 4
+  bounds: 2000, 600, 200, 200
+  fps: 14
+  loop: false
+idle-row-4
+  index: 0
+  bounds: 0, 800, 200, 200
+  fps: 7
+  loop: true
+idle-row-4
+  index: 1
+  bounds: 200, 800, 200, 200
+  fps: 7
+  loop: true
+idle-row-4
+  index: 2
+  bounds: 400, 800, 200, 200
+  fps: 7
+  loop: true
+idle-row-4
+  index: 3
+  bounds: 600, 800, 200, 200
+  fps: 7
+  loop: true
+idle-row-4
+  index: 4
+  bounds: 800, 800, 200, 200
+  fps: 7
+  loop: true
+idle-row-4
+  index: 5
+  bounds: 1000, 800, 200, 200
+  fps: 7
+  loop: true
+explosion-row-4
+  index: 0
+  bounds: 1200, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-row-4
+  index: 1
+  bounds: 1400, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-row-4
+  index: 2
+  bounds: 1600, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-row-4
+  index: 3
+  bounds: 1800, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-row-4
+  index: 4
+  bounds: 2000, 800, 200, 200
+  fps: 14
+  loop: false
+idle-row-5
+  index: 0
+  bounds: 0, 1000, 200, 200
+  fps: 7
+  loop: true
+idle-row-5
+  index: 1
+  bounds: 200, 1000, 200, 200
+  fps: 7
+  loop: true
+idle-row-5
+  index: 2
+  bounds: 400, 1000, 200, 200
+  fps: 7
+  loop: true
+idle-row-5
+  index: 3
+  bounds: 600, 1000, 200, 200
+  fps: 7
+  loop: true
+idle-row-5
+  index: 4
+  bounds: 800, 1000, 200, 200
+  fps: 7
+  loop: true
+idle-row-5
+  index: 5
+  bounds: 1000, 1000, 200, 200
+  fps: 7
+  loop: true
+explosion-row-5
+  index: 0
+  bounds: 1200, 1000, 200, 200
+  fps: 14
+  loop: false
+explosion-row-5
+  index: 1
+  bounds: 1400, 1000, 200, 200
+  fps: 14
+  loop: false
+explosion-row-5
+  index: 2
+  bounds: 1600, 1000, 200, 200
+  fps: 14
+  loop: false
+explosion-row-5
+  index: 3
+  bounds: 1800, 1000, 200, 200
+  fps: 14
+  loop: false
+explosion-row-5
+  index: 4
+  bounds: 2000, 1000, 200, 200
+  fps: 14
+  loop: false
+idle-row-6
+  index: 0
+  bounds: 0, 1200, 200, 200
+  fps: 7
+  loop: true
+idle-row-6
+  index: 1
+  bounds: 200, 1200, 200, 200
+  fps: 7
+  loop: true
+idle-row-6
+  index: 2
+  bounds: 400, 1200, 200, 200
+  fps: 7
+  loop: true
+idle-row-6
+  index: 3
+  bounds: 600, 1200, 200, 200
+  fps: 7
+  loop: true
+idle-row-6
+  index: 4
+  bounds: 800, 1200, 200, 200
+  fps: 7
+  loop: true
+idle-row-6
+  index: 5
+  bounds: 1000, 1200, 200, 200
+  fps: 7
+  loop: true
+explosion-row-6
+  index: 0
+  bounds: 1200, 1200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-6
+  index: 1
+  bounds: 1400, 1200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-6
+  index: 2
+  bounds: 1600, 1200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-6
+  index: 3
+  bounds: 1800, 1200, 200, 200
+  fps: 14
+  loop: false
+explosion-row-6
+  index: 4
+  bounds: 2000, 1200, 200, 200
+  fps: 14
+  loop: false
+idle-row-7
+  index: 0
+  bounds: 0, 1400, 200, 200
+  fps: 7
+  loop: true
+idle-row-7
+  index: 1
+  bounds: 200, 1400, 200, 200
+  fps: 7
+  loop: true
+idle-row-7
+  index: 2
+  bounds: 400, 1400, 200, 200
+  fps: 7
+  loop: true
+idle-row-7
+  index: 3
+  bounds: 600, 1400, 200, 200
+  fps: 7
+  loop: true
+idle-row-7
+  index: 4
+  bounds: 800, 1400, 200, 200
+  fps: 7
+  loop: true
+idle-row-7
+  index: 5
+  bounds: 1000, 1400, 200, 200
+  fps: 7
+  loop: true
+explosion-row-7
+  index: 0
+  bounds: 1200, 1400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-7
+  index: 1
+  bounds: 1400, 1400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-7
+  index: 2
+  bounds: 1600, 1400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-7
+  index: 3
+  bounds: 1800, 1400, 200, 200
+  fps: 14
+  loop: false
+explosion-row-7
+  index: 4
+  bounds: 2000, 1400, 200, 200
+  fps: 14
+  loop: false
+boss-hive-mother
+  index: 0
+  bounds: 0, 0, 200, 200
+  fps: 7
+  loop: true
+boss-hive-mother
+  index: 1
+  bounds: 200, 0, 200, 200
+  fps: 7
+  loop: true
+boss-hive-mother
+  index: 2
+  bounds: 400, 0, 200, 200
+  fps: 7
+  loop: true
+boss-hive-mother
+  index: 3
+  bounds: 600, 0, 200, 200
+  fps: 7
+  loop: true
+boss-hive-mother
+  index: 4
+  bounds: 800, 0, 200, 200
+  fps: 7
+  loop: true
+boss-hive-mother
+  index: 5
+  bounds: 1000, 0, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 0
+  bounds: 0, 400, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 1
+  bounds: 200, 400, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 2
+  bounds: 400, 400, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 3
+  bounds: 600, 400, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 4
+  bounds: 800, 400, 200, 200
+  fps: 7
+  loop: true
+boss-aegis-core
+  index: 5
+  bounds: 1000, 400, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 0
+  bounds: 0, 800, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 1
+  bounds: 200, 800, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 2
+  bounds: 400, 800, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 3
+  bounds: 600, 800, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 4
+  bounds: 800, 800, 200, 200
+  fps: 7
+  loop: true
+boss-void-empress
+  index: 5
+  bounds: 1000, 800, 200, 200
+  fps: 7
+  loop: true
+explosion-hive-mother
+  index: 0
+  bounds: 1200, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-hive-mother
+  index: 1
+  bounds: 1400, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-hive-mother
+  index: 2
+  bounds: 1600, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-hive-mother
+  index: 3
+  bounds: 1800, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-hive-mother
+  index: 4
+  bounds: 2000, 0, 200, 200
+  fps: 14
+  loop: false
+explosion-aegis-core
+  index: 0
+  bounds: 1200, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-aegis-core
+  index: 1
+  bounds: 1400, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-aegis-core
+  index: 2
+  bounds: 1600, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-aegis-core
+  index: 3
+  bounds: 1800, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-aegis-core
+  index: 4
+  bounds: 2000, 400, 200, 200
+  fps: 14
+  loop: false
+explosion-void-empress
+  index: 0
+  bounds: 1200, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-void-empress
+  index: 1
+  bounds: 1400, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-void-empress
+  index: 2
+  bounds: 1600, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-void-empress
+  index: 3
+  bounds: 1800, 800, 200, 200
+  fps: 14
+  loop: false
+explosion-void-empress
+  index: 4
+  bounds: 2000, 800, 200, 200
+  fps: 14
+  loop: false
+icon
+  index: 0
+  bounds: 0, 0, 200, 200
+  fps: 0
+  loop: false

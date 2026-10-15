@@ -1,0 +1,27 @@
+player_jets.png
+  size: 420, 120
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle
+  index: 0
+  bounds: 0, 0, 140, 120
+  fps: 14
+  loop: true
+idle
+  index: 1
+  bounds: 140, 0, 140, 120
+  fps: 14
+  loop: true
+idle
+  index: 2
+  bounds: 280, 0, 140, 120
+  fps: 14
+  loop: true
+icon
+  index: 0
+  bounds: 0, 0, 140, 120
+  fps: 0
+  loop: false

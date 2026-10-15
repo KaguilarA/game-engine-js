@@ -1,0 +1,32 @@
+enemyProjectile.png
+  size: 200, 70
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle
+  index: 0
+  bounds: 0, 0, 50, 70
+  fps: 12
+  loop: true
+idle
+  index: 1
+  bounds: 50, 0, 50, 70
+  fps: 12
+  loop: true
+idle
+  index: 2
+  bounds: 100, 0, 50, 70
+  fps: 12
+  loop: true
+idle
+  index: 3
+  bounds: 150, 0, 50, 70
+  fps: 12
+  loop: true
+icon
+  index: 0
+  bounds: 0, 0, 50, 70
+  fps: 0
+  loop: false

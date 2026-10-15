@@ -1,0 +1,342 @@
+lobstermorph.png
+  size: 1400, 400
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+idle-row-0
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 1
+  bounds: 100, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 2
+  bounds: 200, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 3
+  bounds: 300, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 4
+  bounds: 400, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 5
+  bounds: 500, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 6
+  bounds: 600, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 7
+  bounds: 700, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-0
+  index: 8
+  bounds: 800, 0, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 0
+  bounds: 0, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 1
+  bounds: 100, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 2
+  bounds: 200, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 3
+  bounds: 300, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 4
+  bounds: 400, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 5
+  bounds: 500, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 6
+  bounds: 600, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 7
+  bounds: 700, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-1
+  index: 8
+  bounds: 800, 100, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 0
+  bounds: 0, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 1
+  bounds: 100, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 2
+  bounds: 200, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 3
+  bounds: 300, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 4
+  bounds: 400, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 5
+  bounds: 500, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 6
+  bounds: 600, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 7
+  bounds: 700, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-2
+  index: 8
+  bounds: 800, 200, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 0
+  bounds: 0, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 1
+  bounds: 100, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 2
+  bounds: 200, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 3
+  bounds: 300, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 4
+  bounds: 400, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 5
+  bounds: 500, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 6
+  bounds: 600, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 7
+  bounds: 700, 300, 100, 100
+  fps: 7
+  loop: true
+idle-row-3
+  index: 8
+  bounds: 800, 300, 100, 100
+  fps: 7
+  loop: true
+idle
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 7
+  loop: true
+idle
+  index: 1
+  bounds: 100, 0, 100, 100
+  fps: 7
+  loop: true
+idle
+  index: 2
+  bounds: 200, 0, 100, 100
+  fps: 7
+  loop: true
+swollen-1
+  index: 0
+  bounds: 300, 0, 100, 100
+  fps: 0
+  loop: false
+swollen-2
+  index: 0
+  bounds: 600, 0, 100, 100
+  fps: 0
+  loop: false
+explosion-row-0
+  index: 0
+  bounds: 900, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 1
+  bounds: 1000, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 2
+  bounds: 1100, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 3
+  bounds: 1200, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-0
+  index: 4
+  bounds: 1300, 0, 100, 100
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 0
+  bounds: 900, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 1
+  bounds: 1000, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 2
+  bounds: 1100, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 3
+  bounds: 1200, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-1
+  index: 4
+  bounds: 1300, 100, 100, 100
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 0
+  bounds: 900, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 1
+  bounds: 1000, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 2
+  bounds: 1100, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 3
+  bounds: 1200, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-2
+  index: 4
+  bounds: 1300, 200, 100, 100
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 0
+  bounds: 900, 300, 100, 100
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 1
+  bounds: 1000, 300, 100, 100
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 2
+  bounds: 1100, 300, 100, 100
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 3
+  bounds: 1200, 300, 100, 100
+  fps: 14
+  loop: false
+explosion-row-3
+  index: 4
+  bounds: 1300, 300, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 0
+  bounds: 900, 0, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 1
+  bounds: 1000, 0, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 2
+  bounds: 1100, 0, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 3
+  bounds: 1200, 0, 100, 100
+  fps: 14
+  loop: false
+explosion
+  index: 4
+  bounds: 1300, 0, 100, 100
+  fps: 14
+  loop: false
+icon
+  index: 0
+  bounds: 0, 0, 100, 100
+  fps: 0
+  loop: false
