@@ -3,6 +3,7 @@ import GameEvents from '../../engine/events';
 import type { GamePointer } from '../../engine/events';
 import { BaseGame } from '../../engine/base-game';
 import GameLoader from '../../engine/loader';
+import { getSpriteSheet } from '../../engine/sprite-sheets';
 
 import type { BoardCell } from './board';
 import { PatternBoard } from './board';
@@ -33,6 +34,50 @@ interface BoardLayout {
 }
 
 /**
+ * Stores the two patterns and timing for a player initiated swap animation.
+ */
+interface SwapAnimation {
+  /**
+   * Original coordinate of the first moving pattern.
+   * @property {BoardCell} first
+   * @public
+   */
+  first: BoardCell;
+  /**
+   * Original coordinate of the second moving pattern.
+   * @property {BoardCell} second
+   * @public
+   */
+  second: BoardCell;
+  /**
+   * Pattern index initially stored in the first cell.
+   * @property {number} firstPattern
+   * @public
+   */
+  firstPattern: number;
+  /**
+   * Pattern index initially stored in the second cell.
+   * @property {number} secondPattern
+   * @public
+   */
+  secondPattern: number;
+  /**
+   * Matched cells for a successful swap, or an empty array for an invalid one.
+   * @property {BoardCell[]} matches
+   * @public
+   */
+  matches: BoardCell[];
+  /**
+   * Elapsed time since the swap animation began.
+   * @property {number} elapsed
+   * @public
+   */
+  elapsed: number;
+}
+
+const SWAP_ANIMATION_SECONDS = 0.16;
+
+/**
  * Current step in match clearing and cascade resolution.
  */
 type ResolutionState = 'exploding' | 'idle';
@@ -54,6 +99,12 @@ export class SpacePatternsGame extends BaseGame {
    * @private
    */
   private selectedCell: BoardCell | undefined;
+  /**
+   * Stores the currently moving pair of patterns.
+   * @property {SwapAnimation | undefined} swapAnimation
+   * @private
+   */
+  private swapAnimation: SwapAnimation | undefined;
   /**
    * Stores the moves remaining state.
    * @property {number} movesRemaining
@@ -131,6 +182,11 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   protected updateGame(deltaSeconds: number): void {
+    if (this.swapAnimation !== undefined) {
+      this.updateSwapAnimation(deltaSeconds);
+      return;
+    }
+
     this.updateResolution(deltaSeconds);
   }
 
@@ -141,6 +197,7 @@ export class SpacePatternsGame extends BaseGame {
    */
   protected onViewportChanged(): void {
     this.selectedCell = undefined;
+    this.swapAnimation = undefined;
     this.resolutionState = 'idle';
     this.resolutionMatches = [];
   }
@@ -173,6 +230,7 @@ export class SpacePatternsGame extends BaseGame {
     );
     this.drawHud();
     this.drawBoard();
+    this.drawSwapAnimation();
     this.drawExplosions();
 
     if (this.gameEnded) {
@@ -251,6 +309,10 @@ export class SpacePatternsGame extends BaseGame {
     if (this.resolutionState === 'exploding') {
       this.resolutionMatches.forEach((cell) => hiddenCells.add(this.cellKey(cell)));
     }
+    if (this.swapAnimation !== undefined) {
+      hiddenCells.add(this.cellKey(this.swapAnimation.first));
+      hiddenCells.add(this.cellKey(this.swapAnimation.second));
+    }
 
     for (let row = 0; row < this.board.rows; row++) {
       for (let column = 0; column < this.board.columns; column++) {
@@ -272,7 +334,6 @@ export class SpacePatternsGame extends BaseGame {
     pattern: number,
     layout: BoardLayout
   ): void {
-    const icon = PATTERN_ICONS[pattern];
     const x = layout.originX + cell.column * layout.tileSize;
     const y = layout.originY + cell.row * layout.tileSize;
     const isSelected = (
@@ -280,11 +341,27 @@ export class SpacePatternsGame extends BaseGame {
       && this.selectedCell.row === cell.row
     );
 
+    this.drawPatternAt(pattern, x, y, layout.tileSize, isSelected);
+  }
+
+  /**
+   * Draws one static pattern tile at an arbitrary pixel position.
+   * @private
+   * @return {void}
+   */
+  private drawPatternAt(
+    pattern: number,
+    x: number,
+    y: number,
+    tileSize: number,
+    isSelected = false
+  ): void {
+    const icon = PATTERN_ICONS[pattern];
     GameContext.drawRect(
       x - 3,
       y - 3,
-      layout.tileSize - 2,
-      layout.tileSize - 2,
+      tileSize - 2,
+      tileSize - 2,
       isSelected ? '#72dcff' : '#28365c'
     );
     GameContext.context.drawImage(
@@ -295,8 +372,49 @@ export class SpacePatternsGame extends BaseGame {
       icon.sourceHeight,
       x + 4,
       y + 4,
-      layout.tileSize - 8,
-      layout.tileSize - 8
+      tileSize - 8,
+      tileSize - 8
+    );
+  }
+
+  /**
+   * Draws both patterns at their interpolated positions during a swap.
+   * @private
+   * @return {void}
+   */
+  private drawSwapAnimation(): void {
+    const animation = this.swapAnimation;
+    if (animation === undefined) return;
+
+    const layout = this.getBoardLayout();
+    const returning = animation.matches.length === 0;
+    const progress = Math.min(1, animation.elapsed / SWAP_ANIMATION_SECONDS);
+    const easedProgress = progress * progress * (3 - 2 * progress);
+    const movement = returning && animation.elapsed >= SWAP_ANIMATION_SECONDS
+      ? 1 - Math.min(
+        1,
+        (animation.elapsed - SWAP_ANIMATION_SECONDS) / SWAP_ANIMATION_SECONDS
+      )
+      : easedProgress;
+    const easedMovement = returning && animation.elapsed >= SWAP_ANIMATION_SECONDS
+      ? movement * movement * (3 - 2 * movement)
+      : movement;
+    const firstX = layout.originX + animation.first.column * layout.tileSize;
+    const firstY = layout.originY + animation.first.row * layout.tileSize;
+    const secondX = layout.originX + animation.second.column * layout.tileSize;
+    const secondY = layout.originY + animation.second.row * layout.tileSize;
+
+    this.drawPatternAt(
+      animation.firstPattern,
+      firstX + (secondX - firstX) * easedMovement,
+      firstY + (secondY - firstY) * easedMovement,
+      layout.tileSize
+    );
+    this.drawPatternAt(
+      animation.secondPattern,
+      secondX + (firstX - secondX) * easedMovement,
+      secondY + (firstY - secondY) * easedMovement,
+      layout.tileSize
     );
   }
 
@@ -309,8 +427,12 @@ export class SpacePatternsGame extends BaseGame {
     if (this.resolutionState !== 'exploding') return;
 
     const layout = this.getBoardLayout();
-    const frame = Math.min(3, Math.floor(this.explosionElapsed * 12));
     const explosion = GameLoader.getImage('boss');
+    const sheet = getSpriteSheet('boss');
+    const frame = Math.min(
+      (sheet.explosionFrames ?? 1) - 1,
+      Math.floor(this.explosionElapsed * 12)
+    );
 
     this.resolutionMatches.forEach((cell) => {
       const x = layout.originX + cell.column * layout.tileSize;
@@ -318,10 +440,11 @@ export class SpacePatternsGame extends BaseGame {
 
       GameContext.context.drawImage(
         explosion,
-        1320 + frame * 220,
+        (sheet.explosionX ?? sheet.frameWidth * sheet.animationFrames)
+          + frame * sheet.frameWidth,
         0,
-        220,
-        200,
+        sheet.frameWidth,
+        sheet.frameHeight,
         x,
         y,
         layout.tileSize,
@@ -383,7 +506,12 @@ export class SpacePatternsGame extends BaseGame {
    * @readonly
    */
   private readonly handlePointerDown = (pointer: GamePointer): void => {
-    if (this.gameEnded || this.controls.isPaused) return;
+    if (
+      this.gameEnded
+      || this.controls.isPaused
+      || this.swapAnimation !== undefined
+      || this.resolutionState !== 'idle'
+    ) return;
     const { x, y } = pointer;
 
     const cell = this.getCellAt(x, y);
@@ -397,15 +525,50 @@ export class SpacePatternsGame extends BaseGame {
       return;
     }
 
-    const matches = this.board.trySwap(this.selectedCell, cell);
-    this.selectedCell = undefined;
+    const first = this.selectedCell;
+    if (
+      Math.abs(first.column - cell.column)
+      + Math.abs(first.row - cell.row) !== 1
+    ) {
+      this.selectedCell = cell;
+      return;
+    }
 
-    if (matches === undefined) return;
+    const firstPattern = this.board.get(first);
+    const secondPattern = this.board.get(cell);
+    const matches = this.board.trySwap(first, cell);
+    this.selectedCell = undefined;
+    this.swapAnimation = {
+      first,
+      second: cell,
+      firstPattern,
+      secondPattern,
+      matches: matches ?? [],
+      elapsed: 0
+    };
+  };
+
+  /**
+   * Advances the swap and starts match resolution after successful movement.
+   * @private
+   * @return {void}
+   */
+  private updateSwapAnimation(deltaSeconds: number): void {
+    const animation = this.swapAnimation;
+    if (animation === undefined) return;
+
+    animation.elapsed += deltaSeconds;
+    const isInvalid = animation.matches.length === 0;
+    const duration = SWAP_ANIMATION_SECONDS * (isInvalid ? 2 : 1);
+    if (animation.elapsed < duration) return;
+
+    this.swapAnimation = undefined;
+    if (isInvalid) return;
 
     this.movesRemaining -= 1;
     this.cascade = 1;
-    this.startExplosion(matches);
-  };
+    this.startExplosion(animation.matches);
+  }
 
   /**
    * Advances the explosion and resolves the following board cascade.
@@ -416,7 +579,8 @@ export class SpacePatternsGame extends BaseGame {
     if (this.resolutionState !== 'exploding') return;
 
     this.explosionElapsed += deltaSeconds;
-    if (this.explosionElapsed < 4 / 12) return;
+    const explosionFrames = getSpriteSheet('boss').explosionFrames ?? 1;
+    if (this.explosionElapsed < explosionFrames / 12) return;
 
     this.board.collapse(this.resolutionMatches);
     const matches = this.board.findCurrentMatches();
@@ -520,6 +684,7 @@ export class SpacePatternsGame extends BaseGame {
   protected restartGame(): void {
     this.board = this.createBoard();
     this.selectedCell = undefined;
+    this.swapAnimation = undefined;
     this.movesRemaining = 30;
     this.score = 0;
     this.gameEnded = false;

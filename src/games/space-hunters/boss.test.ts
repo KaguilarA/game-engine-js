@@ -25,7 +25,7 @@ vi.mock('../../engine/context', () => ({
 }));
 
 describe('Boss', () => {
-  it('crops boss sheets using complete 220 by 200 cells', () => {
+  it('crops boss sheets using complete 200 by 200 cells', () => {
     const boss = new Boss(1, 200, 200);
 
     boss.draw();
@@ -34,16 +34,16 @@ describe('Boss', () => {
       expect.anything(),
       0,
       0,
-      220,
+      200,
       200,
       -95,
-      -85,
+      -95,
       190,
-      170
+      190
     );
   });
 
-  it('uses exactly the four explosion frames in the sheet', () => {
+  it('uses the complete explosion strip from the boss sheet', () => {
     const boss = new Boss(1, 200, 200);
 
     for (let hit = 0; hit < 12; hit++) {
@@ -53,14 +53,14 @@ describe('Boss', () => {
 
     expect(drawImage).toHaveBeenCalledWith(
       expect.anything(),
-      1320,
+      1200,
       0,
-      220,
+      200,
       200,
       -95,
-      -85,
+      -95,
       190,
-      170
+      190
     );
   });
 

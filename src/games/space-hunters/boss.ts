@@ -141,11 +141,11 @@ export class Boss extends SpriteEntity {
     width?: number,
     height?: number
   ) {
-    const imageName = type === 1 ? 'boss' : 'boss8';
-    const sourceY = type === 3 ? 800 : 0;
+    const imageName = 'boss8';
+    const sourceY = type === 1 ? 0 : type === 2 ? 400 : 800;
     const sheet = getSpriteSheet(imageName);
     const defaultWidth = type === 1 ? 190 : 180;
-    const defaultHeight = type === 1 ? 170 : 180;
+    const defaultHeight = defaultWidth;
 
     super(new Sprite(
       GameLoader.getImage(imageName),
@@ -236,9 +236,9 @@ export class Boss extends SpriteEntity {
 
     if (damage.isDepleted) {
       this.destructionPlaying = true;
-      const sheet = getSpriteSheet(this.type === 1 ? 'boss' : 'boss8');
+      const sheet = getSpriteSheet('boss8');
       this.sprite.playClip(
-        sheet.explosionX ?? 1320,
+        sheet.explosionX ?? sheet.frameWidth * sheet.animationFrames,
         this.type === 3 ? 800 : 0,
         sheet.explosionFrames ?? 4,
         14

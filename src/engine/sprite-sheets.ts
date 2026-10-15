@@ -46,7 +46,7 @@ export const SPRITE_SHEETS: Readonly<Record<string, SpriteSheetDefinition>> = {
   enemyProjectile: { frameWidth: 50, frameHeight: 70, rows: 1, animationFrames: 4 },
   beetlemorph: {
     frameWidth: 100, frameHeight: 100, rows: 4, animationFrames: 2,
-    explosionX: 200, explosionFrames: 1
+    explosionX: 200, explosionFrames: 4
   },
   eaglemorph: {
     frameWidth: 80, frameHeight: 80, rows: 4, animationFrames: 4,
@@ -66,15 +66,15 @@ export const SPRITE_SHEETS: Readonly<Record<string, SpriteSheetDefinition>> = {
   },
   rhinomorph: {
     frameWidth: 80, frameHeight: 80, rows: 4, animationFrames: 5,
-    explosionX: 400, explosionFrames: 1
+    explosionX: 400, explosionFrames: 4
   },
   boss: {
-    frameWidth: 220, frameHeight: 200, rows: 4, animationFrames: 6,
-    explosionX: 1320, explosionFrames: 4
+    frameWidth: 200, frameHeight: 200, rows: 4, animationFrames: 6,
+    explosionX: 1200, explosionFrames: 5
   },
   boss8: {
-    frameWidth: 220, frameHeight: 200, rows: 8, animationFrames: 6,
-    explosionX: 1320, explosionFrames: 4
+    frameWidth: 200, frameHeight: 200, rows: 8, animationFrames: 6,
+    explosionX: 1200, explosionFrames: 5
   }
 };
 

@@ -63,6 +63,12 @@ export default class Sprite {
    */
   private frameCount: number;
   /**
+   * Stores the number of animation frames in each horizontal sheet row.
+   * @property {number} animationFramesPerRow
+   * @private
+   */
+  private animationFramesPerRow: number;
+  /**
    * Stores the animation frame rate state.
    * @property {number} animationFrameRate
    * @private
@@ -145,6 +151,7 @@ export default class Sprite {
     this.sourceWidth = sourceWidth;
     this.sourceHeight = sourceHeight;
     this.frameCount = frameCount;
+    this.animationFramesPerRow = frameCount;
     this.animationFrameRate = frameRate;
     this.animationEnd = frameCount - 1;
     this.dimensions = new Dimensions(
@@ -220,6 +227,7 @@ export default class Sprite {
 
     this.animationStart = startFrame;
     this.animationEnd = endFrame;
+    this.animationFramesPerRow = frameCount;
     this.animationLoop = loop;
     this.animationFrameRate = frameRate;
     this.animationPlaying = true;
@@ -234,6 +242,7 @@ export default class Sprite {
    * @param frameCount - Number of horizontal frames in the clip.
    * @param frameRate - Playback speed in frames per second.
    * @param loop - Whether playback returns to the first frame at the end.
+   * @param framesPerRow - Number of frames before the clip continues on the next sheet row.
    * @public
    * @return {void}
    */
@@ -242,16 +251,19 @@ export default class Sprite {
     sourceY: number,
     frameCount: number,
     frameRate: number,
-    loop = false
+    loop = false,
+    framesPerRow = frameCount
   ): void {
-    if (sourceX < 0 || sourceY < 0) {
+    if (sourceX < 0 || sourceY < 0 || framesPerRow <= 0) {
       throw new RangeError('Sprite clip coordinates must be non-negative.');
     }
 
     this.sourceX = sourceX;
     this.sourceY = sourceY;
     this.frameCount = frameCount;
+    this.animationFramesPerRow = framesPerRow;
     this.play(0, frameCount, frameRate, loop);
+    this.animationFramesPerRow = framesPerRow;
   }
 
   /**
@@ -298,10 +310,11 @@ export default class Sprite {
     const pivotY = this.dimensions.getPivotY();
     const originX = pivotX === 0 ? 0 : -width * pivotX;
     const originY = pivotY === 0 ? 0 : -height * pivotY;
-    const frameSourceX = (
-      this.sourceX
-      + this.frameIndex * (this.sourceWidth ?? 0)
-    );
+    const framesPerRow = Math.max(1, this.animationFramesPerRow);
+    const frameSourceX = this.sourceX
+      + (this.frameIndex % framesPerRow) * (this.sourceWidth ?? 0);
+    const frameSourceY = this.sourceY
+      + Math.floor(this.frameIndex / framesPerRow) * (this.sourceHeight ?? 0);
 
     drawingContext.save();
 
@@ -320,7 +333,7 @@ export default class Sprite {
         drawingContext.drawImage(
           this.image,
           frameSourceX,
-          this.sourceY,
+          frameSourceY,
           this.sourceWidth,
           this.sourceHeight,
           originX,

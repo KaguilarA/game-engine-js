@@ -418,6 +418,7 @@ export class Game extends BaseGame {
     const unit = GameContext.viewportUnit();
     const columns = Math.max(3, Math.min(8, Math.floor(dimensions.getWidth() / 100)));
     const rows = 4;
+    const enemyKinds = ['beetlemorph', 'rhinomorph', 'lobstermorph'] as const;
     const enemyWidth = Math.max(28, Math.min(unit * 0.052, 48));
     const enemyHeight = enemyWidth * (64 / 72);
     const horizontalGap = Math.max(6, enemyWidth * 0.28);
@@ -432,15 +433,19 @@ export class Game extends BaseGame {
 
     for (let row = 0; row < rows; row++) {
       for (let column = 0; column < columns; column++) {
+        const kind = enemyKinds[row % enemyKinds.length];
+        const health = enemyKinds.indexOf(kind) + 1;
+
         this.enemies.push(
           new Enemy(
             startX + column * (enemyWidth + horizontalGap),
             startY + row * enemyHeight * 1.25,
-            row * 80,
+            0,
             (rows - row) * 10,
-            Math.min(3, row + 1),
+            health,
             enemyWidth,
-            enemyHeight
+            enemyHeight,
+            kind
           )
         );
       }
@@ -816,7 +821,7 @@ export class Game extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
     const bossWidth = Math.max(80, Math.min(unit * 0.16, 140));
-    const bossHeight = bossWidth * (170 / 190);
+    const bossHeight = bossWidth;
 
     this.boss = new Boss(
       type,
