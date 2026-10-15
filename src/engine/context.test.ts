@@ -12,6 +12,8 @@ describe('GameContext', () => {
     drawImage: vi.fn(),
     fill: vi.fn(),
     fillRect: vi.fn(),
+    fillText: vi.fn(),
+    measureText: vi.fn((text: string) => ({ width: text.length * 10 })),
     restore: vi.fn(),
     save: vi.fn(),
     setTransform: vi.fn(),
@@ -77,7 +79,7 @@ describe('GameContext', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses the landscape game area and preserves the full logical area by default', async () => {
+  it('uses the viewport as the reactive game area by default', async () => {
     const { default: gameContext } = await import('./context');
 
     expect(gameContext.isPortrait).toBe(false);
@@ -85,6 +87,9 @@ describe('GameContext', () => {
       height: 1080,
       width: 1920
     });
+    expect(gameContext.viewportWidth()).toBe(1920);
+    expect(gameContext.viewportHeight()).toBe(1080);
+    expect(gameContext.viewportUnit()).toBe(1080);
     expect(drawingContext.setTransform).toHaveBeenLastCalledWith(
       1,
       0,
@@ -95,7 +100,7 @@ describe('GameContext', () => {
     );
   });
 
-  it('switches to the portrait game area and preserves proportions on resize', async () => {
+  it('updates the game area to match the viewport on resize', async () => {
     const { default: gameContext } = await import('./context');
     viewportWidth = 390;
     viewportHeight = 844;
@@ -104,16 +109,19 @@ describe('GameContext', () => {
 
     expect(gameContext.isPortrait).toBe(true);
     expect(gameContext.gameDimensionsModel.size()).toEqual({
-      height: 1746,
-      width: 982
+      height: 844,
+      width: 390
     });
+    expect(gameContext.viewportWidth()).toBe(390);
+    expect(gameContext.viewportHeight()).toBe(844);
+    expect(gameContext.viewportUnit()).toBe(390);
     expect(drawingContext.setTransform).toHaveBeenLastCalledWith(
-      390 / 982,
+      1,
       0,
       0,
-      390 / 982,
+      1,
       0,
-      (844 - 1746 * (390 / 982)) * 0.5
+      0
     );
   });
 
@@ -154,4 +162,19 @@ describe('GameContext', () => {
     expect(canvas.requestFullscreen).toHaveBeenCalledOnce();
   });
 
+  it('draws text respecting maxWidth and scales font down if needed', async () => {
+    const { default: gameContext } = await import('./context');
+
+    // "VERY LONG TEXT STRING" is 21 characters -> measureText mock returns 210 width
+    // with maxWidth = 100, scale = 100 / 210 ~= 0.476 -> font size 24 scaled down to 11
+    gameContext.drawText('VERY LONG TEXT STRING', 100, 100, 24, '#ffffff', 'left', 100);
+
+    expect(drawingContext.fillText).toHaveBeenCalledWith(
+      'VERY LONG TEXT STRING',
+      100,
+      100,
+      100
+    );
+    expect(drawingContext.font).toBe('11px sans-serif');
+  });
 });

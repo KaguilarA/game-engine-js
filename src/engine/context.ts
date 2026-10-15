@@ -1,10 +1,5 @@
 import Dimensions from './dimensions';
-import { signalValue } from 'reactive-values';
-
-const LANDSCAPE_WIDTH = 1920;
-const LANDSCAPE_HEIGHT = 1080;
-const PORTRAIT_WIDTH = 982;
-const PORTRAIT_HEIGHT = 1746;
+import { computedValue, signalValue } from 'reactive-values';
 
 type PointerDownListener = (x: number, y: number) => void;
 type PointerListener = (pointer: GamePointer) => void;
@@ -16,35 +11,50 @@ export interface GamePointer {
 }
 
 class Context {
+  public readonly canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   private readonly dimensions = new Dimensions(
-    document.documentElement.clientWidth,
-    document.documentElement.clientHeight
+    this.getParentDimensions().width,
+    this.getParentDimensions().height
   );
   private readonly gameDimensions = new Dimensions(
-    LANDSCAPE_WIDTH,
-    LANDSCAPE_HEIGHT
+    this.getParentDimensions().width,
+    this.getParentDimensions().height
   );
-
-  public readonly canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly pointerDownListeners = new Set<PointerDownListener>();
   private readonly pointerStartListeners = new Set<PointerListener>();
   private readonly pointerMoveListeners = new Set<PointerListener>();
   private readonly pointerEndListeners = new Set<PointerListener>();
-  private readonly scale = signalValue(1);
-  private readonly offsetX = signalValue(0);
-  private readonly offsetY = signalValue(0);
+  private readonly resizeObserver: ResizeObserver | null = null;
+  /**
+   * Reactive viewport width in CSS pixels.
+   */
+  public readonly viewportWidth = signalValue(
+    this.getParentDimensions().width
+  );
+
+  /**
+   * Reactive viewport height in CSS pixels.
+   */
+  public readonly viewportHeight = signalValue(
+    this.getParentDimensions().height
+  );
+
+  /**
+   * Reactive base unit for responsive game geometry.
+   */
+  public readonly viewportUnit = computedValue(
+    () => Math.min(this.viewportWidth(), this.viewportHeight()),
+    [this.viewportWidth, this.viewportHeight]
+  );
 
   public get dimensionsModel(): Dimensions {
     return this.dimensions;
   }
 
   /**
-   * Gets the logical game area used by entities and rendering.
-   *
-   * Landscape uses `1920 x 1080`; portrait uses `982 x 1746`.
-   * The smaller portrait area renders content approximately 10% larger while
-   * preserving the original 9:16 aspect ratio.
+   * Gets the logical game area used by entities and rendering. Its dimensions
+   * always match the viewport in CSS pixels.
    */
   public get gameDimensionsModel(): Dimensions {
     return this.gameDimensions;
@@ -58,22 +68,23 @@ class Context {
   }
 
   /**
-   * Indicates whether the current device is a phone with touch input.
+   * Indicates whether the current device is a phone or tablet with touch input.
    */
   public get isMobileDevice(): boolean {
     const userAgent = navigator.userAgent;
-    const isMobileUserAgent = /Android|iPhone|iPod|IEMobile|Opera Mini/i.test(
+    const isMobileUserAgent = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|Windows Phone|Tablet|Silk|Kindle/i.test(
       userAgent
     );
-    const isSmallTouchDevice = (
+    const isIPadOS = /Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1;
+    const isPhoneOrTabletTouchScreen = (
       navigator.maxTouchPoints > 0
       && Math.min(
-        this.dimensions.getWidth(),
-        this.dimensions.getHeight()
-      ) <= 768
+        screen.width,
+        screen.height
+      ) <= 1024
     );
 
-    return isMobileUserAgent || isSmallTouchDevice;
+    return isMobileUserAgent || isIPadOS || isPhoneOrTabletTouchScreen;
   }
 
   public get context(): CanvasRenderingContext2D {
@@ -87,13 +98,32 @@ class Context {
     return document.fullscreenElement === this.canvas;
   }
 
+  private getParentDimensions(): { width: number; height: number } {
+    const parent = this.canvas?.parentElement;
+    const width = (parent && parent.clientWidth > 0)
+      ? parent.clientWidth
+      : (typeof document !== 'undefined' && document.documentElement ? document.documentElement.clientWidth : 800);
+    const height = (parent && parent.clientHeight > 0)
+      ? parent.clientHeight
+      : (typeof document !== 'undefined' && document.documentElement ? document.documentElement.clientHeight : 600);
+
+    return {
+      width: width > 0 ? width : 800,
+      height: height > 0 ? height : 600
+    };
+  }
+
   private getGamePointer(event: PointerEvent): GamePointer {
     const bounds = this.canvas.getBoundingClientRect();
+    const clientWidth = bounds.width > 0 ? bounds.width : this.dimensions.getWidth();
+    const clientHeight = bounds.height > 0 ? bounds.height : this.dimensions.getHeight();
+    const scaleX = this.dimensions.getWidth() / clientWidth;
+    const scaleY = this.dimensions.getHeight() / clientHeight;
 
     return {
       id: event.pointerId,
-      x: (event.clientX - bounds.left - this.offsetX()) / this.scale(),
-      y: (event.clientY - bounds.top - this.offsetY()) / this.scale()
+      x: (event.clientX - bounds.left) * scaleX,
+      y: (event.clientY - bounds.top) * scaleY
     };
   }
 
@@ -128,6 +158,10 @@ class Context {
 
     this.resizeCanvas();
     window.addEventListener('resize', this.resizeCanvas);
+    if (typeof ResizeObserver !== 'undefined' && this.canvas.parentElement) {
+      this.resizeObserver = new ResizeObserver(this.resizeCanvas);
+      this.resizeObserver.observe(this.canvas.parentElement);
+    }
     this.canvas.addEventListener('pointerdown', this.onPointerDown);
     this.canvas.addEventListener('pointermove', this.onPointerMove);
     this.canvas.addEventListener('pointerup', this.onPointerEnd);
@@ -135,49 +169,34 @@ class Context {
   }
 
   private resizeCanvas = (): void => {
-    const width = document.documentElement.clientWidth;
-    const height = document.documentElement.clientHeight;
+    const { width, height } = this.getParentDimensions();
 
     this.dimensions.setSize(width, height);
-    this.gameDimensions.setSize(
-      this.isPortrait ? PORTRAIT_WIDTH : LANDSCAPE_WIDTH,
-      this.isPortrait ? PORTRAIT_HEIGHT : LANDSCAPE_HEIGHT
-    );
+    this.gameDimensions.setSize(width, height);
+    this.viewportWidth.set(width);
+    this.viewportHeight.set(height);
     this.syncCanvasDimensions();
   };
 
   /**
-   * Syncs the physical pixel buffer and CSS style of the canvas with Dimensions.
-   *
-   * The logical game area is fitted uniformly inside the viewport. This
-   * prevents portrait or unusually shaped viewports from cropping entities.
+   * Syncs the physical pixel buffer and CSS style of the canvas with the
+   * viewport. Device pixel ratio improves raster clarity without changing the
+   * game coordinate system.
    */
   public syncCanvasDimensions(pixelRatio = window.devicePixelRatio || 1): void {
     const viewportWidth = this.dimensions.getWidth();
     const viewportHeight = this.dimensions.getHeight();
-    const gameWidth = this.gameDimensions.getWidth();
-    const gameHeight = this.gameDimensions.getHeight();
-    const scale = Math.min(
-      viewportWidth / gameWidth,
-      viewportHeight / gameHeight
-    );
-    const offsetX = (viewportWidth - gameWidth * scale) * 0.5;
-    const offsetY = (viewportHeight - gameHeight * scale) * 0.5;
-
-    this.scale.set(scale);
-    this.offsetX.set(offsetX);
-    this.offsetY.set(offsetY);
     this.canvas.width = Math.floor(viewportWidth * pixelRatio);
     this.canvas.height = Math.floor(viewportHeight * pixelRatio);
     this.canvas.style.width = `${viewportWidth}px`;
     this.canvas.style.height = `${viewportHeight}px`;
     this.ctx.setTransform(
-      pixelRatio * scale,
+      pixelRatio,
       0,
       0,
-      pixelRatio * scale,
-      pixelRatio * offsetX,
-      pixelRatio * offsetY
+      pixelRatio,
+      0,
+      0
     );
   }
 
@@ -207,12 +226,40 @@ class Context {
     y: number,
     size: number,
     color: string,
-    align: CanvasTextAlign = 'left'
+    align: CanvasTextAlign = 'left',
+    maxWidth?: number
   ): void {
+    const canvasWidth = this.gameDimensions.getWidth();
+    let limitWidth = maxWidth;
+
+    if (limitWidth === undefined || limitWidth <= 0) {
+      if (align === 'center') {
+        limitWidth = Math.max(16, Math.min(x, canvasWidth - x) * 2 - 24);
+      } else if (align === 'right') {
+        limitWidth = Math.max(16, x - 16);
+      } else {
+        limitWidth = Math.max(16, canvasWidth - x - 16);
+      }
+    }
+
+    let fontSize = size;
+    this.ctx.font = `${fontSize}px sans-serif`;
+    const measuredWidth = this.ctx.measureText(text).width;
+
+    if (limitWidth !== undefined && limitWidth > 0 && measuredWidth > limitWidth) {
+      const scale = limitWidth / measuredWidth;
+      fontSize = Math.max(9, Math.floor(size * scale));
+      this.ctx.font = `${fontSize}px sans-serif`;
+    }
+
     this.ctx.fillStyle = color;
-    this.ctx.font = `${size}px sans-serif`;
     this.ctx.textAlign = align;
-    this.ctx.fillText(text, x, y);
+
+    if (limitWidth !== undefined && limitWidth > 0) {
+      this.ctx.fillText(text, x, y, limitWidth);
+    } else {
+      this.ctx.fillText(text, x, y);
+    }
   }
 
   public drawRect(
@@ -300,6 +347,7 @@ class Context {
 
   public destroy(): void {
     window.removeEventListener('resize', this.resizeCanvas);
+    this.resizeObserver?.disconnect();
     this.canvas.removeEventListener('pointerdown', this.onPointerDown);
     this.canvas.removeEventListener('pointermove', this.onPointerMove);
     this.canvas.removeEventListener('pointerup', this.onPointerEnd);
