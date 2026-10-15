@@ -102,20 +102,6 @@ export class TouchControls {
    */
   private readonly showVerticalControls: boolean;
   /**
-   * Stores the single row state.
-   * @property {boolean} singleRow
-   * @private
-   * @readonly
-   */
-  private readonly singleRow: boolean;
-  /**
-   * Stores the slot count state.
-   * @property {number} slotCount
-   * @private
-   * @readonly
-   */
-  private readonly slotCount: number;
-  /**
    * Stores the extra keys state.
    * @property {Array<[TouchControlCircle, string]>} extraKeys
    * @private
@@ -127,10 +113,8 @@ export class TouchControls {
    * @public
    * @return {void}
    */
-  public constructor(options: { showVerticalControls?: boolean; singleRow?: boolean; slotCount?: number } = {}) {
+  public constructor(options: { showVerticalControls?: boolean } = {}) {
     this.showVerticalControls = options.showVerticalControls ?? true;
-    this.singleRow = options.singleRow ?? false;
-    this.slotCount = Math.max(3, options.slotCount ?? 5);
     this.removeListeners = [
       GameEvents.addPointerDownListener(this.handlePointer),
       GameEvents.addPointerMoveListener(this.handlePointer),
@@ -146,30 +130,56 @@ export class TouchControls {
   public get layout(): TouchControlsLayout {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
-    const slotWidth = dimensions.getWidth() / (this.slotCount + 1);
-    const radius = Math.max(18, Math.min(unit * 0.07, dimensions.getWidth() * 0.085, this.singleRow ? slotWidth * 0.43 : 42, 42));
-    const margin = Math.max(14, Math.min(dimensions.getWidth() * 0.035, 28));
-    const gap = Math.max(14, Math.min(unit * 0.03, 24));
-    const y = dimensions.getHeight() - radius - gap;
-    const left: TouchControlCircle = { x: margin + radius, y, radius };
-    const right: TouchControlCircle = { x: dimensions.getWidth() - margin - radius, y, radius };
-    const up: TouchControlCircle = { x: dimensions.getWidth() * 0.5 - radius * 1.15, y: y - radius * 1.75, radius };
-    const down: TouchControlCircle = { x: dimensions.getWidth() * 0.5 + radius * 1.15, y: y - radius * 1.75, radius };
-    const shoot: TouchControlCircle = { x: dimensions.getWidth() * 0.5, y, radius };
-    if (this.singleRow) {
-      left.x = margin + radius;
-      up.x = dimensions.getWidth() * 0.32;
-      shoot.x = dimensions.getWidth() * 0.5;
-      down.x = dimensions.getWidth() * 0.68;
-      right.x = dimensions.getWidth() - margin - radius;
-      up.y = y;
-      down.y = y;
-    }
+    const width = dimensions.getWidth();
+    const height = dimensions.getHeight();
+    const radius = Math.max(
+      18,
+      Math.min(unit * 0.07, width * 0.085, 42)
+    );
+    const margin = Math.max(14, Math.min(width * 0.04, 28));
+    const bottomGap = Math.max(18, Math.min(unit * 0.035, 30));
+    const directionCenterX = Math.max(radius * 2 + margin, width * 0.22);
+    const directionCenterY = height - bottomGap - radius * 2.5;
+    const directionOffset = radius * 1.5;
+    const left: TouchControlCircle = {
+      x: directionCenterX - directionOffset,
+      y: directionCenterY,
+      radius
+    };
+    const right: TouchControlCircle = {
+      x: directionCenterX + directionOffset,
+      y: directionCenterY,
+      radius
+    };
+    const up: TouchControlCircle = {
+      x: directionCenterX,
+      y: directionCenterY - directionOffset,
+      radius
+    };
+    const down: TouchControlCircle = {
+      x: directionCenterX,
+      y: directionCenterY + directionOffset,
+      radius
+    };
+    const shoot: TouchControlCircle = {
+      x: width - margin - radius,
+      y: directionCenterY,
+      radius
+    };
     const visibleControls = [left, right, shoot];
     if (this.showVerticalControls) visibleControls.push(up, down);
-    const top = Math.min(...visibleControls.map((control) => control.y - control.radius));
+    const top = Math.min(
+      ...visibleControls.map((control) => control.y - control.radius)
+    );
 
-    return { left, right, up, down, shoot, reservedBottom: dimensions.getHeight() - top + 24 };
+    return {
+      left,
+      right,
+      up,
+      down,
+      shoot,
+      reservedBottom: height - top + 24
+    };
   }
 
   /**

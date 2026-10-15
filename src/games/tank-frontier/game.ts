@@ -628,7 +628,7 @@ export class TankFrontierGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly touchControls = new TouchControls({ singleRow: true });
+  private readonly touchControls = new TouchControls();
   /**
    * Stores the full heart icon state.
    * @property {CanvasIcon} fullHeartIcon

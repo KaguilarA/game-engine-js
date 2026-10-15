@@ -3,10 +3,8 @@ import GameEvents from '../../engine/events';
 import type { GamePointer } from '../../engine/events';
 import { BaseGame } from '../../engine/base-game';
 import GameLoader from '../../engine/loader';
-import { getSpriteSheet } from '../../engine/sprite-sheets';
-import { PhysicsBody } from '../../engine/physics';
 
-import type { BoardCell, PatternFall } from './board';
+import type { BoardCell } from './board';
 import { PatternBoard } from './board';
 import { PATTERN_ICONS } from './pattern-icons';
 
@@ -35,39 +33,9 @@ interface BoardLayout {
 }
 
 /**
- * Draw state for a pattern moving from a cleared cell into a gap.
+ * Current step in match clearing and cascade resolution.
  */
-interface FallingPattern {
-  /**
-   * Stores the body state.
-   * @property {PhysicsBody} body
-   * @public
-   */
-  body: PhysicsBody;
-  /**
-   * Stores the pattern state.
-   * @property {number} pattern
-   * @public
-   */
-  pattern: number;
-  /**
-   * Stores the target y state.
-   * @property {number} targetY
-   * @public
-   */
-  targetY: number;
-  /**
-   * Stores the to state.
-   * @property {BoardCell} to
-   * @public
-   */
-  to: BoardCell;
-}
-
-/**
- * Current step in match clearing, gravity, and refill animation.
- */
-type ResolutionState = 'exploding' | 'falling' | 'idle';
+type ResolutionState = 'exploding' | 'idle';
 
 /**
  * Match-three game with timed cascades, animated sprites, and score goals.
@@ -123,12 +91,6 @@ export class SpacePatternsGame extends BaseGame {
    */
   private resolutionMatches: BoardCell[] = [];
   /**
-   * Stores the falling patterns state.
-   * @property {FallingPattern[]} fallingPatterns
-   * @private
-   */
-  private fallingPatterns: FallingPattern[] = [];
-  /**
    * Stores the cascade state.
    * @property {number} cascade
    * @private
@@ -140,12 +102,6 @@ export class SpacePatternsGame extends BaseGame {
    * @private
    */
   private explosionElapsed = 0;
-  /**
-   * Stores the animation elapsed state.
-   * @property {number} animationElapsed
-   * @private
-   */
-  private animationElapsed = 0;
 
   /**
    * Creates the initial board, registers pointer input, and starts the loop.
@@ -175,7 +131,6 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   protected updateGame(deltaSeconds: number): void {
-    this.animationElapsed += deltaSeconds;
     this.updateResolution(deltaSeconds);
   }
 
@@ -188,7 +143,6 @@ export class SpacePatternsGame extends BaseGame {
     this.selectedCell = undefined;
     this.resolutionState = 'idle';
     this.resolutionMatches = [];
-    this.fallingPatterns = [];
   }
 
   /**
@@ -220,7 +174,6 @@ export class SpacePatternsGame extends BaseGame {
     this.drawHud();
     this.drawBoard();
     this.drawExplosions();
-    this.drawFallingPatterns();
 
     if (this.gameEnded) {
       this.drawEndState();
@@ -297,8 +250,6 @@ export class SpacePatternsGame extends BaseGame {
 
     if (this.resolutionState === 'exploding') {
       this.resolutionMatches.forEach((cell) => hiddenCells.add(this.cellKey(cell)));
-    } else if (this.resolutionState === 'falling') {
-      this.fallingPatterns.forEach((fall) => hiddenCells.add(this.cellKey(fall.to)));
     }
 
     for (let row = 0; row < this.board.rows; row++) {
@@ -312,45 +263,41 @@ export class SpacePatternsGame extends BaseGame {
   }
 
   /**
-   * Draws the current animation frame for one pattern icon.
+   * Draws a static pattern icon in its board cell.
    * @private
    * @return {void}
    */
   private drawPattern(
     cell: BoardCell,
     pattern: number,
-    layout: BoardLayout,
-    y = layout.originY + cell.row * layout.tileSize
+    layout: BoardLayout
   ): void {
-        const icon = PATTERN_ICONS[pattern];
-        const x = layout.originX + cell.column * layout.tileSize;
-        const isSelected = (
-          this.selectedCell?.column === cell.column
-          && this.selectedCell.row === cell.row
-        );
+    const icon = PATTERN_ICONS[pattern];
+    const x = layout.originX + cell.column * layout.tileSize;
+    const y = layout.originY + cell.row * layout.tileSize;
+    const isSelected = (
+      this.selectedCell?.column === cell.column
+      && this.selectedCell.row === cell.row
+    );
 
-        GameContext.drawRect(
-          x - 3,
-          y - 3,
-          layout.tileSize - 2,
-          layout.tileSize - 2,
-          isSelected ? '#72dcff' : '#28365c'
-        );
-        const sheet = getSpriteSheet(icon.imageName);
-        const frame = Math.floor(
-          (this.animationElapsed * 8 + pattern * 0.23) % sheet.animationFrames
-        );
-        GameContext.context.drawImage(
-          GameLoader.getImage(icon.imageName),
-          icon.sourceX + frame * sheet.frameWidth,
-          icon.sourceY,
-          sheet.frameWidth,
-          sheet.frameHeight,
-          x + 4,
-          y + 4,
-          layout.tileSize - 8,
-          layout.tileSize - 8
-        );
+    GameContext.drawRect(
+      x - 3,
+      y - 3,
+      layout.tileSize - 2,
+      layout.tileSize - 2,
+      isSelected ? '#72dcff' : '#28365c'
+    );
+    GameContext.context.drawImage(
+      GameLoader.getImage(icon.imageName),
+      icon.sourceX,
+      icon.sourceY,
+      icon.sourceWidth,
+      icon.sourceHeight,
+      x + 4,
+      y + 4,
+      layout.tileSize - 8,
+      layout.tileSize - 8
+    );
   }
 
   /**
@@ -380,20 +327,6 @@ export class SpacePatternsGame extends BaseGame {
         layout.tileSize,
         layout.tileSize
       );
-    });
-  }
-
-  /**
-   * Draws patterns while they fall into cleared board positions.
-   * @private
-   * @return {void}
-   */
-  private drawFallingPatterns(): void {
-    if (this.resolutionState !== 'falling') return;
-
-    const layout = this.getBoardLayout();
-    this.fallingPatterns.forEach((fall) => {
-      this.drawPattern(fall.to, fall.pattern, layout, fall.body.y());
     });
   }
 
@@ -475,35 +408,17 @@ export class SpacePatternsGame extends BaseGame {
   };
 
   /**
-   * Advances match removal, gravity, refill, and cascade resolution.
+   * Advances the explosion and resolves the following board cascade.
    * @private
    * @return {void}
    */
   private updateResolution(deltaSeconds: number): void {
-    if (this.resolutionState === 'exploding') {
-      this.explosionElapsed += deltaSeconds;
-      if (this.explosionElapsed < 4 / 12) return;
+    if (this.resolutionState !== 'exploding') return;
 
-      this.fallingPatterns = this.createFallingPatterns(
-        this.board.collapse(this.resolutionMatches)
-      );
-      this.resolutionState = 'falling';
-      return;
-    }
+    this.explosionElapsed += deltaSeconds;
+    if (this.explosionElapsed < 4 / 12) return;
 
-    if (this.resolutionState !== 'falling') return;
-
-    this.fallingPatterns.forEach((fall) => {
-      fall.body.update(deltaSeconds, 4200);
-      if (fall.body.y() > fall.targetY) {
-        fall.body.y.set(fall.targetY);
-        fall.body.velocityY.set(0);
-      }
-    });
-
-    if (this.fallingPatterns.some((fall) => fall.body.y() < fall.targetY)) return;
-
-    this.fallingPatterns = [];
+    this.board.collapse(this.resolutionMatches);
     const matches = this.board.findCurrentMatches();
     if (matches.length > 0) {
       this.cascade += 1;
@@ -530,28 +445,8 @@ export class SpacePatternsGame extends BaseGame {
     this.resolutionMatches = matches;
     this.resolutionState = 'exploding';
     this.explosionElapsed = 0;
-    this.animationElapsed = 0;
     this.score += matches.length * 100 * this.cascade;
     GameLoader.playAudio(`boom${1 + Math.floor(Math.random() * 4)}`);
-  }
-
-  /**
-   * Converts board fall records into animated on-screen pattern states.
-   * @private
-   * @return {FallingPattern[]}
-   */
-  private createFallingPatterns(falls: PatternFall[]): FallingPattern[] {
-    const layout = this.getBoardLayout();
-
-    return falls.map((fall) => ({
-      body: new PhysicsBody(
-        layout.originX + fall.to.column * layout.tileSize,
-        layout.originY + fall.from.row * layout.tileSize
-      ),
-      pattern: fall.pattern,
-      targetY: layout.originY + fall.to.row * layout.tileSize,
-      to: fall.to
-    }));
   }
 
   /**
@@ -631,7 +526,6 @@ export class SpacePatternsGame extends BaseGame {
     this.controls.hideEndActions();
     this.resolutionState = 'idle';
     this.resolutionMatches = [];
-    this.fallingPatterns = [];
     this.cascade = 0;
     this.explosionElapsed = 0;
     GameLoader.playAudio('newgame');

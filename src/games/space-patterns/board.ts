@@ -13,27 +13,6 @@ export interface BoardCell {
   row: number;
 }
 
-export interface PatternFall {
-  /**
-   * Previous grid position; newly generated patterns use a negative row.
-   * @property {BoardCell} from
-   * @public
-   */
-  from: BoardCell;
-  /**
-   * Index of the pattern that moves or appears.
-   * @property {number} pattern
-   * @public
-   */
-  pattern: number;
-  /**
-   * Grid position occupied after the collapse.
-   * @property {BoardCell} to
-   * @public
-   */
-  to: BoardCell;
-}
-
 const EMPTY_CELL = -1;
 
 /**
@@ -136,11 +115,11 @@ export class PatternBoard {
   }
 
   /**
-   * Removes matched cells, drops survivors, and fills each column from above.
+   * Removes matched cells, compacts each column, and fills empty cells.
    * @public
-   * @return {PatternFall[]}
+   * @return {void}
    */
-  public collapse(matches: readonly BoardCell[]): PatternFall[] {
+  public collapse(matches: readonly BoardCell[]): void {
     matches.forEach((cell) => {
       this.cells[cell.row][cell.column] = EMPTY_CELL;
     });
@@ -149,37 +128,23 @@ export class PatternBoard {
       { length: this.rows },
       () => Array.from({ length: this.columns }, () => EMPTY_CELL)
     );
-    const falls: PatternFall[] = [];
-
     for (let column = 0; column < this.columns; column++) {
-      const survivors: Array<{ pattern: number; row: number }> = [];
+      const survivors: number[] = [];
 
       for (let row = this.rows - 1; row >= 0; row--) {
         const pattern = this.cells[row][column];
-        if (pattern !== EMPTY_CELL) survivors.push({ pattern, row });
+        if (pattern !== EMPTY_CELL) survivors.push(pattern);
       }
 
       let targetRow = this.rows - 1;
-      survivors.forEach((survivor) => {
-        nextCells[targetRow][column] = survivor.pattern;
-        if (survivor.row !== targetRow) {
-          falls.push({
-            from: { column, row: survivor.row },
-            pattern: survivor.pattern,
-            to: { column, row: targetRow }
-          });
-        }
+      survivors.forEach((pattern) => {
+        nextCells[targetRow][column] = pattern;
         targetRow -= 1;
       });
 
       for (let row = targetRow; row >= 0; row--) {
         const pattern = Math.floor(Math.random() * this.patternCount);
         nextCells[row][column] = pattern;
-        falls.push({
-          from: { column, row: row - targetRow - 1 },
-          pattern,
-          to: { column, row }
-        });
       }
     }
 
@@ -189,7 +154,6 @@ export class PatternBoard {
       });
     });
 
-    return falls;
   }
 
   /**

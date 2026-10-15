@@ -50,7 +50,7 @@ export class PolarityVanguardGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly touchControls = new TouchControls({ singleRow: true, slotCount: 6 });
+  private readonly touchControls = new TouchControls();
   /**
    * Stores the polarity icon state.
    * @property {CanvasIcon} polarityIcon
