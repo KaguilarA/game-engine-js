@@ -7,6 +7,7 @@ import type { SpineEvent } from '../../interfaces/spine-event';
 import type { SpineEventHandler } from '../../interfaces/spine-event-handler';
 import type { SpineRecord } from '../../interfaces/spine-record';
 import type { SpineSlotPose } from '../../interfaces/spine-slot-pose';
+import { MathUtils } from '../../core/math-utils';
 
 type BoneState = {
   data: SpineRecord;
@@ -220,7 +221,7 @@ export class SpineRuntime {
       pose.shearY = Number(data.shearY ?? 0) + this.readTimeline(animation?.shear, time, 'y', 0);
       bone.localPose.set(pose);
     });
-    this.setupOrder.forEach((index) => this.updateBoneWorld(index));
+    for (const index of this.setupOrder) this.updateBoneWorld(index);
     this.slots.forEach((slotValue, index) => {
       const slot = { ...slotValue() };
       const setup = this.slotData[index];
@@ -311,7 +312,7 @@ export class SpineRuntime {
       const start = Number(from.time ?? 0);
       const end = Number(to.time ?? start);
       if (time > end) continue;
-      const linear = end <= start ? 0 : Math.max(0, Math.min(1, (time - start) / (end - start)));
+      const linear = end <= start ? 0 : MathUtils.clamp((time - start) / (end - start), 0, 1);
       return { from, to, amount: this.applyCurve(from.curve, linear) };
     }
     const last = frames.at(-1)!;

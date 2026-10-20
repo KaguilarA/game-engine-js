@@ -3,6 +3,18 @@ import type { GameControlsOptions } from '../interfaces/game-controls-options';
 import { signalValue } from 'reactive-values';
 import GameContext from './context';
 import { Label } from '../ui/label';
+import { MathUtils } from './math-utils';
+
+type LabelRenderState = {
+  text: string;
+  fontSize: number;
+  fittedFontSize: number;
+  width: number;
+  color: string;
+  align: CanvasTextAlign;
+  x: number;
+  y: number;
+};
 
 /**
  * Shared lifecycle for every playable game.
@@ -61,6 +73,8 @@ export abstract class BaseGame {
   private pendingViewportLayout: number | undefined;
   /** @property {Map<number, Label>} labels @private */
   private readonly labels = new Map<number, Label>();
+  /** @property {LabelRenderState[]} labelRenderStates @private */
+  private readonly labelRenderStates: LabelRenderState[] = [];
   /** @property {number} labelCursor @private */
   private labelCursor = 0;
 
@@ -171,10 +185,7 @@ export abstract class BaseGame {
   private gameLoop = (time = performance.now()): void => {
     if (!this.running()) return;
 
-    const deltaSeconds = Math.max(
-      0,
-      Math.min((time - this.lastFrameTime()) / 1000, 0.05)
-    );
+    const deltaSeconds = MathUtils.clamp((time - this.lastFrameTime()) / 1000, 0, 0.05);
     this.lastFrameTime.set(time);
     const viewportWidth = GameContext.viewportWidth();
     const viewportHeight = GameContext.viewportHeight();
@@ -222,8 +233,17 @@ export abstract class BaseGame {
     let label = this.labels.get(index);
     const width = maxWidth !== undefined && maxWidth > 0 ? maxWidth : 0;
     const pivotX = align === 'center' ? 0.5 : align === 'right' ? 1 : 0;
-    let fittedFontSize = fontSize;
-    if (width > 0) {
+    let state = this.labelRenderStates[index];
+    if (state === undefined) {
+      state = { text: '', fontSize: -1, fittedFontSize: fontSize, width: -1, color: '', align, x: NaN, y: NaN };
+      this.labelRenderStates[index] = state;
+    }
+    const fitChanged = state.text !== text || state.fontSize !== fontSize || state.width !== width;
+    let fittedFontSize = state.fittedFontSize;
+    if (fitChanged) {
+      fittedFontSize = fontSize;
+    }
+    if (fitChanged && width > 0) {
       const context = GameContext.context;
       context.save();
       context.font = `${fontSize}px sans-serif`;
@@ -233,6 +253,10 @@ export abstract class BaseGame {
         fittedFontSize = Math.max(9, Math.floor(fontSize * width / measuredWidth));
       }
     }
+    const textChanged = state.text !== text;
+    const styleChanged = state.fittedFontSize !== fittedFontSize || state.color !== color || state.align !== align;
+    const positionChanged = state.x !== x || state.y !== y;
+    const pivotChanged = state.align !== align;
 
     if (label === undefined) {
       label = new Label(text, {
@@ -250,11 +274,24 @@ export abstract class BaseGame {
       this.labels.set(index, label);
     }
 
-    label.setText(text);
-    label.setStyle({ fontSize: fittedFontSize, color, align, baseline: 'alphabetic' });
-    label.dimensions.setPosition(x, y);
-    label.dimensions.setSize(width, Math.max(12, fittedFontSize * 1.4));
-    label.dimensions.setPivot(pivotX, 0);
+    if (textChanged) label.setText(text);
+    if (styleChanged) {
+      label.setStyle({ fontSize: fittedFontSize, color, align, baseline: 'alphabetic' });
+    }
+    if (positionChanged) label.dimensions.setPosition(x, y);
+    const height = Math.max(12, fittedFontSize * 1.4);
+    if (label.dimensions.getWidth() !== width || label.dimensions.getHeight() !== height) {
+      label.dimensions.setSize(width, height);
+    }
+    if (pivotChanged) label.dimensions.setPivot(pivotX, 0);
+    state.text = text;
+    state.fontSize = fontSize;
+    state.fittedFontSize = fittedFontSize;
+    state.width = width;
+    state.color = color;
+    state.align = align;
+    state.x = x;
+    state.y = y;
     label.draw();
   }
 

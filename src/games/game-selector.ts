@@ -1,4 +1,5 @@
 import GameContext from '../engine/core/context';
+import { MathUtils } from '../engine/core/math-utils';
 import GameEvents from '../engine/input/events';
 import { GameControls } from '../engine/input/game-controls';
 import GameLoader from '../engine/assets/loader';
@@ -14,6 +15,7 @@ import { MusketeersSlotGame } from './musketeers-slot/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 import type { GameChoice } from './interfaces/game-choice';
+import { signalValue } from 'reactive-values';
 
 /**
  * Presents the game list and starts the selected game.
@@ -74,19 +76,25 @@ export class GameSelector {
    * @property {number} selectedIndex
    * @private
    */
-  private selectedIndex = 0;
+  private readonly selectedIndexState = signalValue(0);
+  private get selectedIndex(): number { return this.selectedIndexState(); }
+  private set selectedIndex(value: number) { this.selectedIndexState.set(value); }
   /**
    * Stores the direction was pressed state.
    * @property {boolean} directionWasPressed
    * @private
    */
-  private directionWasPressed = false;
+  private readonly directionWasPressedState = signalValue(false);
+  private get directionWasPressed(): boolean { return this.directionWasPressedState(); }
+  private set directionWasPressed(value: boolean) { this.directionWasPressedState.set(value); }
   /**
    * Stores the started state.
    * @property {boolean} started
    * @private
    */
-  private started = false;
+  private readonly startedState = signalValue(false);
+  private get started(): boolean { return this.startedState(); }
+  private set started(value: boolean) { this.startedState.set(value); }
   /**
    * Stores the last frame time state.
    * @property {number} lastFrameTime
@@ -119,7 +127,7 @@ export class GameSelector {
   private gameLoop = (time = performance.now()): void => {
     if (this.started) return;
 
-    const deltaSeconds = Math.min((time - this.lastFrameTime) / 1000, 0.05);
+    const deltaSeconds = MathUtils.clamp((time - this.lastFrameTime) / 1000, 0, 0.05);
     this.lastFrameTime = time;
     this.update(deltaSeconds);
     this.draw();
@@ -182,7 +190,7 @@ export class GameSelector {
       'rgba(18, 18, 34, 0.76)'
     );
     this.layoutLabel(this.titleLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.12,
-      dimensions.getWidth() * 0.88, 48, Math.max(20, Math.min(GameContext.viewportUnit() * 0.055, 38)));
+      dimensions.getWidth() * 0.88, 48, MathUtils.clamp(GameContext.viewportUnit() * 0.055, 20, 38));
     this.titleLabel.draw();
     this.controls.drawFullscreenOnly();
     this.layoutLabel(this.subtitleLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.19,

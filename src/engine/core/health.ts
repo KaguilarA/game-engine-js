@@ -1,6 +1,7 @@
 import { computedValue, signalValue } from 'reactive-values';
 import type { ComputedValue, SignalValue } from 'reactive-values';
 import type { DamageResult } from '../interfaces/damage-result';
+import { MathUtils } from './math-utils';
 
 /**
  * Stores shared entity hit points and applies finite, positive damage values.
@@ -81,7 +82,7 @@ export class Health {
       };
     }
 
-    this.currentHealth.set(Math.max(0, this.currentHealth() - amount));
+    this.currentHealth.set(MathUtils.clamp(this.currentHealth() - amount, 0, this.maximum));
 
     return {
       wasDamaged: true,
