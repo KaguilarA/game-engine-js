@@ -1,94 +1,17 @@
-import GameContext from '../../engine/context';
-import GameEvents from '../../engine/events';
-import type { GamePointer } from '../../engine/events';
-import { BaseGame } from '../../engine/base-game';
-import GameLoader from '../../engine/loader';
+import GameContext from '../../engine/core/context';
+import GameEvents from '../../engine/input/events';
+import type { GamePointer } from '../../engine/interfaces/game-pointer';
+import { BaseGame } from '../../engine/core/base-game';
+import GameLoader from '../../engine/assets/loader';
 
-import type { BoardCell, PatternFall } from './board';
 import { PatternBoard } from './board';
 import { PATTERN_ICONS } from './pattern-icons';
-import { PhysicsBody } from '../../engine/physics';
+import { PhysicsBody } from '../../engine/core/physics';
 import { signalValue } from 'reactive-values';
-
-/**
- * Pixel geometry for the board's visible grid.
- */
-interface BoardLayout {
-  /**
-   * Stores the origin x state.
-   * @property {number} originX
-   * @public
-   */
-  originX: number;
-  /**
-   * Stores the origin y state.
-   * @property {number} originY
-   * @public
-   */
-  originY: number;
-  /**
-   * Stores the tile size state.
-   * @property {number} tileSize
-   * @public
-   */
-  tileSize: number;
-}
-
-/**
- * Stores the two patterns and timing for a player initiated swap animation.
- */
-interface SwapAnimation {
-  /**
-   * Original coordinate of the first moving pattern.
-   * @property {BoardCell} first
-   * @public
-   */
-  first: BoardCell;
-  /**
-   * Original coordinate of the second moving pattern.
-   * @property {BoardCell} second
-   * @public
-   */
-  second: BoardCell;
-  /**
-   * Pattern index initially stored in the first cell.
-   * @property {number} firstPattern
-   * @public
-   */
-  firstPattern: number;
-  /**
-   * Pattern index initially stored in the second cell.
-   * @property {number} secondPattern
-   * @public
-   */
-  secondPattern: number;
-  /**
-   * Matched cells for a successful swap, or an empty array for an invalid one.
-   * @property {BoardCell[]} matches
-   * @public
-   */
-  matches: BoardCell[];
-  /**
-   * Elapsed time since the swap animation began.
-   * @property {number} elapsed
-   * @public
-   */
-  elapsed: number;
-}
-
-/**
- * Holds one tile's physics-driven movement during gravity resolution.
- * @interface FallingPattern
- */
-interface FallingPattern extends PatternFall {
-  /**
-   * Integrates the pattern's vertical fall through the board grid.
-   * @property {PhysicsBody} motion
-   * @public
-   * @readonly
-   */
-  readonly motion: PhysicsBody;
-}
+import type { BoardCell } from './interfaces/board-cell';
+import type { BoardLayout } from './interfaces/board-layout';
+import type { FallingPattern } from './interfaces/falling-pattern';
+import type { SwapAnimation } from './interfaces/swap-animation';
 
 const SWAP_ANIMATION_SECONDS = 0.16;
 const FALL_ACCELERATION = 42;
@@ -274,7 +197,7 @@ export class SpacePatternsGame extends BaseGame {
     const padding = Math.max(14, unit * 0.04);
     const titleSize = Math.max(16, Math.min(unit * 0.045, 30));
     const textSize = Math.max(11, Math.min(unit * 0.028, 20));
-    GameContext.drawText(
+    this.drawLabel(
       'SPACE PATTERNS',
       padding,
       padding + titleSize,
@@ -283,7 +206,7 @@ export class SpacePatternsGame extends BaseGame {
       'left',
       dimensions.getWidth() * 0.38
     );
-    GameContext.drawText(
+    this.drawLabel(
       `SCORE ${this.score}`,
       padding,
       padding + titleSize + textSize * 1.5,
@@ -292,7 +215,7 @@ export class SpacePatternsGame extends BaseGame {
       'left',
       dimensions.getWidth() * 0.35
     );
-    GameContext.drawText(
+    this.drawLabel(
       `TARGET ${this.targetScore}`,
       dimensions.getWidth() * 0.5,
       padding + textSize,
@@ -301,7 +224,7 @@ export class SpacePatternsGame extends BaseGame {
       'center',
       dimensions.getWidth() * 0.28
     );
-    GameContext.drawText(
+    this.drawLabel(
       `MOVES ${this.movesRemaining}`,
       dimensions.getWidth() - padding,
       padding + textSize,
@@ -310,7 +233,7 @@ export class SpacePatternsGame extends BaseGame {
       'right',
       dimensions.getWidth() * 0.28
     );
-    GameContext.drawText(
+    this.drawLabel(
       'TAP OR CLICK TWO ADJACENT PATTERNS TO SWAP',
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() - padding,
@@ -520,7 +443,7 @@ export class SpacePatternsGame extends BaseGame {
       dimensions.getHeight(),
       'rgba(14, 11, 29, 0.86)'
     );
-    GameContext.drawText(
+    this.drawLabel(
       didWin ? 'PATTERN MASTER!' : 'OUT OF MOVES',
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() * 0.45,
@@ -529,7 +452,7 @@ export class SpacePatternsGame extends BaseGame {
       'center',
       dimensions.getWidth() * 0.85
     );
-    GameContext.drawText(
+    this.drawLabel(
       `FINAL SCORE ${this.score}`,
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() * 0.53,
@@ -538,7 +461,7 @@ export class SpacePatternsGame extends BaseGame {
       'center',
       dimensions.getWidth() * 0.85
     );
-    GameContext.drawText(
+    this.drawLabel(
       'USE THE ACTION BUTTONS BELOW',
       dimensions.getWidth() * 0.5,
       dimensions.getHeight() * 0.60,

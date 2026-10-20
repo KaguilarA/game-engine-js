@@ -1,17 +1,4 @@
-export interface PatternIcon {
-  /**
-   * Asset identifier used to load the sprite sheet.
-   * @property {string} imageName
-   * @public
-   */
-  imageName: string;
-  /**
-   * Name of the static region in the sprite's atlas.
-   * @property {string} regionName
-   * @public
-   */
-  regionName: string;
-}
+import type { PatternIcon } from './interfaces/pattern-icon';
 
 /**
  * Sprite frame definitions used as the board's matchable patterns.

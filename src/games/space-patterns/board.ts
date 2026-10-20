@@ -1,55 +1,7 @@
 import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
-
-export interface BoardCell {
-  /**
-   * Zero-based horizontal grid index.
-   * @property {number} column
-   * @public
-   */
-  column: number;
-  /**
-   * Zero-based vertical grid index.
-   * @property {number} row
-   * @public
-   */
-  row: number;
-}
-
-/**
- * Describes a pattern's grid coordinates before and after column gravity.
- * @interface PatternFall
- */
-export interface PatternFall {
-  /**
-   * Identifies the column containing the falling pattern.
-   * @property {number} column
-   * @public
-   * @readonly
-   */
-  readonly column: number;
-  /**
-   * Identifies the pattern index rendered during the fall.
-   * @property {number} pattern
-   * @public
-   * @readonly
-   */
-  readonly pattern: number;
-  /**
-   * Stores the row coordinate where the fall begins.
-   * @property {number} fromRow
-   * @public
-   * @readonly
-   */
-  readonly fromRow: number;
-  /**
-   * Stores the row coordinate where gravity places the pattern.
-   * @property {number} toRow
-   * @public
-   * @readonly
-   */
-  readonly toRow: number;
-}
+import type { BoardCell } from './interfaces/board-cell';
+import type { PatternFall } from './interfaces/pattern-fall';
 
 const EMPTY_CELL = -1;
 

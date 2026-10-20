@@ -1,34 +1,19 @@
-import GameContext from '../engine/context';
-import GameEvents from '../engine/events';
-import type { GamePointer } from '../engine/events';
-import { GameControls } from '../engine/game-controls';
-import GameLoader from '../engine/loader';
+import GameContext from '../engine/core/context';
+import GameEvents from '../engine/input/events';
+import { GameControls } from '../engine/input/game-controls';
+import GameLoader from '../engine/assets/loader';
+import { Button } from '../engine/ui/button';
+import { Label } from '../engine/ui/label';
+import { Texture } from '../engine/rendering/texture';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
 import { SpacePatternsGame } from './space-patterns/game';
 import { TankFrontierGame } from './tank-frontier/game';
 import { SlotMachineGame } from './slot-machine/game';
 import { ShootEmAllGame } from './shoot-em-all/game';
+import { MusketeersSlotGame } from './musketeers-slot/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
-
-/**
- * Display information and factory for one selectable game.
- */
-interface GameChoice {
-  /**
-   * Stores the title state.
-   * @property {string} title
-   * @public
-   */
-  title: string;
-  /**
-   * Stores the description state.
-   * @property {string} description
-   * @public
-   */
-  description: string;
-  start: (onReturnToMenu: () => void) => void;
-}
+import type { GameChoice } from './interfaces/game-choice';
 
 /**
  * Presents the game list and starts the selected game.
@@ -68,11 +53,22 @@ export class GameSelector {
       start: (onReturnToMenu) => { new SlotMachineGame(onReturnToMenu); }
     },
     {
+      title: 'THE THREE MUSKETEERS',
+      description: 'FIVE-REEL ADVENTURE SLOT',
+      start: (onReturnToMenu) => { new MusketeersSlotGame(onReturnToMenu); }
+    },
+    {
       title: 'SHOOT ’EM ALL',
       description: 'SURVIVE THE INVASION',
       start: (onReturnToMenu) => { new ShootEmAllGame(onReturnToMenu); }
     }
   ];
+  private choiceButtons: Button[] = [];
+  private readonly titleLabel = new Label('ARCADE FRONTIER', { align: 'center', baseline: 'middle', color: '#ffffff' });
+  private readonly subtitleLabel = new Label('SELECT A MISSION', { align: 'center', baseline: 'middle', color: '#b6c5ff' });
+  private readonly footerLabel = new Label('ARROWS / WASD SELECT   ENTER / SPACE START', { align: 'center', baseline: 'middle', color: '#ffffff' });
+  private readonly choiceTitleLabels = this.choices.map((choice) => new Label(choice.title, { align: 'center', baseline: 'middle' }));
+  private readonly choiceDescriptionLabels = this.choices.map((choice) => new Label(choice.description, { align: 'center', baseline: 'middle', color: '#ffffff' }));
   /**
    * Stores the selected index state.
    * @property {number} selectedIndex
@@ -111,7 +107,7 @@ export class GameSelector {
    */
   public constructor() {
     this.controls = new GameControls(() => {});
-    GameEvents.addPointerDownListener(this.handlePointerDown);
+    this.createChoiceButtons();
     this.gameLoop();
   }
 
@@ -146,6 +142,8 @@ export class GameSelector {
     if (directionPressed && !this.directionWasPressed) {
       this.selectedIndex = (this.selectedIndex + 1) % this.choices.length;
     }
+    const hoveredIndex = this.choiceButtons.findIndex((button) => button.state() === 'hover');
+    if (hoveredIndex >= 0) this.selectedIndex = hoveredIndex;
 
     this.directionWasPressed = directionPressed;
 
@@ -183,43 +181,26 @@ export class GameSelector {
       dimensions.getHeight(),
       'rgba(18, 18, 34, 0.76)'
     );
-    GameContext.drawText(
-      'ARCADE FRONTIER',
-      dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.12,
-      Math.max(20, Math.min(GameContext.viewportUnit() * 0.055, 38)),
-      '#ffffff',
-      'center',
-      dimensions.getWidth() * 0.88
-    );
+    this.layoutLabel(this.titleLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.12,
+      dimensions.getWidth() * 0.88, 48, Math.max(20, Math.min(GameContext.viewportUnit() * 0.055, 38)));
+    this.titleLabel.draw();
     this.controls.drawFullscreenOnly();
-    GameContext.drawText(
-      'SELECT A MISSION',
-      dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.19,
-      Math.max(12, Math.min(GameContext.viewportUnit() * 0.024, 16)),
-      '#b6c5ff',
-      'center',
-      dimensions.getWidth() * 0.85
-    );
+    this.layoutLabel(this.subtitleLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.19,
+      dimensions.getWidth() * 0.85, 24, Math.max(12, Math.min(GameContext.viewportUnit() * 0.024, 16)));
+    this.subtitleLabel.draw();
 
     this.choices.forEach((choice, index) => {
       this.drawChoice(
         choice.title,
         choice.description,
         this.getChoiceY(index),
-        this.selectedIndex === index
+        this.selectedIndex === index,
+        index
       );
     });
-    GameContext.drawText(
-      'ARROWS / WASD SELECT   ENTER / SPACE START',
-      dimensions.getWidth() * 0.5,
-      dimensions.getHeight() * 0.94,
-      Math.max(10, Math.min(GameContext.viewportUnit() * 0.02, 14)),
-      '#ffffff',
-      'center',
-      dimensions.getWidth() * 0.9
-    );
+    this.layoutLabel(this.footerLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.94,
+      dimensions.getWidth() * 0.9, 22, Math.max(10, Math.min(GameContext.viewportUnit() * 0.02, 14)));
+    this.footerLabel.draw();
   }
 
   /**
@@ -256,38 +237,41 @@ export class GameSelector {
     title: string,
     description: string,
     y: number,
-    selected: boolean
+    selected: boolean,
+    index: number
   ): void {
     const dimensions = GameContext.gameDimensionsModel;
     const width = Math.min(460, dimensions.getWidth() * 0.8);
     const x = (dimensions.getWidth() - width) * 0.5;
     const height = this.getChoiceHeight();
     const color = selected ? '#426ea8' : '#242c42';
+    const button = this.choiceButtons[index];
+    button?.dimensions.setPosition(dimensions.getWidth() * 0.5, y);
+    button?.dimensions.setSize(width, height);
+    button?.dimensions.setPivot(0.5, 0.5);
 
     GameContext.drawRect(x, y - height * 0.5, width, height, color);
     if (selected) {
       GameContext.drawRect(x, y - height * 0.5, 4, height, '#72dcff');
     }
-    if (title) {
-      GameContext.drawText(
-        title,
-        dimensions.getWidth() * 0.5,
-        y - height * 0.08,
-        Math.max(13, Math.min(height * 0.32, 18)),
-        selected ? '#ffffff' : '#b6c5ff',
-        'center',
-        width - 24
-      );
-    }
-    GameContext.drawText(
-      description,
-      dimensions.getWidth() * 0.5,
-      title ? y + height * 0.28 : y,
-      Math.max(10, Math.min(height * 0.22, 13)),
-      '#ffffff',
-      'center',
-      width - 24
-    );
+    const titleLabel = this.choiceTitleLabels[index];
+    titleLabel.setText(title);
+    this.layoutLabel(titleLabel, dimensions.getWidth() * 0.5, y - height * 0.08,
+      width - 24, height * 0.48, Math.max(13, Math.min(height * 0.32, 18)));
+    titleLabel.setStyle({ color: selected ? '#ffffff' : '#b6c5ff' });
+    titleLabel.draw();
+    const descriptionLabel = this.choiceDescriptionLabels[index];
+    descriptionLabel.setText(description);
+    this.layoutLabel(descriptionLabel, dimensions.getWidth() * 0.5, title ? y + height * 0.28 : y,
+      width - 24, height * 0.38, Math.max(10, Math.min(height * 0.22, 13)));
+    descriptionLabel.draw();
+  }
+
+  private layoutLabel(label: Label, x: number, y: number, width: number, height: number, fontSize: number): void {
+    label.dimensions.setPosition(x, y);
+    label.dimensions.setSize(width, height);
+    label.dimensions.setPivot(0.5, 0.5);
+    label.setStyle({ fontSize });
   }
 
   /**
@@ -296,30 +280,16 @@ export class GameSelector {
    * @private
    * @readonly
    */
-  private readonly handlePointerDown = (pointer: GamePointer): void => {
-    if (this.started) return;
-    const { x, y } = pointer;
 
-    const dimensions = GameContext.gameDimensionsModel;
-    const width = Math.min(460, dimensions.getWidth() * 0.8);
-    const minX = (dimensions.getWidth() - width) * 0.5;
-    const maxX = minX + width;
-
-    if (x < minX || x > maxX) return;
-
-    for (let index = 0; index < this.choices.length; index++) {
-      const choiceY = this.getChoiceY(index);
-      const choiceHeight = this.getChoiceHeight();
-      if (
-        y >= choiceY - choiceHeight * 0.5
-        && y <= choiceY + choiceHeight * 0.5
-      ) {
+  private createChoiceButtons(): void {
+    this.choiceButtons = this.choices.map((_, index) => new Button(new Texture({}, 0, 0), {
+      onClick: () => {
+        if (this.started) return;
         this.selectedIndex = index;
         this.startSelectedGame();
-        return;
       }
-    }
-  };
+    }));
+  }
 
   /**
    * Starts the selected game's factory and stops the selector loop.
@@ -330,6 +300,8 @@ export class GameSelector {
     if (this.started) return;
 
     this.started = true;
+    this.choiceButtons.forEach((button) => button.destroy());
+    this.choiceButtons = [];
     this.controls.dispose();
 
     this.choices[this.selectedIndex].start(this.returnToMenu);
@@ -345,6 +317,7 @@ export class GameSelector {
     this.started = false;
     this.lastFrameTime = performance.now();
     this.controls = new GameControls(() => {});
+    this.createChoiceButtons();
     this.gameLoop();
   };
 }

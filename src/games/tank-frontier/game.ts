@@ -1,13 +1,16 @@
-import GameContext from '../../engine/context';
-import { BaseGame } from '../../engine/base-game';
-import CanvasIcon from '../../engine/canvas-icon';
-import GameEvents from '../../engine/events';
-import GameLoader from '../../engine/loader';
-import Sprite from '../../engine/sprite';
-import { TouchControls } from '../../engine/touch-controls';
-import { PhysicsBody } from '../../engine/physics';
+import GameContext from '../../engine/core/context';
+import { BaseGame } from '../../engine/core/base-game';
+import CanvasIcon from '../../engine/rendering/canvas-icon';
+import GameEvents from '../../engine/input/events';
+import GameLoader from '../../engine/assets/loader';
+import Sprite from '../../engine/animations/sprites/sprite';
+import { TouchControls } from '../../engine/input/touch-controls';
+import { PhysicsBody } from '../../engine/core/physics';
 import { signalValue } from 'reactive-values';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
+import type { Pickup } from './interfaces/pickup';
+import type { Rect } from './interfaces/rect';
+import type { Wall } from './interfaces/wall';
 
 /**
  * Cardinal directions used by tanks, movement input, and bullets.
@@ -21,60 +24,6 @@ type EnemyBehavior = 'hunter' | 'ambusher' | 'guardian' | 'skirmisher';
  * Number of enemy defeats required to complete the mission.
  */
 const ENEMIES_TO_WIN = 15;
-
-/**
- * Axis-aligned rectangle used for arena and collision geometry.
- */
-interface Rect {
-  /**
-   * Stores the x state.
-   * @property {number} x
-   * @public
-   */
-  x: number;
-  /**
-   * Stores the y state.
-   * @property {number} y
-   * @public
-   */
-  y: number;
-  /**
-   * Stores the width state.
-   * @property {number} width
-   * @public
-   */
-  width: number;
-  /**
-   * Stores the height state.
-   * @property {number} height
-   * @public
-   */
-  height: number;
-}
-
-/**
- * Stationary heart pickup that restores one missing player life.
- */
-interface Pickup {
-  /**
-   * Stores the x state.
-   * @property {number} x
-   * @public
-   */
-  x: number;
-  /**
-   * Stores the y state.
-   * @property {number} y
-   * @public
-   */
-  y: number;
-  /**
-   * Stores the size state.
-   * @property {number} size
-   * @public
-   */
-  size: number;
-}
 
 /**
  * Player or enemy tank with sprite animation, health, and combat timers.
@@ -582,24 +531,6 @@ class Bullet {
 }
 
 /**
- * Arena wall with durability and a destructibility flag.
- */
-interface Wall extends Rect {
-  /**
-   * Stores the health state.
-   * @property {number} health
-   * @public
-   */
-  health: number;
-  /**
-   * Stores the destructible state.
-   * @property {boolean} destructible
-   * @public
-   */
-  destructible: boolean;
-}
-
-/**
  * Tank combat game with a fixed arena, destructible cover, and 15-defeat goal.
  * @class TankFrontierGame
  */
@@ -856,7 +787,7 @@ export class TankFrontierGame extends BaseGame {
         dimensions.getHeight(),
         'rgba(23, 17, 37, 0.82)'
       );
-      GameContext.drawText(
+      this.drawLabel(
         this.gameWon() ? 'MISSION COMPLETE' : 'TANK DESTROYED',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.45,
@@ -865,7 +796,7 @@ export class TankFrontierGame extends BaseGame {
         'center',
         dimensions.getWidth() * 0.85
       );
-      GameContext.drawText(
+      this.drawLabel(
         this.gameWon() ? `${ENEMIES_TO_WIN} ENEMIES DESTROYED` : 'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.54,
@@ -1037,7 +968,7 @@ export class TankFrontierGame extends BaseGame {
   private drawHud(scale: number): void {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
-    GameContext.drawText(
+    this.drawLabel(
       `ENEMIES ${Math.min(this.defeatedEnemies(), ENEMIES_TO_WIN)} / ${ENEMIES_TO_WIN}`,
       30 * scale,
       44 * scale,
@@ -1046,7 +977,7 @@ export class TankFrontierGame extends BaseGame {
       'left',
       dimensions.getWidth() * 0.42
     );
-    GameContext.drawText(
+    this.drawLabel(
       `WAVE ${this.wave()}`,
       dimensions.getWidth() - 30 * scale,
       44 * scale,
@@ -1070,7 +1001,7 @@ export class TankFrontierGame extends BaseGame {
       icon.draw(x + index * spacing - size * 0.5, y - size * 0.5, size);
     }
     if (!GameContext.isMobileDevice) {
-      GameContext.drawText(
+      this.drawLabel(
         'BATTLE CITY INSPIRED • ARROWS / WASD MOVE • SPACE FIRE',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() - 26,
