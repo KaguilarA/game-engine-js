@@ -1,11 +1,11 @@
 import { signalValue } from 'reactive-values';
 
-import GameContext from '../../engine/context';
-import GameEvents from '../../engine/events';
-import GameLoader from '../../engine/loader';
-import { AnimatedShipEntity } from '../../engine/animated-ship-entity';
-import { Health } from '../../engine/health';
-import Sprite from '../../engine/sprite';
+import GameContext from '../../engine/core/context';
+import GameEvents from '../../engine/input/events';
+import GameLoader from '../../engine/assets/loader';
+import { AnimatedShipEntity } from '../../engine/entities/animated-ship-entity';
+import { Health } from '../../engine/core/health';
+import Sprite from '../../engine/animations/sprites/sprite';
 
 type PlayerAnimation = 'idle' | 'moving' | 'shooting';
 

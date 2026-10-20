@@ -1,7 +1,7 @@
-import Sprite from '../../engine/sprite';
-import GameLoader from '../../engine/loader';
-import { Health } from '../../engine/health';
-import { SpriteEntity } from '../../engine/sprite-entity';
+import Sprite from '../../engine/animations/sprites/sprite';
+import GameLoader from '../../engine/assets/loader';
+import { Health } from '../../engine/core/health';
+import { SpriteEntity } from '../../engine/entities/sprite-entity';
 import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
 

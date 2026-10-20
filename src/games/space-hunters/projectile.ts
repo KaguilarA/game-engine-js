@@ -1,9 +1,9 @@
 import { signalValue } from 'reactive-values';
 
-import GameContext from '../../engine/context';
-import GameLoader from '../../engine/loader';
-import Sprite from '../../engine/sprite';
-import { SpriteEntity } from '../../engine/sprite-entity';
+import GameContext from '../../engine/core/context';
+import GameLoader from '../../engine/assets/loader';
+import Sprite from '../../engine/animations/sprites/sprite';
+import { SpriteEntity } from '../../engine/entities/sprite-entity';
 
 /**
  * Pooled animated projectile that travels vertically through the playfield.

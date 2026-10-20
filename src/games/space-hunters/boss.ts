@@ -1,30 +1,13 @@
-import GameLoader from '../../engine/loader';
-import { Health } from '../../engine/health';
-import Sprite from '../../engine/sprite';
-import { SpriteEntity } from '../../engine/sprite-entity';
+import GameLoader from '../../engine/assets/loader';
+import { Health } from '../../engine/core/health';
+import Sprite from '../../engine/animations/sprites/sprite';
+import { SpriteEntity } from '../../engine/entities/sprite-entity';
+import type { BossShotOrigin } from './interfaces/boss-shot-origin';
 
 /**
  * Available boss encounters, each with its own health and attack phases.
  */
 export type BossType = 1 | 2 | 3;
-
-/**
- * Canvas position from which the boss may launch a projectile.
- */
-export interface BossShotOrigin {
-  /**
-   * Horizontal projectile start coordinate.
-   * @property {number} x
-   * @public
-   */
-  x: number;
-  /**
-   * Vertical projectile start coordinate.
-   * @property {number} y
-   * @public
-   */
-  y: number;
-}
 
 /**
  * A boss with a distinct movement, vulnerability, and attack pattern.

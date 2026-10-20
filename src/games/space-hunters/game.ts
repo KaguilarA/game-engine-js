@@ -1,10 +1,10 @@
-import GameContext from '../../engine/context';
-import { BaseGame } from '../../engine/base-game';
-import CanvasIcon from '../../engine/canvas-icon';
-import GameEvents from '../../engine/events';
-import { TouchControls } from '../../engine/touch-controls';
-import GameLoader from '../../engine/loader';
-import { PhysicsBody } from '../../engine/physics';
+import GameContext from '../../engine/core/context';
+import { BaseGame } from '../../engine/core/base-game';
+import CanvasIcon from '../../engine/rendering/canvas-icon';
+import GameEvents from '../../engine/input/events';
+import { TouchControls } from '../../engine/input/touch-controls';
+import GameLoader from '../../engine/assets/loader';
+import { PhysicsBody } from '../../engine/core/physics';
 import { Boss } from './boss';
 import type { BossType } from './boss';
 import { Enemy } from './enemy';
@@ -254,7 +254,7 @@ export class Game extends BaseGame {
     this.playerProjectiles.forEach((projectile) => projectile.draw());
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
 
-    GameContext.drawText(
+    this.drawLabel(
       `SCORE ${this.score}`,
       24 * hudScale,
       36 * hudScale,
@@ -271,7 +271,7 @@ export class Game extends BaseGame {
     }
 
     if (this.gameOver) {
-      GameContext.drawText(
+      this.drawLabel(
         'GAME OVER',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.45,
@@ -280,7 +280,7 @@ export class Game extends BaseGame {
         'center',
         dimensions.getWidth() * 0.85
       );
-      GameContext.drawText(
+      this.drawLabel(
         'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.54,
@@ -339,7 +339,7 @@ export class Game extends BaseGame {
       height - innerPadding * 2,
       this.boss.isShielded ? '#6fa8dc' : '#d95f5f'
     );
-    GameContext.drawText(
+    this.drawLabel(
       this.boss.name,
       x + width * 0.5,
       y + height * 0.68,

@@ -6,7 +6,7 @@ const { drawImage } = vi.hoisted(() => ({
   drawImage: vi.fn()
 }));
 
-vi.mock('../../engine/loader', () => ({
+vi.mock('../../engine/assets/loader', () => ({
   default: {
     getImage: vi.fn(() => ({})),
     getAtlas: vi.fn(() => ({
@@ -35,7 +35,7 @@ vi.mock('../../engine/loader', () => ({
   }
 }));
 
-vi.mock('../../engine/context', () => ({
+vi.mock('../../engine/core/context', () => ({
   default: {
     context: {
       drawImage,
