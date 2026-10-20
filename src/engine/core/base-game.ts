@@ -2,6 +2,7 @@ import { GameControls } from '../input/game-controls';
 import type { GameControlsOptions } from '../interfaces/game-controls-options';
 import { signalValue } from 'reactive-values';
 import GameContext from './context';
+import { Label } from '../ui/label';
 
 /**
  * Shared lifecycle for every playable game.
@@ -58,6 +59,10 @@ export abstract class BaseGame {
   private readonly cleanups: Array<() => void> = [];
   /** @property {number | undefined} pendingViewportLayout @private */
   private pendingViewportLayout: number | undefined;
+  /** @property {Map<number, Label>} labels @private */
+  private readonly labels = new Map<number, Label>();
+  /** @property {number} labelCursor @private */
+  private labelCursor = 0;
 
   /**
    * Creates shared controls and stores the optional selector callback and HUD options.
@@ -187,6 +192,7 @@ export abstract class BaseGame {
       this.updateGame(deltaSeconds);
     }
 
+    this.labelCursor = 0;
     this.drawGame();
     if (this.isGameOver) {
       this.drawEndActions();
@@ -196,6 +202,61 @@ export abstract class BaseGame {
     }
     requestAnimationFrame(this.gameLoop);
   };
+
+  /**
+   * Draws a cached Label in the same anchor position and size used by the
+   * game's former canvas text helper.
+   * @protected
+   * @return {void}
+   */
+  protected drawLabel(
+    text: string,
+    x: number,
+    y: number,
+    fontSize: number,
+    color: string,
+    align: CanvasTextAlign = 'left',
+    maxWidth?: number
+  ): void {
+    const index = this.labelCursor++;
+    let label = this.labels.get(index);
+    const width = maxWidth !== undefined && maxWidth > 0 ? maxWidth : 0;
+    const pivotX = align === 'center' ? 0.5 : align === 'right' ? 1 : 0;
+    let fittedFontSize = fontSize;
+    if (width > 0) {
+      const context = GameContext.context;
+      context.save();
+      context.font = `${fontSize}px sans-serif`;
+      const measuredWidth = context.measureText(text).width;
+      context.restore();
+      if (measuredWidth > width) {
+        fittedFontSize = Math.max(9, Math.floor(fontSize * width / measuredWidth));
+      }
+    }
+
+    if (label === undefined) {
+      label = new Label(text, {
+        width,
+        height: Math.max(12, fittedFontSize * 1.4),
+        x,
+        y,
+        pivotX,
+        pivotY: 0,
+        fontSize: fittedFontSize,
+        color,
+        align,
+        baseline: 'alphabetic'
+      });
+      this.labels.set(index, label);
+    }
+
+    label.setText(text);
+    label.setStyle({ fontSize: fittedFontSize, color, align, baseline: 'alphabetic' });
+    label.dimensions.setPosition(x, y);
+    label.dimensions.setSize(width, Math.max(12, fittedFontSize * 1.4));
+    label.dimensions.setPivot(pivotX, 0);
+    label.draw();
+  }
 
   /** Coalesces viewport hooks until a resize gesture settles. */
   private scheduleViewportLayout(): void {
