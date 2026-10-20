@@ -4,21 +4,35 @@ import type { SignalValue } from 'reactive-values';
 import GameContext from '../../engine/core/context';
 import Dimensions from '../../engine/core/dimensions';
 import type { Renderable } from '../../engine/interfaces/renderable';
-import type { Icon } from './icon';
+import type { ReelSymbolVisual } from './interfaces/reel-symbol-visual';
 import { MathUtils } from '../../engine/core/math-utils';
 
 /** Draws one independently positioned symbol inside its owning reel container. */
 export class ReelIcon implements Renderable {
   public readonly dimensions = new Dimensions(0, 0, 0, 0, 0.5, 0.5);
-  private readonly icon: SignalValue<Icon | undefined> = signalValue<Icon | undefined>(undefined);
+  private readonly icon: SignalValue<ReelSymbolVisual | undefined> = signalValue<ReelSymbolVisual | undefined>(undefined);
   private readonly blurAmount: SignalValue<number> = signalValue(0);
   private readonly winning: SignalValue<boolean> = signalValue(false);
 
-  public setPresentation(icon: Icon | undefined, blurAmount: number, winning: boolean): void {
-    if (this.icon() !== icon) this.icon.set(icon);
+  public setPresentation(
+    icon: ReelSymbolVisual | undefined,
+    blurAmount: number,
+    winning: boolean,
+    symbol?: string
+  ): void {
+    const visualChanged = this.icon() !== icon;
+    if (visualChanged) this.icon.set(icon);
+    if (symbol !== undefined) icon?.setSymbol?.(symbol);
     const nextBlurAmount = MathUtils.clamp(blurAmount, 0, 1);
     if (this.blurAmount() !== nextBlurAmount) this.blurAmount.set(nextBlurAmount);
-    if (this.winning() !== winning) this.winning.set(winning);
+    if (visualChanged || this.winning() !== winning) {
+      this.winning.set(winning);
+      icon?.setWinning?.(winning);
+    }
+  }
+
+  public update(deltaSeconds: number): void {
+    this.icon()?.update(deltaSeconds, this.winning());
   }
 
   public draw(): void {

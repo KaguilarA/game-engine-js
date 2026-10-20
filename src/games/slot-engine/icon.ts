@@ -9,6 +9,7 @@ import { AtlasParser } from '../../engine/assets/atlas-parser';
 import type { SpineRecord } from '../../engine/interfaces/spine-record';
 import Sprite from '../../engine/animations/sprites/sprite';
 import type { IconAssetPaths } from './interfaces/icon-asset-paths';
+import type { ReelSymbolVisual } from './interfaces/reel-symbol-visual';
 
 type SpineIconAsset = {
   atlas: Atlas;
@@ -16,7 +17,7 @@ type SpineIconAsset = {
 };
 
 /** A reusable slot symbol with optional blurred art and a Spine win animation. */
-export class Icon {
+export class Icon implements ReelSymbolVisual {
   private readonly winAnimationActive: SignalValue<boolean> = signalValue(false);
   private winAnimation: SpineSprite | undefined;
   private readonly spineEventHandlers = new Map<string, Set<SpineEventHandler>>();

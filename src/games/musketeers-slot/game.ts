@@ -10,6 +10,7 @@ import type { SignalValue } from 'reactive-values';
 import { Icon } from '../slot-engine/icon';
 import { Reel } from '../slot-engine/reel';
 import { ReelIcon } from '../slot-engine/reel-icon';
+import { ReelAnimationProfile } from '../slot-engine/reel-animation-profile';
 import { evaluatePaylines } from './paylines';
 
 const ASSET_ROOT = '/slot-machine/';
@@ -17,14 +18,7 @@ const SYMBOLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'T'
 const REEL_COUNT = 5;
 const ROW_COUNT = 3;
 const SPINE_SYMBOLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-const REEL_OPTIONS = {
-  rowCount: ROW_COUNT,
-  anticipationDuration: 0.16,
-  anticipationLiftCells: 0.5,
-  bounceDuration: 0.34,
-  accelerationShare: 0.14,
-  brakingShare: 0.3
-};
+const REEL_OPTIONS = ReelAnimationProfile.createOptions(ROW_COUNT);
 /** Five-reel Musketeers slot game, rendered with the engine's Canvas sprites. */
 export class MusketeersSlotGame extends BaseGame {
   private readonly images = new Map<string, HTMLImageElement>();
@@ -87,10 +81,9 @@ export class MusketeersSlotGame extends BaseGame {
     if (spacePressed && !this.spaceWasPressed()) this.spin();
     this.spaceWasPressed.set(spacePressed);
 
-    for (const icon of this.icons.values()) icon.update(deltaSeconds);
+    for (const reel of this.reels) reel.update(deltaSeconds);
 
     if (!this.spinning()) return;
-    for (const reel of this.reels) reel.update(deltaSeconds);
     if (this.reels.every((reel) => !reel.isActive())) this.resolveSpin();
   }
 
@@ -252,7 +245,8 @@ export class MusketeersSlotGame extends BaseGame {
     this.reels.forEach((reel, index) => {
       const debugResult = this.randomColumn();
       debugResult[1] = 'A';
-      reel.startSpin(debugResult, 18 + index * 3, 1.55 + index * 0.23);
+      const plan = ReelAnimationProfile.getSpinPlan(index);
+      reel.startSpin(debugResult, plan.travelCells, plan.duration);
     });
   }
 

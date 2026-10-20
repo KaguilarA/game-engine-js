@@ -3,8 +3,6 @@ import { MathUtils } from '../../engine/core/math-utils';
 import GameEvents from '../../engine/input/events';
 import { BaseGame } from '../../engine/core/base-game';
 import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
-import { PhysicsBody } from '../../engine/core/physics';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
 import { signalValue } from 'reactive-values';
 import { Button } from '../../engine/ui/button';
@@ -12,7 +10,9 @@ import { NumberLabel } from '../../engine/ui/number-label';
 import { Label } from '../../engine/ui/label';
 import { Texture } from '../../engine/rendering/texture';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
-import type { Reel } from './interfaces/reel';
+import { Reel, ReelAnimationProfile, ReelIcon } from '../slot-engine';
+import { CosmicSymbolVisual } from './cosmic-symbol-visual';
+import type { CosmicSymbolAsset } from './interfaces/cosmic-symbol-asset';
 
 const ALIEN_SYMBOLS = [
   'beetlemorph',
@@ -22,8 +22,9 @@ const ALIEN_SYMBOLS = [
   'phantommorph',
   'squidmorph'
 ] as const;
-const REEL_STOP_TIMES = [0.65, 0.9, 1.15];
-const REEL_BOUNCE_DURATION = 0.48;
+const ROW_COUNT = 3;
+const REEL_COUNT = 3;
+const REEL_OPTIONS = ReelAnimationProfile.createOptions(ROW_COUNT);
 
 /**
  * Three-reel arcade slot machine with credits, wagers, and animated payouts.
@@ -36,11 +37,9 @@ export class SlotMachineGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly reels: Reel[] = [
-    this.createReel(0),
-    this.createReel(1),
-    this.createReel(2)
-  ];
+  private readonly reels: Reel[];
+  private readonly reelIcons: ReelIcon[][];
+  private readonly symbolVisuals: CosmicSymbolVisual[][];
   /**
    * Tracks credits available for future wagers.
    * @property {SignalValue<number>} credits
@@ -122,6 +121,28 @@ export class SlotMachineGame extends BaseGame {
    */
   public constructor(onReturnToMenu?: () => void) {
     super(onReturnToMenu, { showResetButton: false });
+    const symbolAssets = new Map<string, CosmicSymbolAsset>(ALIEN_SYMBOLS.map((symbol) => [symbol, {
+      image: GameLoader.getImage(symbol),
+      idleAnimation: GameLoader.getAtlas(symbol).getAnimation('idle')
+    }]));
+    this.reels = Array.from({ length: REEL_COUNT }, () => new Reel(
+      this.randomColumn(),
+      () => this.randomSymbol(),
+      REEL_OPTIONS
+    ));
+    this.symbolVisuals = this.reels.map(() => Array.from(
+      { length: ROW_COUNT + 2 },
+      () => new CosmicSymbolVisual(symbolAssets)
+    ));
+    this.reelIcons = this.reels.map((reel, reelIndex) => {
+      const icons = this.symbolVisuals[reelIndex].map((visual) => {
+        const icon = new ReelIcon();
+        icon.setPresentation(visual, 0, false);
+        reel.add(icon);
+        return icon;
+      });
+      return icons;
+    });
     const spinTexture = new Texture({}, 72, 72, 0, 0);
     this.spinButton = new Button(spinTexture, {
       shape: 'circle',
@@ -141,7 +162,7 @@ export class SlotMachineGame extends BaseGame {
   }
 
   /**
-   * Advances reel motion, staggered stopping, rebound settling, and payout checks.
+   * Advances the shared reel motion and resolves the round after every reel settles.
    * @param deltaSeconds - Time elapsed since the preceding game update.
    * @protected
    * @return {void}
@@ -152,55 +173,8 @@ export class SlotMachineGame extends BaseGame {
     this.spaceWasPressed.set(spacePressed);
     this.spinButton.setDisabled(this.credits() < this.bet);
     this.spinButton.setBlocked(this.spinning());
-    const cellHeight = this.getReelCellHeight();
-    this.reels.forEach((reel, index) => {
-      if (
-        this.winningSymbol() !== undefined
-        && this.winningReels().has(index)
-      ) {
-        reel.sprites[this.winningSymbol()!].update(deltaSeconds);
-      }
-      if (!reel.moving()) return;
-
-      reel.elapsed.set(Math.min(reel.duration(), reel.elapsed() + deltaSeconds));
-      if (reel.elapsed() >= reel.duration()) {
-        reel.motion.y.set(reel.targetDistance());
-        reel.motion.velocityY.set(0);
-        reel.moving.set(false);
-        reel.bouncing.set(true);
-        reel.bounceElapsed.set(0);
-        reel.bounceOffset.set(0);
-        return;
-      }
-
-      reel.motion.update(deltaSeconds, reel.brakingAcceleration());
-    });
-
-    this.reels.forEach((reel) => {
-      if (!reel.bouncing()) return;
-
-      reel.bounceElapsed.set(Math.min(
-        REEL_BOUNCE_DURATION,
-        reel.bounceElapsed() + deltaSeconds
-      ));
-      const progress = reel.bounceElapsed() / REEL_BOUNCE_DURATION;
-      reel.bounceOffset.set(progress >= 1
-        ? 0
-        : cellHeight * 0.14
-          * Math.exp(-6 * progress)
-          * Math.sin(Math.PI * 4 * progress));
-      if (progress >= 1) reel.bouncing.set(false);
-    });
-
-    this.reels.forEach((reel) => {
-      const travel = reel.motion.y() + reel.bounceOffset();
-      const passedCells = Math.floor(travel / cellHeight);
-      reel.cursor.set((
-        reel.startCursor() - passedCells + ALIEN_SYMBOLS.length * 100
-      ) % ALIEN_SYMBOLS.length);
-    });
-
-    if (this.spinning() && this.reels.every((reel) => !reel.moving() && !reel.bouncing())) {
+    this.reels.forEach((reel) => reel.update(deltaSeconds));
+    if (this.spinning() && this.reels.every((reel) => !reel.isActive())) {
       this.spinning.set(false);
       this.resolvePayout();
     }
@@ -242,26 +216,28 @@ export class SlotMachineGame extends BaseGame {
       const x = reelStartX + index * (reelWidth + reelGap);
       GameContext.drawRect(x, reelY, reelWidth, reelHeight, '#11152a');
       GameContext.drawRect(x + 5, reelY + 5, reelWidth - 10, reelHeight - 10, '#f4f0ff');
-      const cellHeight = reelHeight / 3;
-      const travel = reel.motion.y() + reel.bounceOffset();
-      const scrollOffset = reel.moving() || reel.bouncing()
-        ? ((travel % cellHeight) + cellHeight) % cellHeight
-        : 0;
-      GameContext.withClip(x + 5, reelY + 5, reelWidth - 10, reelHeight - 10, () => {
-        for (let row = -1; row <= 3; row++) {
-          const symbolIndex = (
-            reel.cursor() + row + ALIEN_SYMBOLS.length * 10
-          ) % ALIEN_SYMBOLS.length;
-          const alien = reel.sprites[symbolIndex];
-          const alienSize = Math.min(cellHeight * 0.78, reelWidth - 18);
-          alien.dimensions.setSize(alienSize, alienSize);
-          alien.dimensions.setPosition(
-            x + (reelWidth - alienSize) * 0.5,
-            reelY + row * cellHeight + scrollOffset + (cellHeight - alienSize) * 0.5
-          );
-          alien.draw();
-        }
+      const innerX = x + 5;
+      const innerY = reelY + 5;
+      const innerWidth = reelWidth - 10;
+      const innerHeight = reelHeight - 10;
+      const cellHeight = innerHeight / ROW_COUNT;
+      reel.dimensions.setPosition(innerX, innerY);
+      reel.dimensions.setSize(innerWidth, innerHeight);
+      reel.dimensions.setPivot(0, 0);
+      const visibleIcons = reel.getVisibleSymbols().map((visible, visibleIndex) => {
+        const icon = this.reelIcons[index][visibleIndex];
+        const visual = this.symbolVisuals[index][visibleIndex];
+        const winning = this.winningSymbol() !== undefined
+          && this.winningReels().has(index)
+          && visible.symbol === ALIEN_SYMBOLS[this.winningSymbol()!];
+        icon.setPresentation(visual, visible.blurAmount, winning, visible.symbol);
+        const size = Math.min(cellHeight * 0.78, innerWidth - 12);
+        icon.dimensions.setPosition(innerWidth * 0.5, cellHeight * visible.offsetCells);
+        icon.dimensions.setSize(size, size);
+        return icon;
       });
+      reel.setChildren(visibleIcons);
+      reel.draw();
     });
 
     this.creditsLabel.setValue(this.credits());
@@ -323,21 +299,7 @@ export class SlotMachineGame extends BaseGame {
     this.spaceWasPressed.set(false);
     this.message.set('MATCH SYMBOLS TO WIN');
     this.stopWinningAnimation();
-    this.reels.forEach((reel, index) => {
-      reel.result.set(index);
-      reel.cursor.set((index + ALIEN_SYMBOLS.length - 1) % ALIEN_SYMBOLS.length);
-      reel.startCursor.set(reel.cursor());
-      reel.elapsed.set(0);
-      reel.motion.y.set(0);
-      reel.motion.velocityY.set(0);
-      reel.targetDistance.set(0);
-      reel.brakingAcceleration.set(0);
-      reel.duration.set(0);
-      reel.moving.set(false);
-      reel.bouncing.set(false);
-      reel.bounceElapsed.set(0);
-      reel.bounceOffset.set(0);
-    });
+    this.reels.forEach((reel) => reel.reset(this.randomColumn()));
   }
 
   /**
@@ -367,27 +329,9 @@ export class SlotMachineGame extends BaseGame {
     this.spinning.set(true);
     this.message.set('GOOD LUCK!');
     this.stopWinningAnimation();
-    const cellHeight = this.getReelCellHeight();
     this.reels.forEach((reel, index) => {
-      reel.result.set(Math.floor(Math.random() * ALIEN_SYMBOLS.length));
-      reel.elapsed.set(0);
-      reel.startCursor.set(reel.cursor());
-      const stepsToResult = (
-        (reel.cursor() + 1 - reel.result() + ALIEN_SYMBOLS.length)
-        % ALIEN_SYMBOLS.length
-      );
-      const extraLoops = 3 + index;
-      const travelSteps = stepsToResult + extraLoops * ALIEN_SYMBOLS.length;
-      reel.targetDistance.set(travelSteps * cellHeight);
-      reel.duration.set(REEL_STOP_TIMES[index] + 1.2);
-      const initialSpeed = (2 * reel.targetDistance()) / reel.duration();
-      reel.brakingAcceleration.set(-initialSpeed / reel.duration());
-      reel.motion.y.set(0);
-      reel.motion.velocityY.set(initialSpeed);
-      reel.moving.set(true);
-      reel.bouncing.set(false);
-      reel.bounceElapsed.set(0);
-      reel.bounceOffset.set(0);
+      const plan = ReelAnimationProfile.getSpinPlan(index);
+      reel.startSpin(this.randomColumn(), plan.travelCells, plan.duration);
     });
   }
 
@@ -397,10 +341,12 @@ export class SlotMachineGame extends BaseGame {
    * @return {void}
    */
   private resolvePayout(): void {
-    const [first, second, third] = this.reels.map((reel) => reel.result());
+    const [first, second, third] = this.reels.map((reel) => (
+      ALIEN_SYMBOLS.indexOf(reel.symbols()[1] as typeof ALIEN_SYMBOLS[number])
+    ));
     if (first === second && second === third) {
       this.startWinningAnimation(first, [0, 1, 2]);
-    const multiplier = first === ALIEN_SYMBOLS.length - 1 ? 10 : 5;
+      const multiplier = first === ALIEN_SYMBOLS.length - 1 ? 10 : 5;
       const payout = this.bet * multiplier;
       this.credits.set(this.credits() + payout);
       this.message.set(first === ALIEN_SYMBOLS.length - 1 ? `JACKPOT! +${payout}` : `THREE MATCH! +${payout}`);
@@ -425,12 +371,6 @@ export class SlotMachineGame extends BaseGame {
   private startWinningAnimation(symbol: number, reelIndices: number[]): void {
     this.winningSymbol.set(symbol);
     this.winningReels.set(new Set(reelIndices));
-    reelIndices.forEach((index) => {
-      const name = ALIEN_SYMBOLS[symbol];
-      this.reels[index].sprites[symbol].playAtlasClip(
-        GameLoader.getAtlas(name).getAnimation('idle')
-      );
-    });
   }
 
   /**
@@ -439,59 +379,15 @@ export class SlotMachineGame extends BaseGame {
    * @return {void}
    */
   private stopWinningAnimation(): void {
-    if (this.winningSymbol() === undefined) return;
-
-    const symbol = this.winningSymbol()!;
-    const name = ALIEN_SYMBOLS[symbol];
-    this.winningReels().forEach((index) => {
-      this.reels[index].sprites[symbol].playAtlasClip(
-        GameLoader.getAtlas(name).getAnimation('idle')
-      );
-    });
     this.winningReels.set(new Set());
     this.winningSymbol.set(undefined);
   }
 
-  /**
-   * Creates a reel model and loads one idle sprite for every supported alien.
-   * @param initialSymbol - Symbol index shown when the reel is initialized.
-   * @private
-   * @return {Reel} The initialized reactive reel model.
-   */
-  private createReel(initialSymbol: number): Reel {
-    const sprites = ALIEN_SYMBOLS.map((name) => {
-      const sprite = new Sprite(GameLoader.getImage(name), 80, 80);
-      sprite.playAtlasClip(GameLoader.getAtlas(name).getAnimation('idle'));
-      return sprite;
-    });
-
-    const cursor = (initialSymbol + ALIEN_SYMBOLS.length - 1) % ALIEN_SYMBOLS.length;
-    return {
-      result: signalValue(initialSymbol),
-      cursor: signalValue(cursor),
-      startCursor: signalValue(cursor),
-      elapsed: signalValue(0),
-      motion: new PhysicsBody(),
-      targetDistance: signalValue(0),
-      brakingAcceleration: signalValue(0),
-      duration: signalValue(0),
-      moving: signalValue(false),
-      bouncing: signalValue(false),
-      bounceElapsed: signalValue(0),
-      bounceOffset: signalValue(0),
-      sprites
-    };
+  private randomColumn(): string[] {
+    return Array.from({ length: ROW_COUNT }, () => this.randomSymbol());
   }
 
-  /**
-   * Calculates the height of one symbol cell from the current viewport.
-   * @private
-   * @return {number} Height of one visible reel cell.
-   */
-  private getReelCellHeight(): number {
-    const height = GameContext.gameDimensionsModel.getHeight();
-    const cabinetHeight = Math.min(height * 0.6, 390);
-    return cabinetHeight * 0.48 / 3;
+  private randomSymbol(): string {
+    return ALIEN_SYMBOLS[Math.floor(Math.random() * ALIEN_SYMBOLS.length)];
   }
-
 }
