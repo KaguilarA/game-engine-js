@@ -1,14 +1,17 @@
-import GameContext from '../../engine/context';
-import GameEvents from '../../engine/events';
-import type { GamePointer } from '../../engine/events';
-import { BaseGame } from '../../engine/base-game';
-import GameLoader from '../../engine/loader';
-import Sprite from '../../engine/sprite';
-import { PhysicsBody } from '../../engine/physics';
-import CanvasIcon from '../../engine/canvas-icon';
+import GameContext from '../../engine/core/context';
+import GameEvents from '../../engine/input/events';
+import { BaseGame } from '../../engine/core/base-game';
+import GameLoader from '../../engine/assets/loader';
+import Sprite from '../../engine/animations/sprites/sprite';
+import { PhysicsBody } from '../../engine/core/physics';
+import CanvasIcon from '../../engine/rendering/canvas-icon';
 import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { Button } from '../../engine/ui/button';
+import { NumberLabel } from '../../engine/ui/number-label';
+import { Label } from '../../engine/ui/label';
+import { Texture } from '../../engine/rendering/texture';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
+import type { Reel } from './interfaces/reel';
 
 const ALIEN_SYMBOLS = [
   'beetlemorph',
@@ -20,88 +23,6 @@ const ALIEN_SYMBOLS = [
 ] as const;
 const REEL_STOP_TIMES = [0.65, 0.9, 1.15];
 const REEL_BOUNCE_DURATION = 0.48;
-
-interface Reel {
-  /**
-   * Stores the symbol fixed as the outcome for the current reel spin.
-   * @property {SignalValue<number>} result
-   * @public
-   */
-  result: SignalValue<number>;
-  /**
-   * Stores the symbol index rendered at the top of the stopped reel.
-   * @property {SignalValue<number>} cursor
-   * @public
-   */
-  cursor: SignalValue<number>;
-  /**
-   * Preserves the starting symbol index used to calculate the spin destination.
-   * @property {SignalValue<number>} startCursor
-   * @public
-   */
-  startCursor: SignalValue<number>;
-  /**
-   * Tracks elapsed time since this reel began its current spin.
-   * @property {SignalValue<number>} elapsed
-   * @public
-   */
-  elapsed: SignalValue<number>;
-  /**
-   * Integrates vertical reel travel and braking through the shared physics model.
-   * @property {PhysicsBody} motion
-   * @public
-   */
-  motion: PhysicsBody;
-  /**
-   * Stores the vertical distance needed to align the selected result.
-   * @property {SignalValue<number>} targetDistance
-   * @public
-   */
-  targetDistance: SignalValue<number>;
-  /**
-   * Stores the acceleration that brings the reel to rest at its result.
-   * @property {SignalValue<number>} brakingAcceleration
-   * @public
-   */
-  brakingAcceleration: SignalValue<number>;
-  /**
-   * Stores the planned duration for this reel's current spin.
-   * @property {SignalValue<number>} duration
-   * @public
-   */
-  duration: SignalValue<number>;
-  /**
-   * Indicates whether the reel is in its active movement phase.
-   * @property {SignalValue<boolean>} moving
-   * @public
-   */
-  moving: SignalValue<boolean>;
-  /**
-   * Indicates whether the reel is completing its final rebound animation.
-   * @property {SignalValue<boolean>} bouncing
-   * @public
-   */
-  bouncing: SignalValue<boolean>;
-  /**
-   * Tracks elapsed time in the reel's final rebound animation.
-   * @property {SignalValue<number>} bounceElapsed
-   * @public
-   */
-  bounceElapsed: SignalValue<number>;
-  /**
-   * Stores the temporary visual offset from the final aligned position.
-   * @property {SignalValue<number>} bounceOffset
-   * @public
-   */
-  bounceOffset: SignalValue<number>;
-  /**
-   * Holds the sprite instance used to render each alien symbol on this reel.
-   * @property {Sprite[]} sprites
-   * @public
-   * @readonly
-   */
-  sprites: Sprite[];
-}
 
 /**
  * Three-reel arcade slot machine with credits, wagers, and animated payouts.
@@ -175,13 +96,22 @@ export class SlotMachineGame extends BaseGame {
    * @readonly
    */
   private readonly spinIcon = new CanvasIcon(resetSvg, '#493500');
+  /** @property {Button} spinButton */
+  private readonly spinButton: Button;
+  /** @property {NumberLabel} creditsLabel */
+  private readonly creditsLabel = new NumberLabel(100, {
+    width: 220, height: 30, align: 'center', color: '#ffffff', fontSize: 24
+  }, { mode: 'count', locale: 'en-US' });
+  /** @property {Label} messageLabel */
+  private readonly messageLabel = new Label('MATCH SYMBOLS TO WIN', {
+    width: 300, height: 24, align: 'center', color: '#b6c5ff', fontSize: 17
+  });
   /**
    * Holds the disposer for the pointer listener registered by this game.
    * @property {() => void} removePointerListener
    * @private
    * @readonly
    */
-  private readonly removePointerListener: () => void;
 
   /**
    * Registers pointer input, installs its cleanup, and starts the game loop.
@@ -191,10 +121,12 @@ export class SlotMachineGame extends BaseGame {
    */
   public constructor(onReturnToMenu?: () => void) {
     super(onReturnToMenu, { showResetButton: false });
-    this.removePointerListener = GameEvents.addPointerDownListener(
-      this.handlePointerDown
-    );
-    this.registerCleanup(this.removePointerListener);
+    const spinTexture = new Texture({}, 72, 72, 0, 0);
+    this.spinButton = new Button(spinTexture, {
+      shape: 'circle',
+      onClick: () => this.spin()
+    });
+    this.registerCleanup(() => this.spinButton.destroy());
     this.start();
   }
 
@@ -217,6 +149,8 @@ export class SlotMachineGame extends BaseGame {
     const spacePressed = GameEvents.isKeyPressed(' ');
     if (spacePressed && !this.spaceWasPressed()) this.spin();
     this.spaceWasPressed.set(spacePressed);
+    this.spinButton.setDisabled(this.credits() < this.bet);
+    this.spinButton.setBlocked(this.spinning());
     const cellHeight = this.getReelCellHeight();
     this.reels.forEach((reel, index) => {
       if (
@@ -298,7 +232,7 @@ export class SlotMachineGame extends BaseGame {
     GameContext.drawRect(cabinetX, cabinetY, cabinetWidth, cabinetHeight, '#17152c');
     GameContext.drawRect(cabinetX + 7, cabinetY + 7, cabinetWidth - 14, cabinetHeight - 14, '#7650a0');
     GameContext.drawRect(cabinetX + 14, cabinetY + 14, cabinetWidth - 28, cabinetHeight - 28, '#292044');
-    GameContext.drawText(
+    this.drawLabel(
       'COSMIC JACKPOT', centerX, cabinetY + cabinetHeight * 0.19,
       Math.max(20, Math.min(unit * 0.052, 38)), '#ffe27a', 'center', cabinetWidth * 0.9
     );
@@ -329,14 +263,17 @@ export class SlotMachineGame extends BaseGame {
       });
     });
 
-    GameContext.drawText(
-      `CREDITS  ${this.credits()}`, centerX, cabinetY + cabinetHeight * 0.83,
-      Math.max(16, Math.min(unit * 0.034, 24)), '#ffffff', 'center', cabinetWidth * 0.9
-    );
-    GameContext.drawText(
-      this.message(), centerX, cabinetY + cabinetHeight * 0.9,
-      Math.max(12, Math.min(unit * 0.025, 17)), '#b6c5ff', 'center', cabinetWidth * 0.9
-    );
+    this.creditsLabel.setValue(this.credits());
+    this.creditsLabel.setText(`CREDITS  ${this.creditsLabel.getText()}`);
+    this.creditsLabel.setStyle({ fontSize: Math.max(16, Math.min(unit * 0.034, 24)) });
+    this.creditsLabel.dimensions.setPosition(centerX, cabinetY + cabinetHeight * 0.83);
+    this.creditsLabel.dimensions.setWidth(cabinetWidth * 0.9);
+    this.creditsLabel.draw();
+    this.messageLabel.setText(this.message());
+    this.messageLabel.setStyle({ fontSize: Math.max(12, Math.min(unit * 0.025, 17)) });
+    this.messageLabel.dimensions.setPosition(centerX, cabinetY + cabinetHeight * 0.9);
+    this.messageLabel.dimensions.setWidth(cabinetWidth * 0.9);
+    this.messageLabel.draw();
 
     const buttonSize = Math.max(56, Math.min(unit * 0.1, 72));
     const buttonRadius = buttonSize * 0.5;
@@ -344,6 +281,8 @@ export class SlotMachineGame extends BaseGame {
       height - buttonRadius - 30,
       cabinetY + cabinetHeight + 30 + buttonRadius
     );
+    this.spinButton.dimensions.setPosition(centerX, buttonCenterY);
+    this.spinButton.dimensions.setSize(buttonSize, buttonSize);
     GameContext.drawCircle(centerX, buttonCenterY, buttonRadius, '#382600');
     GameContext.drawCircle(centerX, buttonCenterY, buttonRadius - 3, '#d89b00');
     GameContext.drawCircle(
@@ -365,7 +304,7 @@ export class SlotMachineGame extends BaseGame {
       iconSize
     );
     if (this.isGameOver) {
-      GameContext.drawText(
+      this.drawLabel(
         'OUT OF CREDITS', centerX, height * 0.73,
         Math.max(20, Math.min(unit * 0.05, 34)), '#ffffff', 'center', width * 0.85
       );
@@ -554,28 +493,4 @@ export class SlotMachineGame extends BaseGame {
     return cabinetHeight * 0.48 / 3;
   }
 
-  /**
-   * Starts a spin when a pointer press falls within the spin button bounds.
-   * @property {(pointer: GamePointer) => void} handlePointerDown
-   * @private
-   * @readonly
-   */
-  private readonly handlePointerDown = (pointer: GamePointer): void => {
-    const dimensions = GameContext.gameDimensionsModel;
-    const unit = GameContext.viewportUnit();
-    const cabinetHeight = Math.min(dimensions.getHeight() * 0.6, 390);
-    const cabinetY = dimensions.getHeight() * 0.48 - cabinetHeight * 0.5;
-    const buttonSize = Math.max(56, Math.min(unit * 0.1, 72));
-    const buttonRadius = buttonSize * 0.5;
-    const buttonCenterY = Math.min(
-      dimensions.getHeight() - buttonRadius - 30,
-      cabinetY + cabinetHeight + 30 + buttonRadius
-    );
-    const distanceX = pointer.x - dimensions.getWidth() * 0.5;
-    const distanceY = pointer.y - buttonCenterY;
-
-    if (distanceX ** 2 + distanceY ** 2 <= buttonRadius ** 2) {
-      this.spin();
-    }
-  };
 }
