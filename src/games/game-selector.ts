@@ -54,11 +54,11 @@ export class GameSelector {
       description: 'THREE-REEL SLOT MACHINE',
       start: (onReturnToMenu) => { new SlotMachineGame(onReturnToMenu); }
     },
-    {
-      title: 'THE THREE MUSKETEERS',
-      description: 'FIVE-REEL ADVENTURE SLOT',
-      start: (onReturnToMenu) => { new MusketeersSlotGame(onReturnToMenu); }
-    },
+    // {
+    //   title: 'THE THREE MUSKETEERS',
+    //   description: 'FIVE-REEL ADVENTURE SLOT',
+    //   start: (onReturnToMenu) => { new MusketeersSlotGame(onReturnToMenu); }
+    // },
     {
       title: 'SHOOT ’EM ALL',
       description: 'SURVIVE THE INVASION',
