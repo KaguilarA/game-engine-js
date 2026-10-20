@@ -37,37 +37,47 @@ export class SpacePatternsGame extends BaseGame {
    * @property {BoardCell | undefined} selectedCell
    * @private
    */
-  private selectedCell: BoardCell | undefined;
+  private readonly selectedCellState = signalValue<BoardCell | undefined>(undefined);
+  private get selectedCell(): BoardCell | undefined { return this.selectedCellState(); }
+  private set selectedCell(value: BoardCell | undefined) { this.selectedCellState.set(value); }
   /**
    * Stores the currently moving pair of patterns.
    * @property {SwapAnimation | undefined} swapAnimation
    * @private
    */
-  private swapAnimation: SwapAnimation | undefined;
+  private readonly swapAnimationState = signalValue<SwapAnimation | undefined>(undefined);
+  private get swapAnimation(): SwapAnimation | undefined { return this.swapAnimationState(); }
+  private set swapAnimation(value: SwapAnimation | undefined) { this.swapAnimationState.set(value); }
   /**
    * Stores the moves remaining state.
    * @property {number} movesRemaining
    * @private
    */
-  private movesRemaining = 30;
+  private readonly movesRemainingState = signalValue(30);
+  private get movesRemaining(): number { return this.movesRemainingState(); }
+  private set movesRemaining(value: number) { this.movesRemainingState.set(value); }
   /**
    * Stores the score state.
    * @property {number} score
    * @private
    */
-  private score = 0;
+  private readonly scoreState = signalValue(0);
+  private get score(): number { return this.scoreState(); }
+  private set score(value: number) { this.scoreState.set(value); }
   /**
    * Stores the target score state.
    * @property {number} targetScore
    * @private
    */
-  private targetScore = 5000;
+  private readonly targetScore = 5000;
   /**
    * Stores the game ended state.
    * @property {boolean} gameEnded
    * @private
    */
-  private gameEnded = false;
+  private readonly gameEndedState = signalValue(false);
+  private get gameEnded(): boolean { return this.gameEndedState(); }
+  private set gameEnded(value: boolean) { this.gameEndedState.set(value); }
   /**
    * Stores the resolution state state.
    * @property {SignalValue<ResolutionState>} resolutionState
