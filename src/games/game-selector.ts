@@ -8,7 +8,7 @@ import { Label } from '../engine/ui/label';
 import { Texture } from '../engine/rendering/texture';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
 import { SpacePatternsGame } from './space-patterns/game';
-import { TankFrontierGame } from './tank-frontier/game';
+import { TankFrontierGame } from './tank-frontier';
 import { SlotMachineGame } from './slot-machine/game';
 import { ShootEmAllGame } from './shoot-em-all/game';
 import { MusketeersSlotGame } from './musketeers-slot/game';
