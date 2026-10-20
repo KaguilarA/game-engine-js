@@ -10,6 +10,7 @@ import type { EnemyKind } from '../space-hunters/enemy';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
 import { signalValue } from 'reactive-values';
+import { MathUtils } from '../../engine/core/math-utils';
 import type { SignalValue } from 'reactive-values';
 import type { Invader } from './interfaces/invader';
 import type { Shot } from './interfaces/shot';
@@ -175,7 +176,7 @@ export class ShootEmAllGame extends BaseGame {
     );
     GameContext.drawRect(0, 0, width, height, 'rgba(14, 10, 32, 0.3)');
     this.drawStars(width, height);
-    this.enemies().forEach(({ entity }) => entity.draw());
+    for (const { entity } of this.enemies()) entity.draw();
     this.player().draw();
     this.shots().forEach((shot) => {
       GameContext.drawCircle(shot.motion.x(), shot.motion.y(), Math.max(3, unit * 0.006), shot.direction < 0 ? '#73edff' : '#ff7a9d');
@@ -231,7 +232,7 @@ export class ShootEmAllGame extends BaseGame {
   private createPlayer(): Sprite {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = Math.min(dimensions.getWidth(), dimensions.getHeight());
-    const scale = Math.max(0.45, Math.min(1, unit / 900));
+    const scale = MathUtils.clamp(unit / 900, 0.45, 1);
     const width = 70 * scale;
     const height = 60 * scale;
     const sprite = new Sprite(GameLoader.getImage('player'), width, height);
@@ -269,8 +270,8 @@ export class ShootEmAllGame extends BaseGame {
     const controlMargin = GameContext.isMobileDevice ? this.touchControls.layout.reservedBottom : 0;
     const maxY = Math.max(0, height - this.player().dimensions.getHeight() - controlMargin);
     this.playerMotion.setPosition(
-      Math.max(0, Math.min(this.playerMotion.x(), width - this.player().dimensions.getWidth())),
-      Math.max(0, Math.min(this.playerMotion.y(), maxY))
+      MathUtils.clamp(this.playerMotion.x(), 0, width - this.player().dimensions.getWidth()),
+      MathUtils.clamp(this.playerMotion.y(), 0, maxY)
     );
     this.player().dimensions.setPosition(this.playerMotion.x(), this.playerMotion.y());
 
@@ -338,7 +339,7 @@ export class ShootEmAllGame extends BaseGame {
       const nextX = entity.x;
       if (nextX <= 0 || nextX >= width - entity.width) invader.drift.set(invader.drift() * -1);
       entity.setPosition(
-        Math.max(0, Math.min(nextX, width - entity.width)),
+        MathUtils.clamp(nextX, 0, width - entity.width),
         entity.y
       );
       invader.fireTimer.set(invader.fireTimer() - deltaSeconds);

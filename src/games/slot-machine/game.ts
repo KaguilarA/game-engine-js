@@ -1,4 +1,5 @@
 import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import GameEvents from '../../engine/input/events';
 import { BaseGame } from '../../engine/core/base-game';
 import GameLoader from '../../engine/assets/loader';
@@ -234,7 +235,7 @@ export class SlotMachineGame extends BaseGame {
     GameContext.drawRect(cabinetX + 14, cabinetY + 14, cabinetWidth - 28, cabinetHeight - 28, '#292044');
     this.drawLabel(
       'COSMIC JACKPOT', centerX, cabinetY + cabinetHeight * 0.19,
-      Math.max(20, Math.min(unit * 0.052, 38)), '#ffe27a', 'center', cabinetWidth * 0.9
+      MathUtils.clamp(unit * 0.052, 20, 38), '#ffe27a', 'center', cabinetWidth * 0.9
     );
 
     this.reels.forEach((reel, index) => {
@@ -306,7 +307,7 @@ export class SlotMachineGame extends BaseGame {
     if (this.isGameOver) {
       this.drawLabel(
         'OUT OF CREDITS', centerX, height * 0.73,
-        Math.max(20, Math.min(unit * 0.05, 34)), '#ffffff', 'center', width * 0.85
+        MathUtils.clamp(unit * 0.05, 20, 34), '#ffffff', 'center', width * 0.85
       );
     }
   }

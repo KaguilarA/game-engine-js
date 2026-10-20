@@ -1,12 +1,14 @@
 import { computedValue, signalValue } from 'reactive-values';
 import type { ComputedValue, SignalValue } from 'reactive-values';
+import { Container } from '../../engine/scene/container';
 import type { ReelOptions } from './interfaces/reel-options';
 import type { VisibleReelSymbol } from './interfaces/visible-reel-symbol';
+import { MathUtils } from '../../engine/core/math-utils';
 
 type ReelPhase = 'idle' | 'anticipation' | 'spinning' | 'bounce';
 
 /** Owns a single reel's outcome, strip, anticipation, spin, and settling motion. */
-export class Reel {
+export class Reel extends Container {
   private readonly target: SignalValue<string[]> = signalValue<string[]>([]);
   private readonly anticipationTail: SignalValue<string> = signalValue('');
   private readonly phase: SignalValue<ReelPhase> = signalValue<ReelPhase>('idle');
@@ -32,6 +34,7 @@ export class Reel {
     randomSymbol: () => string,
     options: ReelOptions
   ) {
+    super({ clipChildren: true });
     this.symbols = signalValue(symbols);
     this.randomSymbol = randomSymbol;
     this.options = options;
@@ -79,6 +82,7 @@ export class Reel {
 
   /** Advances the current phase and fixes the result when the reel settles. */
   public update(deltaSeconds: number): void {
+    super.update(deltaSeconds);
     if (!this.isActive()) return;
     this.phaseElapsed.set(this.phaseElapsed() + deltaSeconds);
 
@@ -92,13 +96,15 @@ export class Reel {
     }
 
     if (this.phase() === 'spinning') {
-      const progress = Math.min(this.phaseElapsed() / this.spinDuration(), 1);
+      const duration = this.spinDuration();
+      const progress = duration > 0 ? Math.min(this.phaseElapsed() / duration, 1) : 1;
       this.distanceCells.set(this.startDistance()
         + this.anticipationLiftCells
         - this.travelCells() * this.getSpinProgress(progress));
       if (progress >= 1) {
+        const remainingFrameTime = Math.max(0, this.phaseElapsed() - this.spinDuration());
         this.phase.set('bounce');
-        this.phaseElapsed.set(0);
+        this.phaseElapsed.set(remainingFrameTime);
       }
       return;
     }
@@ -115,12 +121,16 @@ export class Reel {
     const phase = this.phase();
     if (phase === 'spinning' || phase === 'bounce') {
       const bounceOffset = phase === 'bounce'
-        ? 0.055 * Math.exp(-9 * this.phaseElapsed()) * Math.cos(22 * this.phaseElapsed())
+        ? this.getBounceOffset(this.phaseElapsed())
         : 0;
       const distance = this.distanceCells() - bounceOffset;
       const firstCell = Math.floor(distance);
-      const blurred = phase === 'spinning'
-        && this.phaseElapsed() / this.spinDuration() < 1 - this.brakingShare;
+      const progress = phase === 'bounce'
+        ? 1
+        : this.spinDuration() > 0
+          ? Math.min(this.phaseElapsed() / this.spinDuration(), 1)
+          : 1;
+      const blurAmount = this.getBlurAmount(progress);
       const visible: VisibleReelSymbol[] = [];
 
       for (let index = firstCell - 1; index <= firstCell + this.rowCount; index++) {
@@ -130,7 +140,7 @@ export class Reel {
           symbol,
           row: index - this.targetOffset(),
           offsetCells: index - distance + 0.5,
-          blurred
+          blurAmount
         });
       }
       return visible;
@@ -144,7 +154,7 @@ export class Reel {
       symbol,
       row,
       offsetCells: row + 0.5 - anticipation,
-      blurred: false
+      blurAmount: 0
     }));
 
     if (phase === 'anticipation') {
@@ -152,7 +162,7 @@ export class Reel {
         symbol: this.anticipationTail(),
         row: this.rowCount,
         offsetCells: this.rowCount + 0.5 - anticipation,
-        blurred: false
+        blurAmount: 0
       });
     }
     return visible;
@@ -196,8 +206,28 @@ export class Reel {
   }
 
   private getAnticipationProgress(progress: number): number {
-    const clamped = Math.max(0, Math.min(progress, 1));
-    return clamped * clamped * (3 - 2 * clamped);
+    return MathUtils.smoothStep(progress);
+  }
+
+  private getBlurAmount(progress: number): number {
+    const transitionShare = 0.08;
+    const fadeIn = this.getAnticipationProgress(progress / transitionShare);
+    const fadeOutStart = 1 - this.brakingShare - transitionShare;
+    const fadeOut = this.getAnticipationProgress(
+      (progress - fadeOutStart) / transitionShare
+    );
+    return fadeIn * (1 - fadeOut);
+  }
+
+  private getBounceOffset(elapsed: number): number {
+    const progress = this.bounceDuration > 0
+      ? MathUtils.clamp(elapsed / this.bounceDuration, 0, 1)
+      : 1;
+    const envelope = 1 - MathUtils.smoothStep(progress);
+    return 0.055
+      * Math.exp(-9 * elapsed)
+      * Math.sin(22 * elapsed)
+      * envelope;
   }
 }
 

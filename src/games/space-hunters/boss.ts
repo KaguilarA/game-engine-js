@@ -3,6 +3,7 @@ import { Health } from '../../engine/core/health';
 import Sprite from '../../engine/animations/sprites/sprite';
 import { SpriteEntity } from '../../engine/entities/sprite-entity';
 import type { BossShotOrigin } from './interfaces/boss-shot-origin';
+import { signalValue } from 'reactive-values';
 
 /**
  * Available boss encounters, each with its own health and attack phases.
@@ -59,7 +60,9 @@ export class Boss extends SpriteEntity {
    * @property {boolean} isAlive
    * @public
    */
-  public isAlive = true;
+  private readonly aliveState = signalValue(true);
+  public get isAlive(): boolean { return this.aliveState(); }
+  public set isAlive(value: boolean) { this.aliveState.set(value); }
 
   /**
    * Returns the score awarded when this boss is defeated.

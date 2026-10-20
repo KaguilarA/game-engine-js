@@ -1,4 +1,5 @@
 import { signalValue } from 'reactive-values';
+import { MathUtils } from '../../engine/core/math-utils';
 
 import GameContext from '../../engine/core/context';
 import GameEvents from '../../engine/input/events';
@@ -92,7 +93,7 @@ export class Player extends AnimatedShipEntity {
   private updateLayout(): void {
     const gameDimensions = GameContext.gameDimensionsModel;
     const unit = Math.min(gameDimensions.getWidth(), gameDimensions.getHeight());
-    const scale = Math.max(0.5, Math.min(1, unit / 1080));
+    const scale = MathUtils.clamp(unit / 1080, 0.5, 1);
     const targetWidth = Math.round(70 * scale);
     const targetHeight = Math.round(50 * scale);
     if (this.width !== targetWidth || this.height !== targetHeight) {
@@ -105,7 +106,7 @@ export class Player extends AnimatedShipEntity {
     );
 
     this.setPosition(
-      Math.max(0, Math.min(this.x, maxX)),
+      MathUtils.clamp(this.x, 0, maxX),
       gameDimensions.getHeight() - this.height - this.bottomMargin
     );
     this.syncJetsToShip();
@@ -195,6 +196,6 @@ export class Player extends AnimatedShipEntity {
   private updatePosition(deltaSeconds: number): void {
     this.advanceMovement(deltaSeconds, this.speed(), 0);
     const maxX = GameContext.gameDimensionsModel.getWidth() - this.width;
-    this.setPosition(Math.max(0, Math.min(this.x, maxX)), this.y);
+    this.setPosition(MathUtils.clamp(this.x, 0, maxX), this.y);
   }
 }

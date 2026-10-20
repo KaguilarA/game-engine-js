@@ -1,4 +1,5 @@
 import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
 import GameEvents from '../../engine/input/events';
@@ -98,7 +99,9 @@ class Tank {
    * @property {boolean} isDying
    * @public
    */
-  public isDying = false;
+  private readonly dyingState = signalValue(false);
+  public get isDying(): boolean { return this.dyingState(); }
+  public set isDying(value: boolean) { this.dyingState.set(value); }
   /**
    * Stores the shot cooldown state.
    * @property {number} shotCooldown
@@ -770,11 +773,11 @@ export class TankFrontierGame extends BaseGame {
     );
     this.drawArena();
     this.drawBase();
-    this.walls.forEach((wall) => this.drawWall(wall));
-    this.enemies.forEach((enemy) => enemy.draw());
+    for (const wall of this.walls) this.drawWall(wall);
+    for (const enemy of this.enemies) enemy.draw();
     this.player.draw();
-    this.playerBullets.forEach((bullet) => bullet.draw());
-    this.enemyBullets.forEach((bullet) => bullet.draw());
+    for (const bullet of this.playerBullets) bullet.draw();
+    for (const bullet of this.enemyBullets) bullet.draw();
     this.drawLifePickup();
     this.drawHud(hudScale);
     this.drawTouchControls();
@@ -1089,8 +1092,8 @@ export class TankFrontierGame extends BaseGame {
    * @return {void}
    */
   private updateBullets(deltaSeconds: number): void {
-    this.playerBullets.forEach((bullet) => bullet.update(deltaSeconds));
-    this.enemyBullets.forEach((bullet) => bullet.update(deltaSeconds));
+    for (const bullet of this.playerBullets) bullet.update(deltaSeconds);
+    for (const bullet of this.enemyBullets) bullet.update(deltaSeconds);
   }
 
   /**
@@ -1748,7 +1751,7 @@ export class TankFrontierGame extends BaseGame {
    * @return {number}
    */
   private getTankSize(): number {
-    return Math.max(26, Math.min(GameContext.viewportUnit() * 0.05, 52));
+    return MathUtils.clamp(GameContext.viewportUnit() * 0.05, 26, 52);
   }
 
   /**
@@ -1773,7 +1776,7 @@ export class TankFrontierGame extends BaseGame {
         unit * 0.08,
         GameContext.isMobileDevice ? this.touchControls.layout.reservedBottom + 12 : 0
       ),
-      tileSize: Math.max(24, Math.min(unit * 0.05, 46))
+      tileSize: MathUtils.clamp(unit * 0.05, 24, 46)
     };
   }
 

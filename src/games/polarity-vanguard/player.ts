@@ -1,4 +1,5 @@
 import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import GameEvents from '../../engine/input/events';
 import GameLoader from '../../engine/assets/loader';
 import { AnimatedShipEntity } from '../../engine/entities/animated-ship-entity';
@@ -72,7 +73,7 @@ export class PolarityVanguardPlayer extends AnimatedShipEntity {
   private updateSize(): void {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = Math.min(dimensions.getWidth(), dimensions.getHeight());
-    const scale = Math.max(0.5, Math.min(1, unit / 1000));
+    const scale = MathUtils.clamp(unit / 1000, 0.5, 1);
     const targetWidth = Math.round(84 * scale);
     const targetHeight = Math.round(72 * scale);
     if (this.width !== targetWidth || this.height !== targetHeight) {

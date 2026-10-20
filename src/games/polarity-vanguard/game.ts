@@ -1,4 +1,5 @@
 import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
 import GameEvents from '../../engine/input/events';
@@ -102,25 +103,33 @@ export class PolarityVanguardGame extends BaseGame {
    * @property {number} score
    * @private
    */
-  private score = 0;
+  private readonly scoreState = signalValue(0);
+  private get score(): number { return this.scoreState(); }
+  private set score(value: number) { this.scoreState.set(value); }
   /**
    * Stores the absorbed shots state.
    * @property {number} absorbedShots
    * @private
    */
-  private absorbedShots = 0;
+  private readonly absorbedShotsState = signalValue(0);
+  private get absorbedShots(): number { return this.absorbedShotsState(); }
+  private set absorbedShots(value: number) { this.absorbedShotsState.set(value); }
   /**
    * Stores the chain state.
    * @property {number} chain
    * @private
    */
-  private chain = 0;
+  private readonly chainState = signalValue(0);
+  private get chain(): number { return this.chainState(); }
+  private set chain(value: number) { this.chainState.set(value); }
   /**
    * Stores the game over state.
    * @property {boolean} gameOver
    * @private
    */
-  private gameOver = false;
+  private readonly gameOverState = signalValue(false);
+  private get gameOver(): boolean { return this.gameOverState(); }
+  private set gameOver(value: boolean) { this.gameOverState.set(value); }
   /**
    * Stores the lives state.
    * @property {Signal} lives
@@ -186,8 +195,8 @@ export class PolarityVanguardGame extends BaseGame {
     this.enemies.filter((enemy) => enemy.alive).forEach((enemy) => {
       enemy.update(deltaSeconds);
     });
-    this.playerProjectiles.forEach((projectile) => projectile.update(deltaSeconds));
-    this.enemyProjectiles.forEach((projectile) => projectile.update(deltaSeconds));
+    for (const projectile of this.playerProjectiles) projectile.update(deltaSeconds);
+    for (const projectile of this.enemyProjectiles) projectile.update(deltaSeconds);
     this.updateEnemyFire(deltaSeconds);
     this.checkCollisions();
 
@@ -337,11 +346,11 @@ export class PolarityVanguardGame extends BaseGame {
     const unit = GameContext.viewportUnit();
     GameContext.clear();
     this.drawBackground();
-    this.enemies.forEach((enemy) => enemy.draw());
+    for (const enemy of this.enemies) enemy.draw();
     this.drawLifePickup();
     this.player.draw();
-    this.playerProjectiles.forEach((projectile) => projectile.draw());
-    this.enemyProjectiles.forEach((projectile) => projectile.draw());
+    for (const projectile of this.playerProjectiles) projectile.draw();
+    for (const projectile of this.enemyProjectiles) projectile.draw();
 
     this.drawLabel(
       `SCORE ${this.score}`,
@@ -541,7 +550,7 @@ export class PolarityVanguardGame extends BaseGame {
       3,
       Math.min(8, Math.floor(dimensions.getWidth() / 100))
     );
-    const enemyWidth = Math.max(28, Math.min(unit * 0.052, 48));
+    const enemyWidth = MathUtils.clamp(unit * 0.052, 28, 48);
     const enemyHeight = enemyWidth * (64 / 72);
     const spacing = dimensions.getWidth() / (columns + 1);
     const startX = (dimensions.getWidth() - (columns - 1) * spacing) * 0.5;

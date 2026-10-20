@@ -1,5 +1,6 @@
 import GameContext from '../../engine/core/context';
 import { PhysicsBody } from '../../engine/core/physics';
+import { signalValue } from 'reactive-values';
 
 import type { Polarity } from './polarity';
 import { POLARITY_COLORS } from './polarity';
@@ -14,7 +15,9 @@ export class PolarityProjectile {
    * @property {boolean} active
    * @public
    */
-  public active = false;
+  private readonly activeState = signalValue(false);
+  public get active(): boolean { return this.activeState(); }
+  public set active(value: boolean) { this.activeState.set(value); }
   /**
    * Stores the x state.
    * @property {number} x

@@ -9,6 +9,7 @@ import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
 import { Icon } from '../slot-engine/icon';
 import { Reel } from '../slot-engine/reel';
+import { ReelIcon } from '../slot-engine/reel-icon';
 import { evaluatePaylines } from './paylines';
 
 const ASSET_ROOT = '/slot-machine/';
@@ -28,6 +29,7 @@ const REEL_OPTIONS = {
 export class MusketeersSlotGame extends BaseGame {
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly reels: Reel[];
+  private readonly reelIcons: ReelIcon[][];
   private readonly balance: SignalValue<number> = signalValue(1000);
   private readonly bet: SignalValue<number> = signalValue(10);
   private readonly win: SignalValue<number> = signalValue(0);
@@ -57,6 +59,11 @@ export class MusketeersSlotGame extends BaseGame {
       () => this.randomSymbol(),
       REEL_OPTIONS
     ));
+    this.reelIcons = this.reels.map((reel) => {
+      const icons = Array.from({ length: ROW_COUNT + 2 }, () => new ReelIcon());
+      icons.forEach((icon) => reel.add(icon));
+      return icons;
+    });
     this.backgroundLandscape = this.loadImage('musketeers/images/elements/background/backgroundLandscape/normal.png');
     this.backgroundPortrait = this.loadImage('musketeers/images/elements/background/backgroundPortrait/normal.png');
     this.reelFrame = this.loadImage('musketeers/images/elements/background/reels/normal.png');
@@ -80,10 +87,10 @@ export class MusketeersSlotGame extends BaseGame {
     if (spacePressed && !this.spaceWasPressed()) this.spin();
     this.spaceWasPressed.set(spacePressed);
 
-    this.icons.forEach((icon) => icon.update(deltaSeconds));
+    for (const icon of this.icons.values()) icon.update(deltaSeconds);
 
     if (!this.spinning()) return;
-    this.reels.forEach((reel) => reel.update(deltaSeconds));
+    for (const reel of this.reels) reel.update(deltaSeconds);
     if (this.reels.every((reel) => !reel.isActive())) this.resolveSpin();
   }
 
@@ -169,46 +176,22 @@ export class MusketeersSlotGame extends BaseGame {
     const gridHeight = height - insetY * 2;
     const cellWidth = gridWidth / REEL_COUNT;
     const cellHeight = gridHeight / ROW_COUNT;
-    GameContext.withClip(gridX, gridY, gridWidth, gridHeight, () => {
-      this.reels.forEach((reel, reelIndex) => {
-        const centerX = gridX + cellWidth * (reelIndex + 0.5);
-        reel.getVisibleSymbols().forEach((visible) => {
-          const winning = this.winningCells().has(`${reelIndex}:${visible.row}`);
-          this.drawReelSymbol(
-            visible.symbol,
-            centerX,
-            gridY + cellHeight * visible.offsetCells,
-            cellWidth,
-            cellHeight,
-            visible.blurred,
-            winning
-          );
-        });
+    this.reels.forEach((reel, reelIndex) => {
+      const centerX = gridX + cellWidth * (reelIndex + 0.5);
+      reel.dimensions.setPosition(centerX - cellWidth * 0.5, gridY);
+      reel.dimensions.setSize(cellWidth, gridHeight);
+      reel.dimensions.setPivot(0, 0);
+      const visibleIcons = reel.getVisibleSymbols().map((visible, index) => {
+        const icon = this.reelIcons[reelIndex][index];
+        const winning = this.winningCells().has(`${reelIndex}:${visible.row}`);
+        icon.setPresentation(this.icons.get(visible.symbol), visible.blurAmount, winning);
+        icon.dimensions.setPosition(cellWidth * 0.5, cellHeight * visible.offsetCells);
+        icon.dimensions.setSize(cellWidth * 0.86, cellHeight * 0.86);
+        return icon;
       });
+      reel.setChildren(visibleIcons);
+      reel.draw();
     });
-  }
-
-  private drawReelSymbol(
-    symbol: string,
-    centerX: number,
-    centerY: number,
-    cellWidth: number,
-    cellHeight: number,
-    blurred: boolean,
-    winning: boolean
-  ): void {
-    if (winning) {
-      const pulse = 0.78 + Math.sin(performance.now() / 150) * 0.08;
-      GameContext.drawCircle(centerX, centerY, Math.min(cellWidth, cellHeight) * 0.43 * pulse, 'rgba(255,190,38,0.48)');
-    }
-    this.icons.get(symbol)?.draw(
-      centerX,
-      centerY,
-      cellWidth * 0.86,
-      cellHeight * 0.86,
-      blurred,
-      winning
-    );
   }
 
   private drawHud(width: number, height: number, board: { x: number; y: number; width: number; height: number }): void {

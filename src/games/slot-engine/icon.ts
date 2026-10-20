@@ -1,6 +1,8 @@
 import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
 
+import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import { SpineSprite, type SpineEventHandler } from '../../engine/animations/spine';
 import { Atlas } from '../../engine/assets/atlas';
 import { AtlasParser } from '../../engine/assets/atlas-parser';
@@ -122,20 +124,33 @@ export class Icon {
     centerY: number,
     width: number,
     height: number,
-    blurred = false,
+    blurAmount = 0,
     isWinning = false
   ): void {
-    if (!blurred && isWinning && this.winAnimationActive() && this.winAnimation) {
+    if (blurAmount <= 0 && isWinning && this.winAnimationActive() && this.winAnimation) {
       this.winAnimation.dimensions.setPosition(centerX, centerY);
       this.winAnimation.dimensions.setSize(width, height);
       this.winAnimation.draw();
       return;
     }
 
-    const sprite = blurred ? this.blurred : this.normal;
-    sprite.dimensions.setPosition(centerX, centerY);
-    sprite.dimensions.setSize(width, height);
-    sprite.draw();
+    const amount = MathUtils.clamp(blurAmount, 0, 1);
+    const context = GameContext.context;
+    context.save();
+    const originalAlpha = context.globalAlpha;
+    if (amount < 1) {
+      this.normal.dimensions.setPosition(centerX, centerY);
+      this.normal.dimensions.setSize(width, height);
+      context.globalAlpha = originalAlpha * (1 - amount);
+      this.normal.draw();
+    }
+    if (amount > 0) {
+      this.blurred.dimensions.setPosition(centerX, centerY);
+      this.blurred.dimensions.setSize(width, height);
+      context.globalAlpha = originalAlpha * amount;
+      this.blurred.draw();
+    }
+    context.restore();
   }
 
   /** Releases the texture pages owned by this icon's Spine atlas. */

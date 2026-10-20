@@ -1,4 +1,5 @@
 import GameContext from '../../engine/core/context';
+import { MathUtils } from '../../engine/core/math-utils';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
 import GameEvents from '../../engine/input/events';
@@ -11,6 +12,7 @@ import { Enemy } from './enemy';
 import { Player } from './player';
 import { Projectile } from './projectile';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
+import { signalValue } from 'reactive-values';
 
 /**
  * Space-invaders style game loop with scoring, waves, and boss encounters.
@@ -93,7 +95,9 @@ export class Game extends BaseGame {
    * @property {number} wave
    * @private
    */
-  private wave = 1;
+  private readonly waveState = signalValue(1);
+  private get wave(): number { return this.waveState(); }
+  private set wave(value: number) { this.waveState.set(value); }
   /**
    * Stores the enemy direction state.
    * @property {number} enemyDirection
@@ -123,13 +127,17 @@ export class Game extends BaseGame {
    * @property {number} score
    * @private
    */
-  private score = 0;
+  private readonly scoreState = signalValue(0);
+  private get score(): number { return this.scoreState(); }
+  private set score(value: number) { this.scoreState.set(value); }
   /**
    * Stores the lives state.
    * @property {number} lives
    * @private
    */
-  private lives = 3;
+  private readonly livesState = signalValue(3);
+  private get lives(): number { return this.livesState(); }
+  private set lives(value: number) { this.livesState.set(value); }
   /**
    * Stores the next life score state.
    * @property {number} nextLifeScore
@@ -152,7 +160,9 @@ export class Game extends BaseGame {
    * @property {boolean} gameOver
    * @private
    */
-  private gameOver = false;
+  private readonly gameOverState = signalValue(false);
+  private get gameOver(): boolean { return this.gameOverState(); }
+  private set gameOver(value: boolean) { this.gameOverState.set(value); }
   /**
    * Stores the shoot cooldown state.
    * @property {number} shootCooldown
@@ -247,12 +257,12 @@ export class Game extends BaseGame {
     GameContext.clear();
     this.drawBackground();
 
-    this.enemies.forEach((enemy) => enemy.draw());
+    for (const enemy of this.enemies) enemy.draw();
     this.boss?.draw();
     this.drawLifePickup();
     this.player.draw();
-    this.playerProjectiles.forEach((projectile) => projectile.draw());
-    this.enemyProjectiles.forEach((projectile) => projectile.draw());
+    for (const projectile of this.playerProjectiles) projectile.draw();
+    for (const projectile of this.enemyProjectiles) projectile.draw();
 
     this.drawLabel(
       `SCORE ${this.score}`,
@@ -425,7 +435,7 @@ export class Game extends BaseGame {
     const columns = Math.max(3, Math.min(8, Math.floor(dimensions.getWidth() / 100)));
     const rows = 4;
     const enemyKinds = ['beetlemorph', 'rhinomorph', 'lobstermorph'] as const;
-    const enemyWidth = Math.max(28, Math.min(unit * 0.052, 48));
+    const enemyWidth = MathUtils.clamp(unit * 0.052, 28, 48);
     const enemyHeight = enemyWidth * (64 / 72);
     const horizontalGap = Math.max(6, enemyWidth * 0.28);
     const formationWidth = (
@@ -485,7 +495,7 @@ export class Game extends BaseGame {
 
     if (aliveEnemies.length === 0) return;
 
-    aliveEnemies.forEach((enemy) => enemy.update(deltaSeconds));
+    for (const enemy of aliveEnemies) enemy.update(deltaSeconds);
 
     const dimensions = GameContext.gameDimensionsModel;
     const left = Math.min(...aliveEnemies.map((enemy) => enemy.x));
