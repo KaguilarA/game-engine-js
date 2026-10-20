@@ -1,12 +1,12 @@
-import GameContext from '../../engine/context';
-import { BaseGame } from '../../engine/base-game';
-import CanvasIcon from '../../engine/canvas-icon';
-import GameEvents from '../../engine/events';
-import GameLoader from '../../engine/loader';
-import { TouchControls } from '../../engine/touch-controls';
-import type { TouchControlCircle } from '../../engine/touch-controls';
+import GameContext from '../../engine/core/context';
+import { BaseGame } from '../../engine/core/base-game';
+import CanvasIcon from '../../engine/rendering/canvas-icon';
+import GameEvents from '../../engine/input/events';
+import GameLoader from '../../engine/assets/loader';
+import { TouchControls } from '../../engine/input/touch-controls';
+import type { TouchControlCircle } from '../../engine/interfaces/touch-control-circle';
 import { signalValue } from 'reactive-values';
-import { PhysicsBody } from '../../engine/physics';
+import { PhysicsBody } from '../../engine/core/physics';
 
 import { PolarityVanguardEnemy } from './enemy';
 import type { Polarity } from './polarity';
@@ -15,32 +15,7 @@ import { PolarityVanguardPlayer } from './player';
 import { PolarityProjectile } from './projectile';
 import arrowLeftRightSvg from 'lucide-static/icons/arrow-left-right.svg?raw';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
-
-/**
- * Falling heart that restores one missing life when collected.
- */
-interface LifePickup {
-  /**
-   * Stores the x state.
-   * @property {number} x
-   * @public
-   */
-  x: number;
-  /**
-   * Stores the y state.
-   * @property {number} y
-   * @public
-   */
-  y: number;
-  /**
-   * Stores the size state.
-   * @property {number} size
-   * @public
-   */
-  size: number;
-  /** Physics state used for the falling movement. */
-  physics: PhysicsBody;
-}
+import type { LifePickup } from './interfaces/life-pickup';
 
 /**
  * Polarity shooter with absorbable shots and a score-chain system.
@@ -368,7 +343,7 @@ export class PolarityVanguardGame extends BaseGame {
     this.playerProjectiles.forEach((projectile) => projectile.draw());
     this.enemyProjectiles.forEach((projectile) => projectile.draw());
 
-    GameContext.drawText(
+    this.drawLabel(
       `SCORE ${this.score}`,
       30 * hudScale,
       44 * hudScale,
@@ -378,7 +353,7 @@ export class PolarityVanguardGame extends BaseGame {
       dimensions.getWidth() * 0.35
     );
     this.drawLives();
-    GameContext.drawText(
+    this.drawLabel(
       `CHAIN ${this.chain}`,
       30 * hudScale,
       (GameContext.isPortrait ? 132 : 126) * hudScale,
@@ -387,7 +362,7 @@ export class PolarityVanguardGame extends BaseGame {
       'left',
       dimensions.getWidth() * 0.35
     );
-    GameContext.drawText(
+    this.drawLabel(
       `ABSORB ${this.absorbedShots}`,
       30 * hudScale,
       (GameContext.isPortrait ? 160 : 156) * hudScale,
@@ -396,7 +371,7 @@ export class PolarityVanguardGame extends BaseGame {
       'left',
       dimensions.getWidth() * 0.35
     );
-    GameContext.drawText(
+    this.drawLabel(
       `POLARITY ${this.player.currentPolarity.toUpperCase()}`,
       dimensions.getWidth() - 30 * hudScale,
       44 * hudScale,
@@ -405,7 +380,7 @@ export class PolarityVanguardGame extends BaseGame {
       'right',
       dimensions.getWidth() * 0.38
     );
-    GameContext.drawText(
+    this.drawLabel(
       GameContext.isMobileDevice
         ? 'ABSORB MATCHING FIRE. SWITCH POLARITY TO SURVIVE.'
         : 'ARROWS / WASD MOVE   SPACE FIRE   SHIFT OR C SWITCH',
@@ -420,7 +395,7 @@ export class PolarityVanguardGame extends BaseGame {
 
     if (this.gameOver) {
       GameContext.drawRect(0, 0, dimensions.getWidth(), dimensions.getHeight(), '#171125');
-      GameContext.drawText(
+      this.drawLabel(
         'VANGUARD DESTROYED',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.45,
@@ -429,7 +404,7 @@ export class PolarityVanguardGame extends BaseGame {
         'center',
         dimensions.getWidth() * 0.85
       );
-      GameContext.drawText(
+      this.drawLabel(
         'USE THE ACTION BUTTONS BELOW',
         dimensions.getWidth() * 0.5,
         dimensions.getHeight() * 0.54,

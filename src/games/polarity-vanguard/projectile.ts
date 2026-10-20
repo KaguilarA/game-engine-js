@@ -1,5 +1,5 @@
-import GameContext from '../../engine/context';
-import { PhysicsBody } from '../../engine/physics';
+import GameContext from '../../engine/core/context';
+import { PhysicsBody } from '../../engine/core/physics';
 
 import type { Polarity } from './polarity';
 import { POLARITY_COLORS } from './polarity';

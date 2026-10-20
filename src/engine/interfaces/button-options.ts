@@ -1,5 +1,3 @@
-import type { GamePointer } from './game-pointer';
-
 export interface ButtonOptions {
   onClick: () => void;
   onPress?: (pointerId: number) => void;

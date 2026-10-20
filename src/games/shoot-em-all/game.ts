@@ -1,72 +1,18 @@
-import GameContext from '../../engine/context';
-import GameEvents from '../../engine/events';
-import { BaseGame } from '../../engine/base-game';
-import { TouchControls } from '../../engine/touch-controls';
-import GameLoader from '../../engine/loader';
-import Sprite from '../../engine/sprite';
-import { PhysicsBody } from '../../engine/physics';
+import GameContext from '../../engine/core/context';
+import GameEvents from '../../engine/input/events';
+import { BaseGame } from '../../engine/core/base-game';
+import { TouchControls } from '../../engine/input/touch-controls';
+import GameLoader from '../../engine/assets/loader';
+import Sprite from '../../engine/animations/sprites/sprite';
+import { PhysicsBody } from '../../engine/core/physics';
 import { Enemy } from '../space-hunters/enemy';
 import type { EnemyKind } from '../space-hunters/enemy';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
-import CanvasIcon from '../../engine/canvas-icon';
+import CanvasIcon from '../../engine/rendering/canvas-icon';
 import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
-
-interface Shot {
-  /**
-   * Integrates the projectile's position and velocity for each frame.
-   * @property {PhysicsBody} motion
-   * @public
-   */
-  motion: PhysicsBody;
-  /**
-   * Defines whether the projectile travels upward or downward.
-   * @property {-1 | 1} direction
-   * @public
-   * @readonly
-   */
-  readonly direction: -1 | 1;
-}
-
-interface Invader {
-  /**
-   * Holds the shared enemy entity that handles rendering, damage, and animation.
-   * @property {Enemy} entity
-   * @public
-   */
-  entity: Enemy;
-  /**
-   * Stores the invader's downward speed in world units per second.
-   * @property {SignalValue<number>} speed
-   * @public
-   */
-  speed: SignalValue<number>;
-  /**
-   * Stores the sign of the invader's horizontal drift direction.
-   * @property {SignalValue<number>} drift
-   * @public
-   */
-  drift: SignalValue<number>;
-  /**
-   * Stores the invader's horizontal drift speed in world units per second.
-   * @property {SignalValue<number>} driftSpeed
-   * @public
-   */
-  driftSpeed: SignalValue<number>;
-  /**
-   * Identifies the alien type used to select its movement behavior.
-   * @property {EnemyKind} kind
-   * @public
-   * @readonly
-   */
-  readonly kind: EnemyKind;
-  /**
-   * Tracks the time remaining before this invader fires again.
-   * @property {SignalValue<number>} fireTimer
-   * @public
-   */
-  fireTimer: SignalValue<number>;
-}
+import type { Invader } from './interfaces/invader';
+import type { Shot } from './interfaces/shot';
 
 const ENEMY_KINDS: EnemyKind[] = ['beetlemorph', 'rhinomorph', 'lobstermorph'];
 const TARGET_KILLS = 30;
@@ -237,7 +183,7 @@ export class ShootEmAllGame extends BaseGame {
     this.drawHud(unit, width);
     this.touchControls.draw();
     if (this.gameEnded()) {
-      GameContext.drawText(
+      this.drawLabel(
         this.kills() >= TARGET_KILLS ? 'SECTOR CLEARED' : 'GAME OVER',
         width * 0.5, height * 0.48, Math.max(24, Math.min(unit * 0.07, 46)),
         '#ffffff', 'center', width * 0.86
@@ -498,7 +444,7 @@ export class ShootEmAllGame extends BaseGame {
    * @return {void}
    */
   private drawHud(unit: number, width: number): void {
-    GameContext.drawText(
+    this.drawLabel(
       `ENEMIES ${this.kills()} / ${TARGET_KILLS}`, 20, 34,
       Math.max(14, Math.min(unit * 0.032, 22)), '#ffffff', 'left', width * 0.62
     );

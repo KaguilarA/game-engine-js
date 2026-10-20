@@ -1,8 +1,9 @@
 import GameContext from '../core/context';
-import type { GamePointer } from '../interfaces/game-pointer';
 import type { TouchControlCircle } from '../interfaces/touch-control-circle';
 import type { TouchControlsLayout } from '../interfaces/touch-controls-layout';
 import CanvasIcon from '../rendering/canvas-icon';
+import { Texture } from '../rendering/texture';
+import { Button } from '../ui/button';
 import GameEvents from './events';
 import chevronDownSvg from 'lucide-static/icons/chevron-down.svg?raw';
 import chevronLeftSvg from 'lucide-static/icons/chevron-left.svg?raw';
@@ -28,14 +29,9 @@ export class TouchControls {
     down: new CanvasIcon(chevronDownSvg),
     shoot: new CanvasIcon(crosshairSvg)
   };
-  private readonly removeListeners: Array<() => void>;
-  /**
-   * Stores the active pointers state.
-   * @property {Set<number>} activePointers
-   * @private
-   * @readonly
-   */
-  private readonly activePointers = new Set<number>();
+  private readonly buttons = new Map<string, Button>();
+  private readonly extraButtons: Button[] = [];
+  private extraButtonKeys: string[] = [];
   /**
    * Stores the show vertical controls state.
    * @property {boolean} showVerticalControls
@@ -43,12 +39,6 @@ export class TouchControls {
    * @readonly
    */
   private readonly showVerticalControls: boolean;
-  /**
-   * Stores the extra keys state.
-   * @property {Array<[TouchControlCircle, string]>} extraKeys
-   * @private
-   */
-  private extraKeys: Array<[TouchControlCircle, string]> = [];
 
   /**
    * Registers touch listeners and configures the visible control layout.
@@ -57,11 +47,9 @@ export class TouchControls {
    */
   public constructor(options: { showVerticalControls?: boolean } = {}) {
     this.showVerticalControls = options.showVerticalControls ?? true;
-    this.removeListeners = [
-      GameEvents.addPointerDownListener(this.handlePointer),
-      GameEvents.addPointerMoveListener(this.handlePointer),
-      GameEvents.addPointerEndListener(this.handlePointerEnd)
-    ];
+    ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].forEach((key) => {
+      this.buttons.set(key, this.createKeyButton(key));
+    });
   }
 
   /**
@@ -130,8 +118,15 @@ export class TouchControls {
    * @return {void}
    */
   public draw(): void {
-    if (!GameContext.isMobileDevice) return;
+    const isMobile = GameContext.isMobileDevice;
     const layout = this.layout;
+    this.syncButton(layout.left, this.buttons.get('ArrowLeft')!, !isMobile);
+    this.syncButton(layout.right, this.buttons.get('ArrowRight')!, !isMobile);
+    this.syncButton(layout.shoot, this.buttons.get(' ')!, !isMobile);
+    this.syncButton(layout.up, this.buttons.get('ArrowUp')!, !isMobile || !this.showVerticalControls);
+    this.syncButton(layout.down, this.buttons.get('ArrowDown')!, !isMobile || !this.showVerticalControls);
+    this.extraButtons.forEach((button) => button.setDisabled(!isMobile));
+    if (!isMobile) return;
     this.drawButton(layout.left, this.icons.left);
     this.drawButton(layout.right, this.icons.right);
     if (this.showVerticalControls) {
@@ -148,6 +143,8 @@ export class TouchControls {
    */
   public drawExtra(circle: TouchControlCircle, icon: CanvasIcon, color: string): void {
     if (!GameContext.isMobileDevice) return;
+    const button = this.extraButtons[this.extraButtons.length - 1];
+    if (button) this.syncButton(circle, button);
     this.drawButton(circle, icon, `${color}aa`);
   }
 
@@ -157,7 +154,17 @@ export class TouchControls {
    * @return {void}
    */
   public setExtraKeys(entries: Array<[TouchControlCircle, string]>): void {
-    this.extraKeys = entries;
+    while (this.extraButtons.length > entries.length) this.extraButtons.pop()!.destroy();
+    while (this.extraButtons.length < entries.length) {
+      const index = this.extraButtons.length;
+      this.extraButtons.push(this.createKeyButton(entries[index][1]));
+    }
+    entries.forEach(([, key], index) => {
+      if (this.extraButtonKeys[index] === key) return;
+      this.extraButtons[index].destroy();
+      this.extraButtons[index] = this.createKeyButton(key);
+    });
+    this.extraButtonKeys = entries.map(([, key]) => key);
   }
 
   /**
@@ -166,9 +173,27 @@ export class TouchControls {
    * @return {void}
    */
   public dispose(): void {
-    this.removeListeners.forEach((remove) => remove());
-    this.activePointers.forEach((pointerId) => GameEvents.setPointerKey(pointerId, undefined));
-    this.activePointers.clear();
+    this.buttons.forEach((button) => button.destroy());
+    this.extraButtons.forEach((button) => button.destroy());
+    this.buttons.clear();
+    this.extraButtons.length = 0;
+    this.extraButtonKeys = [];
+  }
+
+  private createKeyButton(key: string): Button {
+    return new Button(new Texture({}, 0, 0), {
+      shape: 'circle',
+      onClick: () => {},
+      onPress: (pointerId) => GameEvents.setPointerKey(pointerId, key),
+      onRelease: (pointerId) => GameEvents.setPointerKey(pointerId, undefined)
+    });
+  }
+
+  private syncButton(circle: TouchControlCircle, button: Button, disabled = false): void {
+    button.dimensions.setPosition(circle.x, circle.y);
+    button.dimensions.setSize(circle.radius * 2, circle.radius * 2);
+    button.dimensions.setPivot(0.5, 0.5);
+    button.setDisabled(disabled || !GameContext.isMobileDevice);
   }
 
   /**
@@ -186,46 +211,4 @@ export class TouchControls {
     icon.draw(circle.x - circle.radius * 0.525, circle.y - circle.radius * 0.525, circle.radius * 1.05);
   }
 
-  /**
-   * Stores the handle pointer state.
-   * @property {(pointer: GamePointer) => void} handlePointer
-   * @private
-   * @readonly
-   */
-  private readonly handlePointer = (pointer: GamePointer): void => {
-    if (!GameContext.isMobileDevice) return;
-    this.activePointers.add(pointer.id);
-    const { left, right, up, down, shoot } = this.layout;
-    const entries: Array<[TouchControlCircle, string]> = [
-      [left, 'ArrowLeft'], [right, 'ArrowRight'], [shoot, ' '],
-      ...this.extraKeys
-    ];
-    if (this.showVerticalControls) {
-      entries.push([up, 'ArrowUp'], [down, 'ArrowDown']);
-    }
-    const hit = entries.find(([circle]) => this.contains(circle, pointer.x, pointer.y));
-    GameEvents.setPointerKey(pointer.id, hit?.[1]);
-  };
-
-  /**
-   * Stores the handle pointer end state.
-   * @property {(pointer: GamePointer) => void} handlePointerEnd
-   * @private
-   * @readonly
-   */
-  private readonly handlePointerEnd = (pointer: GamePointer): void => {
-    GameEvents.setPointerKey(pointer.id, undefined);
-    this.activePointers.delete(pointer.id);
-  };
-
-  /**
-   * Tests whether a pointer coordinate lies within a control circle.
-   * @private
-   * @return {boolean}
-   */
-  private contains(circle: TouchControlCircle, x: number, y: number): boolean {
-    const dx = x - circle.x;
-    const dy = y - circle.y;
-    return dx * dx + dy * dy <= circle.radius ** 2;
-  }
 }
