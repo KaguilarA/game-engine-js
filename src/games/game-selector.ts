@@ -12,7 +12,7 @@ import { SpacePatternsGame } from './space-patterns/game';
 import { TankFrontierGame } from './tank-frontier';
 import { SlotMachineGame } from './slot-machine/game';
 import { ShootEmAllGame } from './shoot-em-all/game';
-import { MusketeersSlotGame } from './musketeers-slot/game';
+// import { MusketeersSlotGame } from './musketeers-slot/game';
 import { ScratchCardGame } from './scratch-card/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
@@ -59,11 +59,13 @@ export class GameSelector {
       description: 'THREE-REEL SLOT MACHINE',
       start: (onReturnToMenu) => { new SlotMachineGame(onReturnToMenu); }
     },
+    /*
     {
       title: 'THE THREE MUSKETEERS',
       description: 'FIVE-REEL ADVENTURE SLOT',
       start: (onReturnToMenu) => { new MusketeersSlotGame(onReturnToMenu); }
     },
+    */
     {
       title: 'SHOOT ’EM ALL',
       description: 'SURVIVE THE INVASION',

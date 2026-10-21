@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+// import { readdirSync, readFileSync } from 'node:fs';
+// import { join, relative, sep } from 'node:path';
 
+/*
 const manifestRoute = '/slot-machine/musketeers/assets.json';
 const manifestFile = 'slot-machine/musketeers/assets.json';
 const publicRoot = join(process.cwd(), 'public');
@@ -77,8 +78,9 @@ function musketeersManifestPlugin() {
     }
   };
 }
+*/
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/game-engine-js/' : '/',
-  plugins: [musketeersManifestPlugin()]
+  plugins: [/* musketeersManifestPlugin() */]
 }));
