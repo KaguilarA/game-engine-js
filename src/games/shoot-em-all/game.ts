@@ -5,17 +5,18 @@ import { TouchControls } from '../../engine/input/touch-controls';
 import GameLoader from '../../engine/assets/loader';
 import Sprite from '../../engine/animations/sprites/sprite';
 import { PhysicsBody } from '../../engine/core/physics';
-import { Enemy } from '../space-hunters/enemy';
-import type { EnemyKind } from '../space-hunters/enemy';
+import { InvaderEnemy, type InvaderKind } from './invader-enemy';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
+import { GameBackground } from '../../engine/rendering/background';
 import { signalValue } from 'reactive-values';
 import { MathUtils } from '../../engine/core/math-utils';
+import { Collision2D } from '../../engine/core/collision2d';
 import type { SignalValue } from 'reactive-values';
 import type { Invader } from './interfaces/invader';
 import type { Shot } from './interfaces/shot';
 
-const ENEMY_KINDS: EnemyKind[] = ['beetlemorph', 'rhinomorph', 'lobstermorph'];
+const ENEMY_KINDS: InvaderKind[] = ['beetlemorph', 'rhinomorph', 'lobstermorph'];
 const TARGET_KILLS = 30;
 
 /**
@@ -170,11 +171,11 @@ export class ShootEmAllGame extends BaseGame {
     const height = dimensions.getHeight();
     const unit = GameContext.viewportUnit();
     GameContext.clear();
-    GameContext.drawImage(
-      GameLoader.getImage(GameContext.isPortrait ? 'background1080x1920' : 'background1920x1080'),
-      0, 0, width, height
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
+      'rgba(14, 10, 32, 0.3)'
     );
-    GameContext.drawRect(0, 0, width, height, 'rgba(14, 10, 32, 0.3)');
     this.drawStars(width, height);
     for (const { entity } of this.enemies()) entity.draw();
     this.player().draw();
@@ -298,7 +299,7 @@ export class ShootEmAllGame extends BaseGame {
     const size = Math.max(38, Math.min(GameContext.viewportUnit() * 0.07, 66));
     const x = Math.random() * Math.max(1, width - size);
     const maxHealth = kind === 'beetlemorph' ? 1 : kind === 'rhinomorph' ? 2 : 3;
-    const entity = new Enemy(x, -size, Math.floor(Math.random() * 4), 100, maxHealth, size, size, kind);
+    const entity = new InvaderEnemy(x, -size, 100, maxHealth, size, size, kind);
     this.enemies.set([...this.enemies(), {
       entity,
       speed: signalValue(Math.min(GameContext.viewportUnit() * (kind === 'beetlemorph' ? 0.18 : 0.11), 145)),
@@ -493,9 +494,9 @@ export class ShootEmAllGame extends BaseGame {
     firstX: number, firstY: number, firstWidth: number, firstHeight: number,
     secondX: number, secondY: number, secondWidth: number, secondHeight: number
   ): boolean {
-    return firstX < secondX + secondWidth
-      && firstX + firstWidth > secondX
-      && firstY < secondY + secondHeight
-      && firstY + firstHeight > secondY;
+    return Collision2D.overlapsRectangles(
+      firstX, firstY, firstWidth, firstHeight,
+      secondX, secondY, secondWidth, secondHeight
+    );
   }
 }

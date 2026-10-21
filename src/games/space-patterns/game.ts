@@ -3,6 +3,7 @@ import GameEvents from '../../engine/input/events';
 import type { GamePointer } from '../../engine/interfaces/game-pointer';
 import { BaseGame } from '../../engine/core/base-game';
 import GameLoader from '../../engine/assets/loader';
+import { GameBackground } from '../../engine/rendering/background';
 
 import { PatternBoard } from './board';
 import { PATTERN_ICONS } from './pattern-icons';
@@ -164,24 +165,10 @@ export class SpacePatternsGame extends BaseGame {
    * @return {void}
    */
   protected drawGame(): void {
-    const dimensions = GameContext.gameDimensionsModel;
     GameContext.clear();
-    GameContext.drawImage(
-      GameLoader.getImage(
-        GameContext.isPortrait
-          ? 'background1080x1920'
-          : 'background1920x1080'
-      ),
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight()
-    );
-    GameContext.drawRect(
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight(),
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
       'rgba(13, 17, 42, 0.52)'
     );
     this.drawHud();

@@ -9,8 +9,9 @@ import { Button } from '../../engine/ui/button';
 import { NumberLabel } from '../../engine/ui/number-label';
 import { Label } from '../../engine/ui/label';
 import { Texture } from '../../engine/rendering/texture';
+import { GameBackground } from '../../engine/rendering/background';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
-import { Reel, ReelAnimationProfile, ReelIcon } from '../slot-engine';
+import { Reel, ReelAnimationProfile, ReelIcon } from '../../engine/slots';
 import { CosmicSymbolVisual } from './cosmic-symbol-visual';
 import type { CosmicSymbolAsset } from './interfaces/cosmic-symbol-asset';
 
@@ -203,7 +204,11 @@ export class SlotMachineGame extends BaseGame {
     const reelStartX = centerX - (reelWidth * 3 + reelGap * 2) * 0.5;
 
     GameContext.clear();
-    this.drawBackground(width, height);
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
+      'rgba(13, 10, 29, 0.56)'
+    );
     GameContext.drawRect(cabinetX, cabinetY, cabinetWidth, cabinetHeight, '#17152c');
     GameContext.drawRect(cabinetX + 7, cabinetY + 7, cabinetWidth - 14, cabinetHeight - 14, '#7650a0');
     GameContext.drawRect(cabinetX + 14, cabinetY + 14, cabinetWidth - 28, cabinetHeight - 28, '#292044');
@@ -300,21 +305,6 @@ export class SlotMachineGame extends BaseGame {
     this.message.set('MATCH SYMBOLS TO WIN');
     this.stopWinningAnimation();
     this.reels.forEach((reel) => reel.reset(this.randomColumn()));
-  }
-
-  /**
-   * Draws the orientation-specific background and darkens it behind the cabinet.
-   * @param width - Width of the game viewport in world units.
-   * @param height - Height of the game viewport in world units.
-   * @private
-   * @return {void}
-   */
-  private drawBackground(width: number, height: number): void {
-    GameContext.drawImage(
-      GameLoader.getImage(GameContext.isPortrait ? 'background1080x1920' : 'background1920x1080'),
-      0, 0, width, height
-    );
-    GameContext.drawRect(0, 0, width, height, 'rgba(13, 10, 29, 0.56)');
   }
 
   /**

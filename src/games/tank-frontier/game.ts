@@ -1,7 +1,9 @@
 import GameContext from '../../engine/core/context';
 import { MathUtils } from '../../engine/core/math-utils';
+import { Collision2D } from '../../engine/core/collision2d';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
+import { GameBackground } from '../../engine/rendering/background';
 import GameEvents from '../../engine/input/events';
 import GameLoader from '../../engine/assets/loader';
 import { TouchControls } from '../../engine/input/touch-controls';
@@ -237,22 +239,9 @@ export class TankFrontierGame extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const hudScale = GameContext.isPortrait ? 1.35 : 1;
     GameContext.clear();
-    GameContext.drawImage(
-      GameLoader.getImage(
-        GameContext.isPortrait
-          ? 'background1080x1920'
-          : 'background1920x1080'
-      ),
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight()
-    );
-    GameContext.drawRect(
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight(),
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
       'rgba(12, 19, 39, 0.68)'
     );
     this.drawArena();
@@ -1091,11 +1080,9 @@ export class TankFrontierGame extends BaseGame {
     height: number,
     rect: Rect
   ): boolean {
-    return (
-      x < rect.x + rect.width
-      && x + width > rect.x
-      && y < rect.y + rect.height
-      && y + height > rect.y
+    return Collision2D.overlapsRectangles(
+      x, y, width, height,
+      rect.x, rect.y, rect.width, rect.height
     );
   }
 

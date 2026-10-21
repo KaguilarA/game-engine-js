@@ -5,12 +5,13 @@ import { Atlas } from '../../engine/assets/atlas';
 import { AtlasParser } from '../../engine/assets/atlas-parser';
 import { Button } from '../../engine/ui/button';
 import { Texture } from '../../engine/rendering/texture';
+import { GameBackground } from '../../engine/rendering/background';
 import { signalValue } from 'reactive-values';
 import type { SignalValue } from 'reactive-values';
-import { Icon } from '../slot-engine/icon';
-import { Reel } from '../slot-engine/reel';
-import { ReelIcon } from '../slot-engine/reel-icon';
-import { ReelAnimationProfile } from '../slot-engine/reel-animation-profile';
+import { Icon } from '../../engine/slots/icon';
+import { Reel } from '../../engine/slots/reel';
+import { ReelIcon } from '../../engine/slots/reel-icon';
+import { ReelAnimationProfile } from '../../engine/slots/reel-animation-profile';
 import { evaluatePaylines } from './paylines';
 
 const ASSET_ROOT = '/slot-machine/';
@@ -91,10 +92,7 @@ export class MusketeersSlotGame extends BaseGame {
     const width = GameContext.gameDimensionsModel.getWidth();
     const height = GameContext.gameDimensionsModel.getHeight();
     GameContext.clear();
-    GameContext.drawImage(
-      GameContext.isPortrait ? this.backgroundPortrait : this.backgroundLandscape,
-      0, 0, width, height
-    );
+    GameBackground.draw(this.backgroundPortrait, this.backgroundLandscape);
     const board = this.getBoardBounds(width, height);
     this.drawReels(board.x, board.y, board.width, board.height);
     this.drawHud(width, height, board);

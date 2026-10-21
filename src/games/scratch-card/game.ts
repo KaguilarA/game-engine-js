@@ -5,6 +5,7 @@ import GameContext from '../../engine/core/context';
 import { BaseGame } from '../../engine/core/base-game';
 import GameEvents from '../../engine/input/events';
 import type { GamePointer } from '../../engine/interfaces/game-pointer';
+import { GameBackground } from '../../engine/rendering/background';
 import { ScratchIcon } from './scratch-icon';
 import { ScratchSurface } from './scratch-surface';
 
@@ -56,11 +57,11 @@ export class ScratchCardGame extends BaseGame {
     const { x, y, width, height } = bounds;
     const viewport = GameContext.gameDimensionsModel;
     GameContext.clear();
-    GameContext.drawImage(
-      GameLoader.getImage(GameContext.isPortrait ? 'background1080x1920' : 'background1920x1080'),
-      0, 0, viewport.getWidth(), viewport.getHeight()
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
+      'rgba(13, 10, 29, 0.56)'
     );
-    GameContext.drawRect(0, 0, viewport.getWidth(), viewport.getHeight(), 'rgba(13, 10, 29, 0.56)');
 
     this.drawText('LUCKY SCRATCH', viewport.getWidth() * 0.5, y - 36, 25, '#ffe27a');
     GameContext.drawRect(x, y, width, height, '#e8c35e');

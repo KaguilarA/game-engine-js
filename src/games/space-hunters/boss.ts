@@ -1,5 +1,6 @@
 import GameLoader from '../../engine/assets/loader';
 import { Health } from '../../engine/core/health';
+import { Collision2D } from '../../engine/core/collision2d';
 import Sprite from '../../engine/animations/sprites/sprite';
 import { SpriteEntity } from '../../engine/entities/sprite-entity';
 import type { BossShotOrigin } from './interfaces/boss-shot-origin';
@@ -219,11 +220,10 @@ export class Boss extends SpriteEntity {
   ): boolean {
     if (!this.isVulnerable) return false;
 
-    const intersects = (
-      x < this.sprite.dimensions.right()
-      && x + width > this.sprite.dimensions.left()
-      && y < this.sprite.dimensions.bottom()
-      && y + height > this.sprite.dimensions.top()
+    const intersects = Collision2D.overlapsRectangles(
+      x, y, width, height,
+      this.sprite.dimensions.left(), this.sprite.dimensions.top(),
+      this.sprite.dimensions.getWidth(), this.sprite.dimensions.getHeight()
     );
 
     if (!intersects) return false;

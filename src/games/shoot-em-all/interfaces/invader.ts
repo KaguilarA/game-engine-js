@@ -1,12 +1,11 @@
 import type { SignalValue } from 'reactive-values';
-import type { Enemy } from '../../space-hunters/enemy';
-import type { EnemyKind } from '../../space-hunters/enemy';
+import type { InvaderEnemy, InvaderKind } from '../invader-enemy';
 
 export interface Invader {
-  entity: Enemy;
+  entity: InvaderEnemy;
   speed: SignalValue<number>;
   drift: SignalValue<number>;
   driftSpeed: SignalValue<number>;
-  readonly kind: EnemyKind;
+  readonly kind: InvaderKind;
   fireTimer: SignalValue<number>;
 }

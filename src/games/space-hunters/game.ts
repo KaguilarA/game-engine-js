@@ -1,11 +1,13 @@
 import GameContext from '../../engine/core/context';
 import { MathUtils } from '../../engine/core/math-utils';
+import { Collision2D } from '../../engine/core/collision2d';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
+import { GameBackground } from '../../engine/rendering/background';
 import GameEvents from '../../engine/input/events';
 import { TouchControls } from '../../engine/input/touch-controls';
 import GameLoader from '../../engine/assets/loader';
-import { PhysicsBody } from '../../engine/core/physics';
+import { FallingPickup } from '../../engine/entities/falling-pickup';
 import { Boss } from './boss';
 import type { BossType } from './boss';
 import { Enemy } from './enemy';
@@ -149,12 +151,7 @@ export class Game extends BaseGame {
    * @property {{ x: number} lifePickup
    * @private
    */
-  private lifePickup: {
-    x: number;
-    y: number;
-    size: number;
-    physics: PhysicsBody;
-  } | undefined;
+  private lifePickup: FallingPickup | undefined;
   /**
    * Stores the game over state.
    * @property {boolean} gameOver
@@ -255,7 +252,10 @@ export class Game extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
     GameContext.clear();
-    this.drawBackground();
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080')
+    );
 
     for (const enemy of this.enemies) enemy.draw();
     this.boss?.draw();
@@ -397,28 +397,6 @@ export class Game extends BaseGame {
   private getPlayerBottomMargin(): number {
     if (!GameContext.isMobileDevice) return 40;
     return this.touchControls.layout.reservedBottom + 8;
-  }
-
-  /**
-   * Draws the current orientation-specific background image.
-   * @private
-   * @return {void}
-   */
-  private drawBackground(): void {
-    const dimensions = GameContext.gameDimensionsModel;
-    const background = GameLoader.getImage(
-      GameContext.isPortrait
-        ? 'background1080x1920'
-        : 'background1920x1080'
-    );
-
-    GameContext.drawImage(
-      background,
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight()
-    );
   }
 
   /**
@@ -709,11 +687,9 @@ export class Game extends BaseGame {
     widthB: number,
     heightB: number
   ): boolean {
-    return (
-      leftA < leftB + widthB
-      && leftA + widthA > leftB
-      && topA < topB + heightB
-      && topA + heightA > topB
+    return Collision2D.overlapsRectangles(
+      leftA, topA, widthA, heightA,
+      leftB, topB, widthB, heightB
     );
   }
 
@@ -743,9 +719,9 @@ export class Game extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const size = GameContext.isPortrait ? 58 : 42;
 
-    const x = 32 + Math.random() * (dimensions.getWidth() - size - 64);
-    const y = -size;
-    this.lifePickup = { x, y, size, physics: new PhysicsBody(x, y) };
+    const x = 32 + size * 0.5 + Math.random() * (dimensions.getWidth() - size - 64);
+    const y = -size * 0.5;
+    this.lifePickup = new FallingPickup(x, y, size);
   }
 
   /**
@@ -758,19 +734,16 @@ export class Game extends BaseGame {
 
     const pickup = this.lifePickup;
     const dimensions = GameContext.gameDimensionsModel;
-    pickup.physics.setVelocity(0, 180);
-    pickup.physics.update(deltaSeconds);
-    pickup.x = pickup.physics.x();
-    pickup.y = pickup.physics.y();
+    pickup.update(deltaSeconds);
 
-    if (pickup.y > dimensions.getHeight() + pickup.size) {
+    if (pickup.y > dimensions.getHeight() + pickup.size * 0.5) {
       this.lifePickup = undefined;
       return;
     }
 
     if (!this.overlaps(
-      pickup.x,
-      pickup.y,
+      pickup.x - pickup.size * 0.5,
+      pickup.y - pickup.size * 0.5,
       pickup.size,
       pickup.size,
       this.player.x,
@@ -795,8 +768,8 @@ export class Game extends BaseGame {
     if (this.lifePickup === undefined) return;
 
     this.lifePickupIcon.draw(
-      this.lifePickup.x,
-      this.lifePickup.y,
+      this.lifePickup.x - this.lifePickup.size * 0.5,
+      this.lifePickup.y - this.lifePickup.size * 0.5,
       this.lifePickup.size
     );
   }

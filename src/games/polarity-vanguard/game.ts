@@ -1,13 +1,15 @@
 import GameContext from '../../engine/core/context';
 import { MathUtils } from '../../engine/core/math-utils';
+import { Collision2D } from '../../engine/core/collision2d';
 import { BaseGame } from '../../engine/core/base-game';
 import CanvasIcon from '../../engine/rendering/canvas-icon';
+import { GameBackground } from '../../engine/rendering/background';
 import GameEvents from '../../engine/input/events';
 import GameLoader from '../../engine/assets/loader';
 import { TouchControls } from '../../engine/input/touch-controls';
 import type { TouchControlCircle } from '../../engine/interfaces/touch-control-circle';
 import { signalValue } from 'reactive-values';
-import { PhysicsBody } from '../../engine/core/physics';
+import { FallingPickup } from '../../engine/entities/falling-pickup';
 
 import { PolarityVanguardEnemy } from './enemy';
 import type { Polarity } from './polarity';
@@ -16,7 +18,6 @@ import { PolarityVanguardPlayer } from './player';
 import { PolarityProjectile } from './projectile';
 import arrowLeftRightSvg from 'lucide-static/icons/arrow-left-right.svg?raw';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
-import type { LifePickup } from './interfaces/life-pickup';
 
 /**
  * Polarity shooter with absorbable shots and a score-chain system.
@@ -150,7 +151,7 @@ export class PolarityVanguardGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly lifePickup = signalValue<LifePickup | undefined>(undefined);
+  private readonly lifePickup = signalValue<FallingPickup | undefined>(undefined);
   /**
    * Stores the damage cooldown state.
    * @property {Signal} damageCooldown
@@ -345,7 +346,10 @@ export class PolarityVanguardGame extends BaseGame {
     const dimensions = GameContext.gameDimensionsModel;
     const unit = GameContext.viewportUnit();
     GameContext.clear();
-    this.drawBackground();
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080')
+    );
     for (const enemy of this.enemies) enemy.draw();
     this.drawLifePickup();
     this.player.draw();
@@ -423,26 +427,6 @@ export class PolarityVanguardGame extends BaseGame {
         dimensions.getWidth() * 0.85
       );
     }
-  }
-
-  /**
-   * Draws the selected portrait or landscape background image.
-   * @private
-   * @return {void}
-   */
-  private drawBackground(): void {
-    const dimensions = GameContext.gameDimensionsModel;
-    GameContext.drawImage(
-      GameLoader.getImage(
-        GameContext.isPortrait
-          ? 'background1080x1920'
-          : 'background1920x1080'
-      ),
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight()
-    );
   }
 
   /**
@@ -602,7 +586,7 @@ export class PolarityVanguardGame extends BaseGame {
 
     const x = size * 0.5 + Math.random() * (dimensions.getWidth() - size);
     const y = -size * 0.5;
-    this.lifePickup.set({ x, y, size, physics: new PhysicsBody(x, y) });
+    this.lifePickup.set(new FallingPickup(x, y, size));
   }
 
   /**
@@ -614,9 +598,8 @@ export class PolarityVanguardGame extends BaseGame {
     const pickup = this.lifePickup();
     if (pickup === undefined) return;
 
-    pickup.physics.setVelocity(0, 180);
-    pickup.physics.update(deltaSeconds);
-    const nextY = pickup.physics.y();
+    pickup.update(deltaSeconds);
+    const nextY = pickup.y;
     const dimensions = GameContext.gameDimensionsModel;
     if (nextY > dimensions.getHeight() + pickup.size * 0.5) {
       this.lifePickup.set(undefined);
@@ -638,7 +621,6 @@ export class PolarityVanguardGame extends BaseGame {
       return;
     }
 
-    this.lifePickup.set({ ...pickup, y: nextY });
   }
 
   /**
@@ -704,17 +686,14 @@ export class PolarityVanguardGame extends BaseGame {
     rectangleWidth: number,
     rectangleHeight: number
   ): boolean {
-    const closestX = Math.max(
+    return Collision2D.overlapsCircleAndRectangle(
+      circleX,
+      circleY,
+      radius,
       rectangleX - rectangleWidth * 0.5,
-      Math.min(circleX, rectangleX + rectangleWidth * 0.5)
-    );
-    const closestY = Math.max(
       rectangleY - rectangleHeight * 0.5,
-      Math.min(circleY, rectangleY + rectangleHeight * 0.5)
+      rectangleWidth,
+      rectangleHeight
     );
-    const distanceX = circleX - closestX;
-    const distanceY = circleY - closestY;
-
-    return distanceX * distanceX + distanceY * distanceY <= radius * radius;
   }
 }
