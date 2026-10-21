@@ -1,5 +1,11 @@
 import { Atlas } from './atlas';
 import { AtlasParser } from './atlas-parser';
+import type { SpineRecord } from '../interfaces/spine-record';
+
+export interface LoadedSpineAsset {
+  readonly atlas: Atlas;
+  readonly data: SpineRecord;
+}
 
 const imageModules = import.meta.glob<string>(
   '../../assets/*.{png,jpg,jpeg,webp,gif,svg}',
@@ -52,6 +58,9 @@ class Loader {
    * @readonly
    */
   private readonly audios = new Map<string, HTMLAudioElement>();
+  private readonly imageRequests = new Map<string, Promise<HTMLImageElement>>();
+  private readonly jsonRequests = new Map<string, Promise<unknown>>();
+  private readonly atlasRequests = new Map<string, Promise<Atlas>>();
   /**
    * Stores the loading state.
    * @property {Promise<void> | undefined} loading
@@ -105,6 +114,65 @@ class Loader {
    */
   public hasImage(name: string): boolean {
     return this.images.has(name);
+  }
+
+  /** Loads and caches an image from any URL, sharing concurrent requests. */
+  public loadImageUrl(url: string): Promise<HTMLImageElement> {
+    const cached = this.imageRequests.get(url);
+    if (cached) return cached;
+    const request = new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image), { once: true });
+      image.addEventListener('error', () => reject(new Error(`Failed to load image from "${url}".`)), { once: true });
+      image.src = url;
+    }).catch((error: unknown) => {
+      this.imageRequests.delete(url);
+      throw error;
+    });
+    this.imageRequests.set(url, request);
+    return request;
+  }
+
+  /** Loads and caches JSON from any URL, sharing concurrent requests. */
+  public loadJson<T>(url: string): Promise<T> {
+    const cached = this.jsonRequests.get(url) as Promise<T> | undefined;
+    if (cached) return cached;
+    const request = fetch(url).then(async (response) => {
+      if (!response.ok) throw new Error(`Failed to load JSON from "${url}" (${response.status}).`);
+      return await response.json() as T;
+    }).catch((error: unknown) => {
+      this.jsonRequests.delete(url);
+      throw error;
+    });
+    this.jsonRequests.set(url, request);
+    return request;
+  }
+
+  /** Loads a Spine atlas and its page image from paths relative to the atlas. */
+  public loadAtlasUrl(url: string): Promise<Atlas> {
+    const cached = this.atlasRequests.get(url);
+    if (cached) return cached;
+    const request = fetch(url).then(async (response) => {
+      if (!response.ok) throw new Error(`Failed to load atlas from "${url}" (${response.status}).`);
+      const atlas = new Atlas(new AtlasParser().parse(await response.text()));
+      const pageUrl = new URL(atlas.pageName, new URL(url, document.baseURI)).toString();
+      atlas.setPageImage(await this.loadImageUrl(pageUrl));
+      return atlas;
+    }).catch((error: unknown) => {
+      this.atlasRequests.delete(url);
+      throw error;
+    });
+    this.atlasRequests.set(url, request);
+    return request;
+  }
+
+  /** Loads a Spine JSON and atlas together using the shared asset cache. */
+  public async loadSpine(jsonUrl: string, atlasUrl: string): Promise<LoadedSpineAsset> {
+    const [data, atlas] = await Promise.all([
+      this.loadJson<SpineRecord>(jsonUrl),
+      this.loadAtlasUrl(atlasUrl)
+    ]);
+    return { data, atlas };
   }
 
   /**
@@ -176,7 +244,7 @@ class Loader {
         const url = await loadUrl();
         const name = this.getAssetName(path);
 
-        await this.loadImage(name, url);
+        await this.preloadImage(name, url);
       })
     );
   }
@@ -227,7 +295,7 @@ class Loader {
     return filename.slice(0, extensionIndex);
   }
 
-  private loadImage(name: string, url: string): Promise<void> {
+  private preloadImage(name: string, url: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const image = new Image();
 

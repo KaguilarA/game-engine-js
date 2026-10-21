@@ -47,6 +47,7 @@ class Events {
    */
   private readonly pointerEndListeners = new Set<PointerListener>();
   private readonly wheelListeners = new Set<WheelListener>();
+  private readonly pointerTargets = new Set<(pointer: GamePointer) => boolean>();
   /**
    * Canvas currently used for pointer input.
    * @property {HTMLCanvasElement | undefined} pointerCanvas
@@ -83,6 +84,11 @@ class Events {
    */
   private readonly onPointerMove = (event: PointerEvent): void => {
     const pointer = this.getGamePointer(event);
+    if (this.pointerCanvas !== undefined) {
+      this.pointerCanvas.style.cursor = [...this.pointerTargets].some((contains) => contains(pointer))
+        ? 'pointer'
+        : '';
+    }
     this.pointerMoveListeners.forEach((listener) => listener(pointer));
   };
 
@@ -94,6 +100,9 @@ class Events {
   private readonly onPointerEnd = (event: PointerEvent): void => {
     const pointer = this.getGamePointer(event);
     this.pointerEndListeners.forEach((listener) => listener(pointer));
+  };
+  private readonly onPointerLeave = (): void => {
+    if (this.pointerCanvas !== undefined) this.pointerCanvas.style.cursor = '';
   };
   private readonly onWheel = (event: WheelEvent): void => {
     const pointer = this.getGamePointer(event);
@@ -183,6 +192,7 @@ class Events {
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerEnd);
     canvas.addEventListener('pointercancel', this.onPointerEnd);
+    canvas.addEventListener('pointerleave', this.onPointerLeave);
     canvas.addEventListener('wheel', this.onWheel, { passive: false });
   }
 
@@ -272,6 +282,12 @@ class Events {
     return () => this.wheelListeners.delete(listener);
   }
 
+  /** Registers a live hit test used to show a pointer cursor over game buttons. */
+  public addPointerTarget(contains: (pointer: GamePointer) => boolean): () => void {
+    this.pointerTargets.add(contains);
+    return () => this.pointerTargets.delete(contains);
+  }
+
   /**
    * Maps one browser event to the current logical canvas coordinate space.
    * @private
@@ -305,6 +321,7 @@ class Events {
     this.pointerCanvas.removeEventListener('pointermove', this.onPointerMove);
     this.pointerCanvas.removeEventListener('pointerup', this.onPointerEnd);
     this.pointerCanvas.removeEventListener('pointercancel', this.onPointerEnd);
+    this.pointerCanvas.removeEventListener('pointerleave', this.onPointerLeave);
     this.pointerCanvas.removeEventListener('wheel', this.onWheel);
     this.pointerCanvas = undefined;
   }

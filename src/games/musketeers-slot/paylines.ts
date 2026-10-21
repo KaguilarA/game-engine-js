@@ -8,6 +8,8 @@ const PAYLINES: readonly (readonly number[])[] = [
   [0, 1, 1, 1, 0]
 ];
 
+export const PAYLINE_COUNT = PAYLINES.length;
+
 /** Evaluates the Musketeers paytable against the settled reel matrix. */
 export function evaluatePaylines(reels: readonly (readonly string[])[], bet: number): PaylineResult {
   let win = 0;

@@ -13,6 +13,12 @@ export class PinballBall {
 
   public update(deltaSeconds: number): void {
     this.body.update(deltaSeconds, 680);
+    const horizontalDrag = Math.pow(0.995, deltaSeconds * 60);
+    this.body.setVelocity(this.body.velocityX * horizontalDrag, this.body.velocityY);
+    const speed = Math.hypot(this.body.velocityX, this.body.velocityY);
+    if (speed > 1100) {
+      this.body.setVelocity(this.body.velocityX / speed * 1100, this.body.velocityY / speed * 1100);
+    }
   }
 
   /** Turns the ball into the playfield once, without changing its position. */

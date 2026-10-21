@@ -25,6 +25,7 @@ export class GameControls {
    * @readonly
    */
   private readonly showResetButton: boolean;
+  private readonly menuAlignment: 'left' | 'right';
   /**
    * Stores the pause icon state.
    * @property {CanvasIcon} pauseIcon
@@ -106,6 +107,7 @@ export class GameControls {
     this.onReset = onReset;
     this.onReturnToMenu = onReturnToMenu;
     this.showResetButton = options.showResetButton ?? true;
+    this.menuAlignment = options.menuAlignment ?? 'right';
     this.pauseButton = this.createButton(() => this.paused.set(!this.paused()));
     this.fullscreenButton = this.createButton(() => { void this.toggleFullscreen(); });
     this.resetButton = this.createButton(() => { this.paused.set(false); this.onReset(); });
@@ -260,10 +262,13 @@ export class GameControls {
     const maxRadius = Math.max(12, Math.floor((availableWidth - padding * 2 - gap * 3) / 8));
     const buttonRadius = Math.max(14, Math.min(unit * 0.034, 24, maxRadius));
     const buttonDiameter = buttonRadius * 2;
-    const resetX = dimensions.getWidth() - padding - buttonRadius;
-    const fullscreenX = resetX - buttonDiameter - gap;
+    const rightmostX = dimensions.getWidth() - padding - buttonRadius;
+    const resetX = rightmostX;
+    const fullscreenX = rightmostX - buttonDiameter * (this.showResetButton ? 1 : 0) - gap * (this.showResetButton ? 1 : 0);
     const pauseX = fullscreenX - buttonDiameter - gap;
-    const menuX = pauseX - buttonDiameter - gap;
+    const menuX = this.menuAlignment === 'left'
+      ? padding + buttonRadius
+      : pauseX - buttonDiameter - gap;
 
     return {
       pauseButton: {

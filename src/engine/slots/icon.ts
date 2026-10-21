@@ -5,7 +5,7 @@ import GameContext from '../core/context';
 import { MathUtils } from '../core/math-utils';
 import { SpineSprite, type SpineEventHandler } from '../animations/spine';
 import { Atlas } from '../assets/atlas';
-import { AtlasParser } from '../assets/atlas-parser';
+import GameLoader from '../assets/loader';
 import type { SpineRecord } from '../interfaces/spine-record';
 import Sprite from '../animations/sprites/sprite';
 import type { IconAssetPaths } from './interfaces/icon-asset-paths';
@@ -26,6 +26,7 @@ export class Icon implements ReelSymbolVisual {
   private readonly normal: Sprite;
   private readonly blurred: Sprite;
   private readonly spineAsset?: SpineIconAsset;
+  private readonly idleAspectRatio: number;
 
   private constructor(
     id: string,
@@ -37,33 +38,55 @@ export class Icon implements ReelSymbolVisual {
     this.normal = normal;
     this.blurred = blurred;
     this.spineAsset = spineAsset;
+    this.idleAspectRatio = normal.dimensions.getWidth() / normal.dimensions.getHeight();
   }
 
   /** Loads a symbol's normal, blurred, and optional Spine assets. */
   public static async load(id: string, paths: IconAssetPaths): Promise<Icon> {
     const [normalImage, blurredImage] = await Promise.all([
-      this.loadImage(paths.normal),
-      this.loadImage(paths.blurred)
+      GameLoader.loadImageUrl(paths.normal),
+      GameLoader.loadImageUrl(paths.blurred)
     ]);
     const spineAsset = paths.spine
       ? await this.loadSpineAsset(id, paths.spine)
       : undefined;
+    const idleWidth = normalImage.naturalWidth;
+    const idleHeight = normalImage.naturalHeight;
+    const idleAspectRatio = idleWidth / idleHeight;
+    const blurredAspectRatio = blurredImage.naturalWidth / blurredImage.naturalHeight;
+    const blurredSourceWidth = blurredAspectRatio > idleAspectRatio
+      ? blurredImage.naturalHeight * idleAspectRatio
+      : blurredImage.naturalWidth;
+    const blurredSourceHeight = blurredAspectRatio > idleAspectRatio
+      ? blurredImage.naturalHeight
+      : blurredImage.naturalWidth / idleAspectRatio;
+    const blurredSourceX = (blurredImage.naturalWidth - blurredSourceWidth) * 0.5;
+    const blurredSourceY = (blurredImage.naturalHeight - blurredSourceHeight) * 0.5;
 
     return new Icon(
       id,
-      new Sprite(normalImage, normalImage.naturalWidth, normalImage.naturalHeight, 0, 0, 0.5, 0.5),
-      new Sprite(blurredImage, blurredImage.naturalWidth, blurredImage.naturalHeight, 0, 0, 0.5, 0.5),
+      new Sprite(normalImage, idleWidth, idleHeight, 0, 0, 0.5, 0.5),
+      new Sprite(
+        blurredImage,
+        idleWidth,
+        idleHeight,
+        0,
+        0,
+        0.5,
+        0.5,
+        blurredSourceX,
+        blurredSourceY,
+        blurredSourceWidth,
+        blurredSourceHeight
+      ),
       spineAsset
     );
   }
 
   /** Starts the Spine presentation used while this symbol is part of a win. */
   public activateWinAnimation(): void {
-    if (
-      !this.spineAsset
-      || !this.spineAsset.data.animations?.animation
-      || !this.spineAsset.data.animations?.idle
-    ) return;
+    const animationName = this.getWinAnimationName();
+    if (!this.spineAsset || !animationName) return;
 
     if (!this.winAnimation) {
       this.winAnimation = new SpineSprite(this.spineAsset.data, this.spineAsset.atlas, 0, 0, 0.5, 0.5);
@@ -74,10 +97,14 @@ export class Icon implements ReelSymbolVisual {
         });
       });
     }
-    this.winAnimation.play('animation', false);
-    this.winAnimation.queue('idle', true);
+    this.winAnimation.play(animationName);
     this.winAnimationActive.set(true);
     this.advanceWinAnimation(0);
+  }
+
+  /** Starts this symbol's win Spine when a reel cell enters its winning state. */
+  public setWinning(isWinning: boolean): void {
+    if (isWinning) this.activateWinAnimation();
   }
 
   /** Restores the static presentation before the next reel spin. */
@@ -105,6 +132,9 @@ export class Icon implements ReelSymbolVisual {
   public update(deltaSeconds: number): void {
     if (!this.winAnimationActive() || !this.winAnimation) return;
     this.advanceWinAnimation(deltaSeconds);
+    if (this.winAnimationActive() && !this.winAnimation.isPlaying) {
+      this.winAnimationActive.set(false);
+    }
   }
 
   private advanceWinAnimation(deltaSeconds: number): void {
@@ -119,6 +149,16 @@ export class Icon implements ReelSymbolVisual {
     }
   }
 
+  private getWinAnimationName(): string | undefined {
+    const animations = this.spineAsset?.data.animations;
+    if (!animations) return undefined;
+    if (animations.animation) return 'animation';
+    return Object.keys(animations).find((name) =>
+      name !== 'idle' && name !== 'static' && name !== 'blurred'
+      && name !== 'teaser' && !name.startsWith('to')
+    );
+  }
+
   /** Draws the symbol or its active win animation at the supplied cell bounds. */
   public draw(
     centerX: number,
@@ -128,26 +168,36 @@ export class Icon implements ReelSymbolVisual {
     blurAmount = 0,
     isWinning = false
   ): void {
+    const idleHeight = Math.min(height, width / this.idleAspectRatio);
+    const idleWidth = idleHeight * this.idleAspectRatio;
     if (blurAmount <= 0 && isWinning && this.winAnimationActive() && this.winAnimation) {
+      const context = GameContext.context;
+      context.save();
+      context.beginPath();
+      context.rect(centerX - idleWidth / 2, centerY - idleHeight / 2, idleWidth, idleHeight);
+      context.clip();
       this.winAnimation.dimensions.setPosition(centerX, centerY);
-      this.winAnimation.dimensions.setSize(width, height);
+      this.winAnimation.dimensions.setSize(idleWidth, idleHeight);
       this.winAnimation.draw();
+      context.restore();
       return;
     }
-
     const amount = MathUtils.clamp(blurAmount, 0, 1);
     const context = GameContext.context;
     context.save();
     const originalAlpha = context.globalAlpha;
+    context.beginPath();
+    context.rect(centerX - idleWidth / 2, centerY - idleHeight / 2, idleWidth, idleHeight);
+    context.clip();
     if (amount < 1) {
       this.normal.dimensions.setPosition(centerX, centerY);
-      this.normal.dimensions.setSize(width, height);
+      this.normal.dimensions.setSize(idleWidth, idleHeight);
       context.globalAlpha = originalAlpha * (1 - amount);
       this.normal.draw();
     }
     if (amount > 0) {
       this.blurred.dimensions.setPosition(centerX, centerY);
-      this.blurred.dimensions.setSize(width, height);
+      this.blurred.dimensions.setSize(idleWidth, idleHeight);
       context.globalAlpha = originalAlpha * amount;
       this.blurred.draw();
     }
@@ -161,40 +211,17 @@ export class Icon implements ReelSymbolVisual {
     this.removeSpineEventListeners.clear();
     this.spineEventHandlers.clear();
     this.winAnimation = undefined;
-    if (this.spineAsset) this.spineAsset.atlas.image = undefined;
   }
 
   private static async loadSpineAsset(
     id: string,
     paths: NonNullable<IconAssetPaths['spine']>
   ): Promise<SpineIconAsset | undefined> {
-    let atlas: Atlas | undefined;
     try {
-      const [jsonResponse, atlasResponse] = await Promise.all([
-        fetch(paths.json),
-        fetch(paths.atlas)
-      ]);
-      if (!jsonResponse.ok || !atlasResponse.ok) {
-        throw new Error(`Spine files for icon "${id}" could not be loaded.`);
-      }
-
-      atlas = new Atlas(new AtlasParser().parse(await atlasResponse.text()));
-      const atlasUrl = new URL(paths.atlas, document.baseURI);
-      const imageUrl = new URL(atlas.pageName, atlasUrl).toString();
-      atlas.setPageImage(await this.loadImage(imageUrl));
-      const data = JSON.parse(await jsonResponse.text()) as SpineRecord;
-      return { atlas, data };
+      return await GameLoader.loadSpine(paths.json, paths.atlas);
     } catch (error) {
-      if (atlas) atlas.image = undefined;
       console.warn(`Unable to load the Spine animation for icon "${id}".`, error);
       return undefined;
     }
-  }
-
-  private static async loadImage(url: string): Promise<HTMLImageElement> {
-    const image = new Image();
-    image.src = url;
-    await image.decode();
-    return image;
   }
 }

@@ -1,4 +1,5 @@
 export { default as GameLoader } from './loader';
+export type { LoadedSpineAsset } from './loader';
 export { Atlas } from './atlas';
 export { AtlasAnimationCatalog } from './atlas-animation-catalog';
 export { AtlasParser } from './atlas-parser';

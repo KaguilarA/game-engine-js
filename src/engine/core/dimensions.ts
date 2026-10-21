@@ -29,18 +29,7 @@ import { computedValue, signalValue } from 'reactive-values';
  * ```
  */
 export default class Dimensions {
-  private assertFiniteNumber(value: number, name: string): void {
-    if (!Number.isFinite(value)) {
-      throw new RangeError(`${name} must be a finite number.`);
-    }
-  }
-
-  private assertNonNegativeDimension(value: number, name: string): void {
-    this.assertFiniteNumber(value, name);
-    if (value < 0) {
-      throw new RangeError(`${name} must be greater than or equal to zero.`);
-    }
-  }
+  
   /**
    * The unscaled horizontal position.
    *
@@ -346,6 +335,19 @@ export default class Dimensions {
     this.pivotY.set(pivotY);
 
     this.updateAspectRatio();
+  }
+
+  private assertFiniteNumber(value: number, name: string): void {
+    if (!Number.isFinite(value)) {
+      throw new RangeError(`${name} must be a finite number.`);
+    }
+  }
+
+  private assertNonNegativeDimension(value: number, name: string): void {
+    this.assertFiniteNumber(value, name);
+    if (value < 0) {
+      throw new RangeError(`${name} must be greater than or equal to zero.`);
+    }
   }
 
   /**

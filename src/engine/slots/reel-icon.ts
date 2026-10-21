@@ -13,6 +13,11 @@ export class ReelIcon implements Renderable {
   private readonly icon: SignalValue<ReelSymbolVisual | undefined> = signalValue<ReelSymbolVisual | undefined>(undefined);
   private readonly blurAmount: SignalValue<number> = signalValue(0);
   private readonly winning: SignalValue<boolean> = signalValue(false);
+  private readonly updatesVisual: boolean;
+
+  public constructor(updatesVisual = true) {
+    this.updatesVisual = updatesVisual;
+  }
 
   public setPresentation(
     icon: ReelSymbolVisual | undefined,
@@ -32,7 +37,7 @@ export class ReelIcon implements Renderable {
   }
 
   public update(deltaSeconds: number): void {
-    this.icon()?.update(deltaSeconds, this.winning());
+    if (this.updatesVisual) this.icon()?.update(deltaSeconds, this.winning());
   }
 
   public draw(): void {

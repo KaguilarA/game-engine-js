@@ -11,7 +11,7 @@ import { Label } from '../../engine/ui/label';
 import { Texture } from '../../engine/rendering/texture';
 import { GameBackground } from '../../engine/rendering/background';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
-import { Reel, ReelAnimationProfile, ReelIcon } from '../../engine/slots';
+import { ReelBank } from '../../engine/slots';
 import { CosmicSymbolVisual } from './cosmic-symbol-visual';
 import type { CosmicSymbolAsset } from './interfaces/cosmic-symbol-asset';
 
@@ -25,7 +25,6 @@ const ALIEN_SYMBOLS = [
 ] as const;
 const ROW_COUNT = 3;
 const REEL_COUNT = 3;
-const REEL_OPTIONS = ReelAnimationProfile.createOptions(ROW_COUNT);
 
 /**
  * Three-reel arcade slot machine with credits, wagers, and animated payouts.
@@ -38,9 +37,7 @@ export class SlotMachineGame extends BaseGame {
    * @private
    * @readonly
    */
-  private readonly reels: Reel[];
-  private readonly reelIcons: ReelIcon[][];
-  private readonly symbolVisuals: CosmicSymbolVisual[][];
+  private readonly reelBank: ReelBank;
   /**
    * Tracks credits available for future wagers.
    * @property {SignalValue<number>} credits
@@ -62,6 +59,7 @@ export class SlotMachineGame extends BaseGame {
    * @readonly
    */
   private readonly spinning = signalValue(false);
+  private readonly stopRequested = signalValue(false);
   /**
    * Remembers the prior keyboard state so one press starts only one spin.
    * @property {SignalValue<boolean>} spaceWasPressed
@@ -126,23 +124,11 @@ export class SlotMachineGame extends BaseGame {
       image: GameLoader.getImage(symbol),
       idleAnimation: GameLoader.getAtlas(symbol).getAnimation('idle')
     }]));
-    this.reels = Array.from({ length: REEL_COUNT }, () => new Reel(
-      this.randomColumn(),
-      () => this.randomSymbol(),
-      REEL_OPTIONS
-    ));
-    this.symbolVisuals = this.reels.map(() => Array.from(
-      { length: ROW_COUNT + 2 },
-      () => new CosmicSymbolVisual(symbolAssets)
-    ));
-    this.reelIcons = this.reels.map((reel, reelIndex) => {
-      const icons = this.symbolVisuals[reelIndex].map((visual) => {
-        const icon = new ReelIcon();
-        icon.setPresentation(visual, 0, false);
-        reel.add(icon);
-        return icon;
-      });
-      return icons;
+    this.reelBank = new ReelBank({
+      reelCount: REEL_COUNT,
+      rowCount: ROW_COUNT,
+      randomSymbol: () => this.randomSymbol(),
+      createVisual: () => new CosmicSymbolVisual(symbolAssets)
     });
     const spinTexture = new Texture({}, 72, 72, 0, 0);
     this.spinButton = new Button(spinTexture, {
@@ -172,11 +158,12 @@ export class SlotMachineGame extends BaseGame {
     const spacePressed = GameEvents.isKeyPressed(' ');
     if (spacePressed && !this.spaceWasPressed()) this.spin();
     this.spaceWasPressed.set(spacePressed);
-    this.spinButton.setDisabled(this.credits() < this.bet);
-    this.spinButton.setBlocked(this.spinning());
-    this.reels.forEach((reel) => reel.update(deltaSeconds));
-    if (this.spinning() && this.reels.every((reel) => !reel.isActive())) {
+    this.spinButton.setDisabled(!this.spinning() && this.credits() < this.bet);
+    this.spinButton.setBlocked(false);
+    const settled = this.reelBank.update(deltaSeconds);
+    if (this.spinning() && settled) {
       this.spinning.set(false);
+      this.stopRequested.set(false);
       this.resolvePayout();
     }
   }
@@ -217,7 +204,7 @@ export class SlotMachineGame extends BaseGame {
       MathUtils.clamp(unit * 0.052, 20, 38), '#ffe27a', 'center', cabinetWidth * 0.9
     );
 
-    this.reels.forEach((reel, index) => {
+    this.reelBank.reels.forEach((reel, index) => {
       const x = reelStartX + index * (reelWidth + reelGap);
       GameContext.drawRect(x, reelY, reelWidth, reelHeight, '#11152a');
       GameContext.drawRect(x + 5, reelY + 5, reelWidth - 10, reelHeight - 10, '#f4f0ff');
@@ -230,8 +217,8 @@ export class SlotMachineGame extends BaseGame {
       reel.dimensions.setSize(innerWidth, innerHeight);
       reel.dimensions.setPivot(0, 0);
       const visibleIcons = reel.getVisibleSymbols().map((visible, visibleIndex) => {
-        const icon = this.reelIcons[index][visibleIndex];
-        const visual = this.symbolVisuals[index][visibleIndex];
+        const icon = this.reelBank.icons[index][visibleIndex];
+        const visual = this.reelBank.visuals[index][visibleIndex];
         const winning = this.winningSymbol() !== undefined
           && this.winningReels().has(index)
           && visible.symbol === ALIEN_SYMBOLS[this.winningSymbol()!];
@@ -250,11 +237,13 @@ export class SlotMachineGame extends BaseGame {
     this.creditsLabel.setStyle({ fontSize: Math.max(16, Math.min(unit * 0.034, 24)) });
     this.creditsLabel.dimensions.setPosition(centerX, cabinetY + cabinetHeight * 0.83);
     this.creditsLabel.dimensions.setWidth(cabinetWidth * 0.9);
+    this.creditsLabel.dimensions.setPivot(0.5, 0.5);
     this.creditsLabel.draw();
     this.messageLabel.setText(this.message());
     this.messageLabel.setStyle({ fontSize: Math.max(12, Math.min(unit * 0.025, 17)) });
     this.messageLabel.dimensions.setPosition(centerX, cabinetY + cabinetHeight * 0.9);
     this.messageLabel.dimensions.setWidth(cabinetWidth * 0.9);
+    this.messageLabel.dimensions.setPivot(0.5, 0.5);
     this.messageLabel.draw();
 
     const buttonSize = Math.max(56, Math.min(unit * 0.1, 72));
@@ -301,10 +290,11 @@ export class SlotMachineGame extends BaseGame {
   protected restartGame(): void {
     this.credits.set(100);
     this.spinning.set(false);
+    this.stopRequested.set(false);
     this.spaceWasPressed.set(false);
     this.message.set('MATCH SYMBOLS TO WIN');
     this.stopWinningAnimation();
-    this.reels.forEach((reel) => reel.reset(this.randomColumn()));
+    this.reelBank.reset();
   }
 
   /**
@@ -313,16 +303,21 @@ export class SlotMachineGame extends BaseGame {
    * @return {void}
    */
   private spin(): void {
-    if (this.spinning() || this.credits() < this.bet) return;
+    if (this.spinning()) {
+      if (!this.stopRequested()) {
+        this.stopRequested.set(true);
+        this.reelBank.requestFastStop();
+      }
+      return;
+    }
+    if (this.credits() < this.bet) return;
 
     this.credits.set(this.credits() - this.bet);
     this.spinning.set(true);
+    this.stopRequested.set(false);
     this.message.set('GOOD LUCK!');
     this.stopWinningAnimation();
-    this.reels.forEach((reel, index) => {
-      const plan = ReelAnimationProfile.getSpinPlan(index);
-      reel.startSpin(this.randomColumn(), plan.travelCells, plan.duration);
-    });
+    this.reelBank.startSpin();
   }
 
   /**
@@ -331,7 +326,7 @@ export class SlotMachineGame extends BaseGame {
    * @return {void}
    */
   private resolvePayout(): void {
-    const [first, second, third] = this.reels.map((reel) => (
+    const [first, second, third] = this.reelBank.reels.map((reel) => (
       ALIEN_SYMBOLS.indexOf(reel.symbols()[1] as typeof ALIEN_SYMBOLS[number])
     ));
     if (first === second && second === third) {
@@ -371,10 +366,6 @@ export class SlotMachineGame extends BaseGame {
   private stopWinningAnimation(): void {
     this.winningReels.set(new Set());
     this.winningSymbol.set(undefined);
-  }
-
-  private randomColumn(): string[] {
-    return Array.from({ length: ROW_COUNT }, () => this.randomSymbol());
   }
 
   private randomSymbol(): string {

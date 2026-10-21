@@ -19,6 +19,9 @@ export class Reel extends Container {
   private readonly startDistance: SignalValue<number> = signalValue(0);
   private readonly targetOffset: SignalValue<number> = signalValue(0);
   private readonly distanceCells: SignalValue<number> = signalValue(0);
+  private readonly fastStopElapsed: SignalValue<number> = signalValue(0);
+  private readonly fastStopStartDistance: SignalValue<number> = signalValue(0);
+  private readonly fastStopRequested: SignalValue<boolean> = signalValue(false);
   private readonly anticipationDuration: number;
   private readonly anticipationLiftCells: number;
   private readonly bounceDuration: number;
@@ -96,6 +99,21 @@ export class Reel extends Container {
     }
 
     if (this.phase() === 'spinning') {
+      if (this.fastStopRequested()) {
+        const stopDuration = 0.34;
+        const elapsed = this.fastStopElapsed() + deltaSeconds;
+        this.fastStopElapsed.set(elapsed);
+        const progress = Math.min(elapsed / stopDuration, 1);
+        const easedProgress = 1 - ((1 - progress) ** 3);
+        this.distanceCells.set(this.fastStopStartDistance()
+          + (this.targetOffset() - this.fastStopStartDistance()) * easedProgress);
+        if (progress >= 1) {
+          this.phase.set('bounce');
+          this.phaseElapsed.set(0);
+          this.fastStopRequested.set(false);
+        }
+        return;
+      }
       const duration = this.spinDuration();
       const progress = duration > 0 ? Math.min(this.phaseElapsed() / duration, 1) : 1;
       this.distanceCells.set(this.startDistance()
@@ -114,6 +132,19 @@ export class Reel extends Container {
       this.symbols.set(this.target());
       this.distanceCells.set(this.targetOffset());
     }
+  }
+
+  /** Brakes the current reel to its already selected result as soon as possible. */
+  public requestFastStop(): void {
+    if (!this.isActive() || this.phase() === 'bounce' || this.fastStopRequested()) return;
+    if (this.phase() === 'anticipation') {
+      this.phase.set('spinning');
+      this.phaseElapsed.set(0);
+      this.distanceCells.set(this.startDistance() + this.anticipationLiftCells);
+    }
+    this.fastStopStartDistance.set(this.distanceCells());
+    this.fastStopElapsed.set(0);
+    this.fastStopRequested.set(true);
   }
 
   /** Returns all symbols currently crossing the clipped reel window. */
@@ -177,6 +208,8 @@ export class Reel extends Container {
     this.startDistance.set(0);
     this.targetOffset.set(0);
     this.distanceCells.set(0);
+    this.fastStopElapsed.set(0);
+    this.fastStopRequested.set(false);
     this.spinStrip.set([]);
   }
 

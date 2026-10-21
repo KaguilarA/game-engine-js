@@ -9,18 +9,12 @@ import { MathUtils } from './math-utils';
  */
 export class Health {
   /**
-   * Stores the maximum state.
-   * @property {number} maximum
-   * @public
-   * @readonly
-   */
-  public readonly maximum: number;
-  /**
    * Stores the current health state.
    * @property {number} currentHealth
    * @private
    */
   private readonly currentHealth: SignalValue<number>;
+
   /**
    * Derives whether the health pool has reached zero from the current hit points.
    * @property {ComputedValue<boolean>} depleted
@@ -28,6 +22,14 @@ export class Health {
    * @readonly
    */
   private readonly depleted: ComputedValue<boolean>;
+
+  /**
+   * Stores the maximum state.
+   * @property {number} maximum
+   * @public
+   * @readonly
+   */
+  public readonly maximum: number;
 
   /**
    * Returns the current hit points.

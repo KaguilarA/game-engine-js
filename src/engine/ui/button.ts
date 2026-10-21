@@ -43,7 +43,8 @@ export class Button {
     this.removeListeners = [
       GameEvents.addPointerDownListener(this.handlePointerDown),
       GameEvents.addPointerMoveListener(this.handlePointerMove),
-      GameEvents.addPointerEndListener(this.handlePointerEnd)
+      GameEvents.addPointerEndListener(this.handlePointerEnd),
+      GameEvents.addPointerTarget((pointer) => !this.disabled() && !this.blocked() && this.contains(pointer))
     ];
   }
 
