@@ -12,6 +12,7 @@ import { TankFrontierGame } from './tank-frontier';
 import { SlotMachineGame } from './slot-machine/game';
 import { ShootEmAllGame } from './shoot-em-all/game';
 import { MusketeersSlotGame } from './musketeers-slot/game';
+import { ScratchCardGame } from './scratch-card/game';
 
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 import type { GameChoice } from './interfaces/game-choice';
@@ -63,12 +64,16 @@ export class GameSelector {
       title: 'SHOOT ’EM ALL',
       description: 'SURVIVE THE INVASION',
       start: (onReturnToMenu) => { new ShootEmAllGame(onReturnToMenu); }
+    },
+    {
+      title: 'LUCKY SCRATCH',
+      description: 'SCRATCH THE CARD AND MATCH 3',
+      start: (onReturnToMenu) => { new ScratchCardGame(onReturnToMenu); }
     }
   ];
   private choiceButtons: Button[] = [];
   private readonly titleLabel = new Label('ARCADE FRONTIER', { align: 'center', baseline: 'middle', color: '#ffffff' });
   private readonly subtitleLabel = new Label('SELECT A MISSION', { align: 'center', baseline: 'middle', color: '#b6c5ff' });
-  private readonly footerLabel = new Label('ARROWS / WASD SELECT   ENTER / SPACE START', { align: 'center', baseline: 'middle', color: '#ffffff' });
   private readonly choiceTitleLabels = this.choices.map((choice) => new Label(choice.title, { align: 'center', baseline: 'middle' }));
   private readonly choiceDescriptionLabels = this.choices.map((choice) => new Label(choice.description, { align: 'center', baseline: 'middle', color: '#ffffff' }));
   /**
@@ -206,9 +211,6 @@ export class GameSelector {
         index
       );
     });
-    this.layoutLabel(this.footerLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.94,
-      dimensions.getWidth() * 0.9, 22, Math.max(10, Math.min(GameContext.viewportUnit() * 0.02, 14)));
-    this.footerLabel.draw();
   }
 
   /**
