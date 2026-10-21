@@ -9,4 +9,7 @@ export interface ContainerOptions {
   pivotY?: number;
   opacity?: number;
   clipChildren?: boolean;
+  scrollable?: boolean;
+  scrollY?: number;
+  wheelSensitivity?: number;
 }

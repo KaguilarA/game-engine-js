@@ -3,6 +3,7 @@ import GameContext from '../core/context';
 import type { GamePointer } from '../interfaces/game-pointer';
 
 type PointerListener = (pointer: GamePointer) => void;
+type WheelListener = (pointer: GamePointer, deltaY: number) => boolean;
 
 /**
  * Tracks keyboard and touch-pointer input as normalized key states.
@@ -45,6 +46,7 @@ class Events {
    * @readonly
    */
   private readonly pointerEndListeners = new Set<PointerListener>();
+  private readonly wheelListeners = new Set<WheelListener>();
   /**
    * Canvas currently used for pointer input.
    * @property {HTMLCanvasElement | undefined} pointerCanvas
@@ -92,6 +94,16 @@ class Events {
   private readonly onPointerEnd = (event: PointerEvent): void => {
     const pointer = this.getGamePointer(event);
     this.pointerEndListeners.forEach((listener) => listener(pointer));
+  };
+  private readonly onWheel = (event: WheelEvent): void => {
+    const pointer = this.getGamePointer(event);
+    const multiplier = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? GameContext.gameDimensionsModel.getHeight() : 1;
+    const deltaY = event.deltaY * multiplier;
+    let handled = false;
+    this.wheelListeners.forEach((listener) => { handled = listener(pointer, deltaY) || handled; });
+    if (handled) event.preventDefault();
   };
 
   /**
@@ -171,6 +183,7 @@ class Events {
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerEnd);
     canvas.addEventListener('pointercancel', this.onPointerEnd);
+    canvas.addEventListener('wheel', this.onWheel, { passive: false });
   }
 
   /**
@@ -253,12 +266,18 @@ class Events {
     return () => this.pointerEndListeners.delete(listener);
   }
 
+  /** Subscribes to wheel input normalized to game-canvas coordinates. */
+  public addWheelListener(listener: WheelListener): () => void {
+    this.wheelListeners.add(listener);
+    return () => this.wheelListeners.delete(listener);
+  }
+
   /**
    * Maps one browser event to the current logical canvas coordinate space.
    * @private
    * @return {GamePointer} The pointer in logical game coordinates.
    */
-  private getGamePointer(event: PointerEvent): GamePointer {
+  private getGamePointer(event: Pick<MouseEvent, 'clientX' | 'clientY'> & { pointerId?: number }): GamePointer {
     const canvas = this.pointerCanvas;
     if (canvas === undefined) {
       throw new Error('Pointer input has not been initialized.');
@@ -269,7 +288,7 @@ class Events {
     const clientWidth = bounds.width > 0 ? bounds.width : dimensions.getWidth();
     const clientHeight = bounds.height > 0 ? bounds.height : dimensions.getHeight();
     return {
-      id: event.pointerId,
+      id: event.pointerId ?? 0,
       x: (event.clientX - bounds.left) * dimensions.getWidth() / clientWidth,
       y: (event.clientY - bounds.top) * dimensions.getHeight() / clientHeight
     };
@@ -286,6 +305,7 @@ class Events {
     this.pointerCanvas.removeEventListener('pointermove', this.onPointerMove);
     this.pointerCanvas.removeEventListener('pointerup', this.onPointerEnd);
     this.pointerCanvas.removeEventListener('pointercancel', this.onPointerEnd);
+    this.pointerCanvas.removeEventListener('wheel', this.onWheel);
     this.pointerCanvas = undefined;
   }
 

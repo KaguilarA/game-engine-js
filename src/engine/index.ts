@@ -6,4 +6,5 @@ export * from './entities';
 export * from './animations';
 export * from './ui';
 export * from './scene';
+export * from './slots';
 export type * from './interfaces';

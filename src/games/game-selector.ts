@@ -6,6 +6,7 @@ import GameLoader from '../engine/assets/loader';
 import { Button } from '../engine/ui/button';
 import { Label } from '../engine/ui/label';
 import { Texture } from '../engine/rendering/texture';
+import { GameBackground } from '../engine/rendering/background';
 import { Game as SpaceHuntersGame } from './space-hunters/game';
 import { SpacePatternsGame } from './space-patterns/game';
 import { TankFrontierGame } from './tank-frontier';
@@ -17,6 +18,9 @@ import { ScratchCardGame } from './scratch-card/game';
 import { PolarityVanguardGame } from './polarity-vanguard/game';
 import type { GameChoice } from './interfaces/game-choice';
 import { signalValue } from 'reactive-values';
+import { Container } from '../engine/scene/container';
+import { PachinkoGame } from './pachinko/game';
+import { PinballGame } from './pinball/game';
 
 /**
  * Presents the game list and starts the selected game.
@@ -69,8 +73,19 @@ export class GameSelector {
       title: 'LUCKY SCRATCH',
       description: 'SCRATCH THE CARD AND MATCH 3',
       start: (onReturnToMenu) => { new ScratchCardGame(onReturnToMenu); }
+    },
+    {
+      title: 'PACHINKO KENO',
+      description: 'DROP THE BALL, HIT THE MULTIPLIERS',
+      start: (onReturnToMenu) => { new PachinkoGame(onReturnToMenu); }
+    },
+    {
+      title: 'PINBALL',
+      description: 'FLIP, BUMP, AND KEEP THE BALL ALIVE',
+      start: (onReturnToMenu) => { new PinballGame(onReturnToMenu); }
     }
   ];
+  private readonly choicesContainer = new Container({ width: 0, height: 0, clipChildren: true, scrollable: true });
   private choiceButtons: Button[] = [];
   private readonly titleLabel = new Label('ARCADE FRONTIER', { align: 'center', baseline: 'middle', color: '#ffffff' });
   private readonly subtitleLabel = new Label('SELECT A MISSION', { align: 'center', baseline: 'middle', color: '#b6c5ff' });
@@ -82,6 +97,7 @@ export class GameSelector {
    * @private
    */
   private readonly selectedIndexState = signalValue(0);
+  private readonly selectionNeedsVisibility = signalValue(true);
   private get selectedIndex(): number { return this.selectedIndexState(); }
   private set selectedIndex(value: number) { this.selectedIndexState.set(value); }
   /**
@@ -144,7 +160,8 @@ export class GameSelector {
    * @private
    * @return {void}
    */
-  private update(_: number): void {
+  private update(deltaSeconds: number): void {
+    this.choicesContainer.update(deltaSeconds);
     const directionPressed = (
       GameEvents.isKeyPressed('ArrowUp')
       || GameEvents.isKeyPressed('ArrowDown')
@@ -154,9 +171,8 @@ export class GameSelector {
 
     if (directionPressed && !this.directionWasPressed) {
       this.selectedIndex = (this.selectedIndex + 1) % this.choices.length;
+      this.selectionNeedsVisibility.set(true);
     }
-    const hoveredIndex = this.choiceButtons.findIndex((button) => button.state() === 'hover');
-    if (hoveredIndex >= 0) this.selectedIndex = hoveredIndex;
 
     this.directionWasPressed = directionPressed;
 
@@ -176,22 +192,9 @@ export class GameSelector {
   private draw(): void {
     const dimensions = GameContext.gameDimensionsModel;
     GameContext.clear();
-    GameContext.drawImage(
-      GameLoader.getImage(
-        GameContext.isPortrait
-          ? 'background1080x1920'
-          : 'background1920x1080'
-      ),
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight()
-    );
-    GameContext.drawRect(
-      0,
-      0,
-      dimensions.getWidth(),
-      dimensions.getHeight(),
+    GameBackground.draw(
+      GameLoader.getImage('background1080x1920'),
+      GameLoader.getImage('background1920x1080'),
       'rgba(18, 18, 34, 0.76)'
     );
     this.layoutLabel(this.titleLabel, dimensions.getWidth() * 0.5, dimensions.getHeight() * 0.12,
@@ -202,15 +205,28 @@ export class GameSelector {
       dimensions.getWidth() * 0.85, 24, Math.max(12, Math.min(GameContext.viewportUnit() * 0.024, 16)));
     this.subtitleLabel.draw();
 
-    this.choices.forEach((choice, index) => {
-      this.drawChoice(
-        choice.title,
-        choice.description,
-        this.getChoiceY(index),
-        this.selectedIndex === index,
-        index
-      );
-    });
+    const listWidth = this.getChoiceWidth();
+    const scrollGutter = 14;
+    const listViewportTop = dimensions.getHeight() * 0.23;
+    const listViewportHeight = dimensions.getHeight() * 0.68;
+    this.choicesContainer.dimensions.setPosition(
+      Math.max(0, (dimensions.getWidth() - listWidth) * 0.5),
+      listViewportTop
+    );
+    this.choicesContainer.dimensions.setSize(listWidth + scrollGutter, listViewportHeight);
+    if (this.selectionNeedsVisibility()) {
+      const selectedY = this.getChoiceY(this.selectedIndex);
+      const cardHeight = this.getChoiceHeight();
+      let scrollY = this.choicesContainer.scrollY();
+      if (selectedY - cardHeight * 0.5 - scrollY < 0) {
+        scrollY = selectedY - cardHeight * 0.5;
+      } else if (selectedY + cardHeight * 0.5 - scrollY > listViewportHeight) {
+        scrollY = selectedY + cardHeight * 0.5 - listViewportHeight;
+      }
+      this.choicesContainer.setScrollY(scrollY);
+      this.selectionNeedsVisibility.set(false);
+    }
+    this.choicesContainer.draw();
   }
 
   /**
@@ -220,8 +236,13 @@ export class GameSelector {
    */
   private getChoiceHeight(): number {
     const dimensions = GameContext.gameDimensionsModel;
-    const availableHeight = dimensions.getHeight() * 0.48;
-    return Math.max(36, Math.min(availableHeight / 4.5, 54));
+    const availableHeight = dimensions.getHeight() * 0.56;
+    return Math.max(34, Math.min(availableHeight / 6.5, 54));
+  }
+
+  private getChoiceWidth(): number {
+    const dimensions = GameContext.gameDimensionsModel;
+    return Math.min(460, dimensions.getWidth() * 0.8);
   }
 
   /**
@@ -230,12 +251,9 @@ export class GameSelector {
    * @return {number}
    */
   private getChoiceY(index: number): number {
-    const dimensions = GameContext.gameDimensionsModel;
     const choiceHeight = this.getChoiceHeight();
     const gap = Math.max(6, Math.min(choiceHeight * 0.2, 12));
-    const totalHeight = this.choices.length * choiceHeight + (this.choices.length - 1) * gap;
-    const startY = dimensions.getHeight() * 0.26 + (dimensions.getHeight() * 0.6 - totalHeight) * 0.5;
-    return startY + index * (choiceHeight + gap) + choiceHeight * 0.5;
+    return choiceHeight * 0.5 + index * (choiceHeight + gap);
   }
 
   /**
@@ -250,13 +268,16 @@ export class GameSelector {
     selected: boolean,
     index: number
   ): void {
-    const dimensions = GameContext.gameDimensionsModel;
-    const width = Math.min(460, dimensions.getWidth() * 0.8);
-    const x = (dimensions.getWidth() - width) * 0.5;
+    const width = this.getChoiceWidth();
+    const centerX = width * 0.5;
+    const x = 0;
     const height = this.getChoiceHeight();
     const color = selected ? '#426ea8' : '#242c42';
     const button = this.choiceButtons[index];
-    button?.dimensions.setPosition(dimensions.getWidth() * 0.5, y);
+    button?.dimensions.setPosition(
+      this.choicesContainer.dimensions.left() + centerX,
+      this.choicesContainer.dimensions.top() + y - this.choicesContainer.scrollY()
+    );
     button?.dimensions.setSize(width, height);
     button?.dimensions.setPivot(0.5, 0.5);
 
@@ -266,13 +287,13 @@ export class GameSelector {
     }
     const titleLabel = this.choiceTitleLabels[index];
     titleLabel.setText(title);
-    this.layoutLabel(titleLabel, dimensions.getWidth() * 0.5, y - height * 0.08,
+    this.layoutLabel(titleLabel, centerX, y - height * 0.08,
       width - 24, height * 0.48, Math.max(13, Math.min(height * 0.32, 18)));
     titleLabel.setStyle({ color: selected ? '#ffffff' : '#b6c5ff' });
     titleLabel.draw();
     const descriptionLabel = this.choiceDescriptionLabels[index];
     descriptionLabel.setText(description);
-    this.layoutLabel(descriptionLabel, dimensions.getWidth() * 0.5, title ? y + height * 0.28 : y,
+    this.layoutLabel(descriptionLabel, centerX, title ? y + height * 0.28 : y,
       width - 24, height * 0.38, Math.max(10, Math.min(height * 0.22, 13)));
     descriptionLabel.draw();
   }
@@ -292,6 +313,7 @@ export class GameSelector {
    */
 
   private createChoiceButtons(): void {
+    this.choicesContainer.clear();
     this.choiceButtons = this.choices.map((_, index) => new Button(new Texture({}, 0, 0), {
       onClick: () => {
         if (this.started) return;
@@ -299,6 +321,18 @@ export class GameSelector {
         this.startSelectedGame();
       }
     }));
+    this.choices.forEach((choice, index) => {
+      this.choicesContainer.add({
+        dimensions: this.choiceButtons[index].dimensions,
+        draw: () => this.drawChoice(
+          choice.title,
+          choice.description,
+          this.getChoiceY(index),
+          this.selectedIndex === index || this.choiceButtons[index].state() === 'hover',
+          index
+        )
+      });
+    });
   }
 
   /**
@@ -312,6 +346,7 @@ export class GameSelector {
     this.started = true;
     this.choiceButtons.forEach((button) => button.destroy());
     this.choiceButtons = [];
+    this.choicesContainer.visible.set(false);
     this.controls.dispose();
 
     this.choices[this.selectedIndex].start(this.returnToMenu);
@@ -326,6 +361,9 @@ export class GameSelector {
   private readonly returnToMenu = (): void => {
     this.started = false;
     this.lastFrameTime = performance.now();
+    this.choicesContainer.visible.set(true);
+    this.choicesContainer.setScrollY(0);
+    this.selectionNeedsVisibility.set(true);
     this.controls = new GameControls(() => {});
     this.createChoiceButtons();
     this.gameLoop();

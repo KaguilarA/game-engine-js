@@ -23,6 +23,8 @@ export class Button {
   private readonly disabled = signalValue(false);
   private readonly pressedPointer = signalValue<number | undefined>(undefined);
   private readonly pressActive = signalValue(false);
+  private readonly pressOrigin = signalValue<{ x: number; y: number } | undefined>(undefined);
+  private readonly pressMoved = signalValue(false);
 
   public constructor(texture: Texture, options: ButtonOptions) {
     this.texture = texture;
@@ -70,6 +72,8 @@ export class Button {
     this.hovered.set(this.contains(pointer));
     if (!this.hovered() || this.disabled() || this.blocked()) return;
     this.pressedPointer.set(pointer.id);
+    this.pressOrigin.set({ x: pointer.x, y: pointer.y });
+    this.pressMoved.set(false);
     this.pressActive.set(true);
     this.onPress?.(pointer.id);
     this.syncState();
@@ -78,10 +82,16 @@ export class Button {
   private readonly handlePointerMove = (pointer: GamePointer): void => {
     if (this.pressedPointer() !== undefined && this.pressedPointer() !== pointer.id) return;
     const inside = this.contains(pointer);
+    const origin = this.pressOrigin();
+    if (this.pressedPointer() === pointer.id && origin !== undefined
+      && Math.hypot(pointer.x - origin.x, pointer.y - origin.y) >= 6) {
+      this.pressMoved.set(true);
+    }
+    const pressInside = inside && !this.pressMoved();
     this.hovered.set(inside);
-    if (this.pressedPointer() === pointer.id && this.pressActive() !== inside) {
-      this.pressActive.set(inside);
-      if (inside) this.onPress?.(pointer.id);
+    if (this.pressedPointer() === pointer.id && this.pressActive() !== pressInside) {
+      this.pressActive.set(pressInside);
+      if (pressInside) this.onPress?.(pointer.id);
       else this.onRelease?.(pointer.id);
     }
     this.syncState();
@@ -93,7 +103,7 @@ export class Button {
       this.syncState();
       return;
     }
-    const activate = this.contains(pointer) && !this.disabled() && !this.blocked();
+    const activate = this.contains(pointer) && !this.pressMoved() && !this.disabled() && !this.blocked();
     this.cancelPress();
     this.pressedPointer.set(undefined);
     this.hovered.set(this.contains(pointer));
@@ -119,6 +129,8 @@ export class Button {
     if (pointerId !== undefined && this.pressActive()) this.onRelease?.(pointerId);
     this.pressActive.set(false);
     this.pressedPointer.set(undefined);
+    this.pressOrigin.set(undefined);
+    this.pressMoved.set(false);
   }
 
   private syncState(): void {

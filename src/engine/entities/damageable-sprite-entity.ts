@@ -1,6 +1,7 @@
 import { signalValue } from 'reactive-values';
 
 import { Health } from '../core/health';
+import { Collision2D } from '../core/collision2d';
 import Sprite from '../animations/sprites/sprite';
 import { SpriteEntity } from './sprite-entity';
 
@@ -53,10 +54,11 @@ export class DamageableSpriteEntity extends SpriteEntity {
   public hit(x: number, y: number, width: number, height: number): boolean {
     if (!this.isAlive || this.health.isDepleted) return false;
 
-    const intersects = x < this.dimensions.right()
-      && x + width > this.dimensions.left()
-      && y < this.dimensions.bottom()
-      && y + height > this.dimensions.top();
+    const intersects = Collision2D.overlapsRectangles(
+      x, y, width, height,
+      this.dimensions.left(), this.dimensions.top(),
+      this.dimensions.getWidth(), this.dimensions.getHeight()
+    );
     if (!intersects) return false;
 
     const damage = this.health.receiveDamage();
