@@ -8,7 +8,7 @@ export interface LoadedSpineAsset {
 }
 
 const imageModules = import.meta.glob<string>(
-  '../../assets/*.{png,jpg,jpeg,webp,gif,svg}',
+  '../../assets/images/**/*.{png,jpg,jpeg,webp,gif,svg}',
   {
     eager: false,
     import: 'default',
@@ -16,24 +16,35 @@ const imageModules = import.meta.glob<string>(
   }
 );
 
-const audioModules = import.meta.glob<string>('../../assets/*.mp3', {
+const animationImageModules = import.meta.glob<string>(
+  '../../assets/animations/**/*.{png,jpg,jpeg,webp,gif,svg}',
+  {
+    eager: false,
+    import: 'default',
+    query: '?url'
+  }
+);
+
+const audioModules = import.meta.glob<string>('../../assets/sounds/**/*.{mp3,wav,ogg}', {
   eager: false,
   import: 'default',
   query: '?url'
 });
 
-const atlasModules = import.meta.glob<string>('../../assets/*.atlas', {
+const atlasModules = import.meta.glob<string>('../../assets/animations/**/*.atlas', {
   eager: true,
   import: 'default',
   query: '?raw'
 });
 
 /**
- * Preloads and provides image and audio assets bundled by Vite.
+ * Preloads and provides images, audio, and animation atlases bundled by Vite.
  *
  * @remarks
- * Asset names are their filenames without extensions. For example,
- * `src/assets/player.png` is available as `player`.
+ * Assets are discovered recursively under `src/assets/images`,
+ * `src/assets/sounds`, and `src/assets/animations`. Animation folders keep each
+ * atlas next to its page image. Existing filename-only lookups remain available;
+ * namespaced lookups such as `animations/player/player` are also supported.
  * @class Loader
  */
 class Loader {
@@ -44,6 +55,7 @@ class Loader {
    * @readonly
    */
   private readonly images = new Map<string, HTMLImageElement>();
+  private readonly imageAliases = new Map<string, string | undefined>();
   /**
    * Parsed Spine-format atlases keyed by their PNG asset name.
    * @property {Map<string, Atlas>} atlases
@@ -51,6 +63,7 @@ class Loader {
    * @readonly
    */
   private readonly atlases = new Map<string, Atlas>();
+  private readonly atlasAliases = new Map<string, string | undefined>();
   /**
    * Stores the audios state.
    * @property {Map<string, HTMLAudioElement>} audios
@@ -58,6 +71,7 @@ class Loader {
    * @readonly
    */
   private readonly audios = new Map<string, HTMLAudioElement>();
+  private readonly audioAliases = new Map<string, string | undefined>();
   private readonly imageRequests = new Map<string, Promise<HTMLImageElement>>();
   private readonly jsonRequests = new Map<string, Promise<unknown>>();
   private readonly atlasRequests = new Map<string, Promise<Atlas>>();
@@ -69,7 +83,7 @@ class Loader {
   private loading: Promise<void> | undefined;
 
   /**
-   * Loads every supported image and MP3 audio asset in `src/assets`.
+   * Loads every supported image, atlas, and MP3/WAV/OGG asset in `src/assets`.
    *
    * Concurrent calls share the same pending operation. A failed image rejects
    * the returned promise with its asset name and URL.
@@ -97,7 +111,7 @@ class Loader {
    * @throws {Error} When the requested image has not been loaded.
    */
   public getImage(name: string): HTMLImageElement {
-    const image = this.images.get(name);
+    const image = this.images.get(this.resolveAssetKey(name, this.images, this.imageAliases));
 
     if (!image) {
       throw new Error(`Image asset "${name}" has not been loaded.`);
@@ -113,7 +127,7 @@ class Loader {
    * @returns `true` when the image has been loaded successfully.
    */
   public hasImage(name: string): boolean {
-    return this.images.has(name);
+    return this.images.has(this.resolveAssetKey(name, this.images, this.imageAliases));
   }
 
   /** Loads and caches an image from any URL, sharing concurrent requests. */
@@ -182,7 +196,7 @@ class Loader {
    * @return {Atlas}
    */
   public getAtlas(name: string): Atlas {
-    const atlas = this.atlases.get(name);
+    const atlas = this.atlases.get(this.resolveAssetKey(name, this.atlases, this.atlasAliases));
     if (!atlas) {
       throw new Error(`Sprite atlas "${name}.atlas" has not been loaded.`);
     }
@@ -198,7 +212,7 @@ class Loader {
    * @throws {Error} When the requested audio has not been loaded.
    */
   public getAudio(name: string): HTMLAudioElement {
-    const audio = this.audios.get(name);
+    const audio = this.audios.get(this.resolveAssetKey(name, this.audios, this.audioAliases));
 
     if (!audio) {
       throw new Error(`Audio asset "${name}" has not been loaded.`);
@@ -214,7 +228,7 @@ class Loader {
    * @returns `true` when the audio has been loaded successfully.
    */
   public hasAudio(name: string): boolean {
-    return this.audios.has(name);
+    return this.audios.has(this.resolveAssetKey(name, this.audios, this.audioAliases));
   }
 
   /**
@@ -240,11 +254,12 @@ class Loader {
 
   private async loadImages(): Promise<void> {
     await Promise.all(
-      Object.entries(imageModules).map(async ([path, loadUrl]) => {
+      Object.entries({ ...imageModules, ...animationImageModules }).map(async ([path, loadUrl]) => {
         const url = await loadUrl();
-        const name = this.getAssetName(path);
+        const name = this.getAssetKey(path);
 
         await this.preloadImage(name, url);
+        this.registerAlias(name, this.getAssetName(name), this.imageAliases);
       })
     );
   }
@@ -253,9 +268,10 @@ class Loader {
     await Promise.all(
       Object.entries(audioModules).map(async ([path, loadUrl]) => {
         const url = await loadUrl();
-        const name = this.getAssetName(path);
+        const name = this.getAssetKey(path);
 
         await this.loadAudio(name, url);
+        this.registerAlias(name, this.getAssetName(name), this.audioAliases);
       })
     );
   }
@@ -267,16 +283,31 @@ class Loader {
    */
   private async loadAtlases(): Promise<void> {
     Object.entries(atlasModules).forEach(([path, text]) => {
-      const name = this.getAssetName(path);
+      const name = this.getAssetKey(path);
       const atlas = new Atlas(new AtlasParser().parse(text));
-      if (atlas.pageName !== `${name}.png`) {
+      const expectedPageName = `${this.getAssetName(name)}.png`;
+      if (atlas.pageName !== expectedPageName) {
         throw new Error(
-          `Atlas "${name}.atlas" references "${atlas.pageName}" instead of "${name}.png".`
+          `Atlas "${name}.atlas" references "${atlas.pageName}" instead of "${expectedPageName}".`
         );
       }
 
       this.atlases.set(name, atlas);
+      this.registerAlias(name, this.getAssetName(name), this.atlasAliases);
     });
+  }
+
+  private getAssetKey(path: string): string {
+    const normalizedPath = path.replaceAll('\\', '/');
+    const assetsIndex = normalizedPath.lastIndexOf('/assets/');
+    const relativePath = assetsIndex >= 0
+      ? normalizedPath.slice(assetsIndex + '/assets/'.length)
+      : normalizedPath;
+    const extensionIndex = relativePath.lastIndexOf('.');
+    if (extensionIndex <= 0) {
+      throw new Error(`Asset "${path}" must have a filename extension.`);
+    }
+    return relativePath.slice(0, extensionIndex);
   }
 
   private getAssetName(path: string): string {
@@ -293,6 +324,24 @@ class Loader {
     }
 
     return filename.slice(0, extensionIndex);
+  }
+
+  private registerAlias(key: string, alias: string, aliases: Map<string, string | undefined>): void {
+    if (key === alias) return;
+    if (!aliases.has(alias)) {
+      aliases.set(alias, key);
+      return;
+    }
+    if (aliases.get(alias) !== key) aliases.set(alias, undefined);
+  }
+
+  private resolveAssetKey<T>(
+    name: string,
+    assets: Map<string, T>,
+    aliases: Map<string, string | undefined>
+  ): string {
+    if (assets.has(name)) return name;
+    return aliases.get(name) ?? name;
   }
 
   private preloadImage(name: string, url: string): Promise<void> {
