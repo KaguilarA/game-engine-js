@@ -259,7 +259,7 @@ class Loader {
         const name = this.getAssetKey(path);
 
         await this.preloadImage(name, url);
-        this.registerAlias(name, this.getAssetName(name), this.imageAliases);
+        this.registerAlias(name, this.getAssetAlias(name), this.imageAliases);
       })
     );
   }
@@ -271,7 +271,7 @@ class Loader {
         const name = this.getAssetKey(path);
 
         await this.loadAudio(name, url);
-        this.registerAlias(name, this.getAssetName(name), this.audioAliases);
+        this.registerAlias(name, this.getAssetAlias(name), this.audioAliases);
       })
     );
   }
@@ -284,8 +284,9 @@ class Loader {
   private async loadAtlases(): Promise<void> {
     Object.entries(atlasModules).forEach(([path, text]) => {
       const name = this.getAssetKey(path);
+      const assetName = this.getAssetAlias(name);
       const atlas = new Atlas(new AtlasParser().parse(text));
-      const expectedPageName = `${this.getAssetName(name)}.png`;
+      const expectedPageName = `${assetName}.png`;
       if (atlas.pageName !== expectedPageName) {
         throw new Error(
           `Atlas "${name}.atlas" references "${atlas.pageName}" instead of "${expectedPageName}".`
@@ -293,7 +294,7 @@ class Loader {
       }
 
       this.atlases.set(name, atlas);
-      this.registerAlias(name, this.getAssetName(name), this.atlasAliases);
+      this.registerAlias(name, assetName, this.atlasAliases);
     });
   }
 
@@ -310,20 +311,13 @@ class Loader {
     return relativePath.slice(0, extensionIndex);
   }
 
-  private getAssetName(path: string): string {
-    const filename = path.split('/').at(-1);
+  private getAssetAlias(key: string): string {
+    const filename = key.split('/').at(-1);
 
     if (!filename) {
-      throw new Error(`Unable to determine an asset name from "${path}".`);
+      throw new Error(`Unable to determine an asset name from "${key}".`);
     }
-
-    const extensionIndex = filename.lastIndexOf('.');
-
-    if (extensionIndex <= 0) {
-      throw new Error(`Asset "${path}" must have a filename extension.`);
-    }
-
-    return filename.slice(0, extensionIndex);
+    return filename;
   }
 
   private registerAlias(key: string, alias: string, aliases: Map<string, string | undefined>): void {

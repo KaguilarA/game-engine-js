@@ -1,0 +1,2034 @@
+meadow-hero.png
+  size: 406, 1507
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+state-r00-c00
+  index: 0
+  bounds: 0, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c01
+  index: 0
+  bounds: 40, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c02
+  index: 0
+  bounds: 80, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c03
+  index: 0
+  bounds: 120, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c04
+  index: 0
+  bounds: 160, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c05
+  index: 0
+  bounds: 200, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c06
+  index: 0
+  bounds: 240, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r00-c07
+  index: 0
+  bounds: 280, 0, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c00
+  index: 0
+  bounds: 0, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c01
+  index: 0
+  bounds: 40, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c02
+  index: 0
+  bounds: 80, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c03
+  index: 0
+  bounds: 120, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c04
+  index: 0
+  bounds: 160, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c05
+  index: 0
+  bounds: 200, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c06
+  index: 0
+  bounds: 240, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r01-c07
+  index: 0
+  bounds: 280, 40, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c01
+  index: 0
+  bounds: 40, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c03
+  index: 0
+  bounds: 120, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c04
+  index: 0
+  bounds: 160, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c05
+  index: 0
+  bounds: 200, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c06
+  index: 0
+  bounds: 240, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r02-c08
+  index: 0
+  bounds: 320, 80, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c00
+  index: 0
+  bounds: 0, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c01
+  index: 0
+  bounds: 40, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c02
+  index: 0
+  bounds: 80, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c03
+  index: 0
+  bounds: 120, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c04
+  index: 0
+  bounds: 160, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c05
+  index: 0
+  bounds: 200, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c06
+  index: 0
+  bounds: 240, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c07
+  index: 0
+  bounds: 280, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c08
+  index: 0
+  bounds: 320, 120, 40, 40
+  fps: 1
+  loop: false
+
+state-r03-c09
+  index: 0
+  bounds: 360, 120, 46, 40
+  fps: 1
+  loop: false
+
+state-r04-c00
+  index: 0
+  bounds: 0, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c01
+  index: 0
+  bounds: 40, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c03
+  index: 0
+  bounds: 120, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c04
+  index: 0
+  bounds: 160, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c05
+  index: 0
+  bounds: 200, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c06
+  index: 0
+  bounds: 240, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c08
+  index: 0
+  bounds: 320, 160, 40, 40
+  fps: 1
+  loop: false
+
+state-r04-c09
+  index: 0
+  bounds: 360, 160, 46, 40
+  fps: 1
+  loop: false
+
+state-r05-c00
+  index: 0
+  bounds: 0, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c01
+  index: 0
+  bounds: 40, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c02
+  index: 0
+  bounds: 80, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c03
+  index: 0
+  bounds: 120, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c04
+  index: 0
+  bounds: 160, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c05
+  index: 0
+  bounds: 200, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c06
+  index: 0
+  bounds: 240, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c07
+  index: 0
+  bounds: 280, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c08
+  index: 0
+  bounds: 320, 200, 40, 40
+  fps: 1
+  loop: false
+
+state-r05-c09
+  index: 0
+  bounds: 360, 200, 46, 40
+  fps: 1
+  loop: false
+
+state-r06-c00
+  index: 0
+  bounds: 0, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c01
+  index: 0
+  bounds: 40, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c02
+  index: 0
+  bounds: 80, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c03
+  index: 0
+  bounds: 120, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c04
+  index: 0
+  bounds: 160, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c05
+  index: 0
+  bounds: 200, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c06
+  index: 0
+  bounds: 240, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c07
+  index: 0
+  bounds: 280, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c08
+  index: 0
+  bounds: 320, 240, 40, 40
+  fps: 1
+  loop: false
+
+state-r06-c09
+  index: 0
+  bounds: 360, 240, 46, 40
+  fps: 1
+  loop: false
+
+state-r07-c00
+  index: 0
+  bounds: 0, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c01
+  index: 0
+  bounds: 40, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c02
+  index: 0
+  bounds: 80, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c03
+  index: 0
+  bounds: 120, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c04
+  index: 0
+  bounds: 160, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c05
+  index: 0
+  bounds: 200, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c06
+  index: 0
+  bounds: 240, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c07
+  index: 0
+  bounds: 280, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c08
+  index: 0
+  bounds: 320, 280, 40, 40
+  fps: 1
+  loop: false
+
+state-r07-c09
+  index: 0
+  bounds: 360, 280, 46, 40
+  fps: 1
+  loop: false
+
+state-r08-c00
+  index: 0
+  bounds: 0, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c01
+  index: 0
+  bounds: 40, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c02
+  index: 0
+  bounds: 80, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c03
+  index: 0
+  bounds: 120, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c04
+  index: 0
+  bounds: 160, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c05
+  index: 0
+  bounds: 200, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c06
+  index: 0
+  bounds: 240, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c07
+  index: 0
+  bounds: 280, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c08
+  index: 0
+  bounds: 320, 320, 40, 40
+  fps: 1
+  loop: false
+
+state-r08-c09
+  index: 0
+  bounds: 360, 320, 46, 40
+  fps: 1
+  loop: false
+
+state-r09-c01
+  index: 0
+  bounds: 40, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r09-c02
+  index: 0
+  bounds: 80, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r09-c03
+  index: 0
+  bounds: 120, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r09-c06
+  index: 0
+  bounds: 240, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r09-c07
+  index: 0
+  bounds: 280, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r09-c08
+  index: 0
+  bounds: 320, 360, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c01
+  index: 0
+  bounds: 40, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c02
+  index: 0
+  bounds: 80, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c03
+  index: 0
+  bounds: 120, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c04
+  index: 0
+  bounds: 160, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c05
+  index: 0
+  bounds: 200, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c06
+  index: 0
+  bounds: 240, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c07
+  index: 0
+  bounds: 280, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r10-c08
+  index: 0
+  bounds: 320, 400, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c00
+  index: 0
+  bounds: 0, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c01
+  index: 0
+  bounds: 40, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c02
+  index: 0
+  bounds: 80, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c03
+  index: 0
+  bounds: 120, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c04
+  index: 0
+  bounds: 160, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c05
+  index: 0
+  bounds: 200, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c06
+  index: 0
+  bounds: 240, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c07
+  index: 0
+  bounds: 280, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c08
+  index: 0
+  bounds: 320, 440, 40, 40
+  fps: 1
+  loop: false
+
+state-r11-c09
+  index: 0
+  bounds: 360, 440, 46, 40
+  fps: 1
+  loop: false
+
+state-r12-c00
+  index: 0
+  bounds: 0, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c01
+  index: 0
+  bounds: 40, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c02
+  index: 0
+  bounds: 80, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c03
+  index: 0
+  bounds: 120, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c04
+  index: 0
+  bounds: 160, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c05
+  index: 0
+  bounds: 200, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c06
+  index: 0
+  bounds: 240, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c07
+  index: 0
+  bounds: 280, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c08
+  index: 0
+  bounds: 320, 480, 40, 40
+  fps: 1
+  loop: false
+
+state-r12-c09
+  index: 0
+  bounds: 360, 480, 46, 40
+  fps: 1
+  loop: false
+
+state-r13-c00
+  index: 0
+  bounds: 0, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c01
+  index: 0
+  bounds: 40, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c02
+  index: 0
+  bounds: 80, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c03
+  index: 0
+  bounds: 120, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c04
+  index: 0
+  bounds: 160, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c05
+  index: 0
+  bounds: 200, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c06
+  index: 0
+  bounds: 240, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c07
+  index: 0
+  bounds: 280, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c08
+  index: 0
+  bounds: 320, 520, 40, 40
+  fps: 1
+  loop: false
+
+state-r13-c09
+  index: 0
+  bounds: 360, 520, 46, 40
+  fps: 1
+  loop: false
+
+state-r14-c02
+  index: 0
+  bounds: 80, 560, 40, 40
+  fps: 1
+  loop: false
+
+state-r14-c03
+  index: 0
+  bounds: 120, 560, 40, 40
+  fps: 1
+  loop: false
+
+state-r14-c06
+  index: 0
+  bounds: 240, 560, 40, 40
+  fps: 1
+  loop: false
+
+state-r14-c07
+  index: 0
+  bounds: 280, 560, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c00
+  index: 0
+  bounds: 0, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c01
+  index: 0
+  bounds: 40, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c02
+  index: 0
+  bounds: 80, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c03
+  index: 0
+  bounds: 120, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c04
+  index: 0
+  bounds: 160, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c05
+  index: 0
+  bounds: 200, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c06
+  index: 0
+  bounds: 240, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c07
+  index: 0
+  bounds: 280, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c08
+  index: 0
+  bounds: 320, 600, 40, 40
+  fps: 1
+  loop: false
+
+state-r15-c09
+  index: 0
+  bounds: 360, 600, 46, 40
+  fps: 1
+  loop: false
+
+state-r16-c01
+  index: 0
+  bounds: 40, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c02
+  index: 0
+  bounds: 80, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c03
+  index: 0
+  bounds: 120, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c04
+  index: 0
+  bounds: 160, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c05
+  index: 0
+  bounds: 200, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c06
+  index: 0
+  bounds: 240, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c07
+  index: 0
+  bounds: 280, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r16-c08
+  index: 0
+  bounds: 320, 640, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c00
+  index: 0
+  bounds: 0, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c01
+  index: 0
+  bounds: 40, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c02
+  index: 0
+  bounds: 80, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c03
+  index: 0
+  bounds: 120, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c04
+  index: 0
+  bounds: 160, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c05
+  index: 0
+  bounds: 200, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c06
+  index: 0
+  bounds: 240, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c07
+  index: 0
+  bounds: 280, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c08
+  index: 0
+  bounds: 320, 680, 40, 40
+  fps: 1
+  loop: false
+
+state-r17-c09
+  index: 0
+  bounds: 360, 680, 46, 40
+  fps: 1
+  loop: false
+
+state-r18-c00
+  index: 0
+  bounds: 0, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c01
+  index: 0
+  bounds: 40, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c02
+  index: 0
+  bounds: 80, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c03
+  index: 0
+  bounds: 120, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c04
+  index: 0
+  bounds: 160, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c05
+  index: 0
+  bounds: 200, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c06
+  index: 0
+  bounds: 240, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c07
+  index: 0
+  bounds: 280, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c08
+  index: 0
+  bounds: 320, 720, 40, 40
+  fps: 1
+  loop: false
+
+state-r18-c09
+  index: 0
+  bounds: 360, 720, 46, 40
+  fps: 1
+  loop: false
+
+state-r19-c00
+  index: 0
+  bounds: 0, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c01
+  index: 0
+  bounds: 40, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c02
+  index: 0
+  bounds: 80, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c03
+  index: 0
+  bounds: 120, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c04
+  index: 0
+  bounds: 160, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c05
+  index: 0
+  bounds: 200, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c06
+  index: 0
+  bounds: 240, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c07
+  index: 0
+  bounds: 280, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c08
+  index: 0
+  bounds: 320, 760, 40, 40
+  fps: 1
+  loop: false
+
+state-r19-c09
+  index: 0
+  bounds: 360, 760, 46, 40
+  fps: 1
+  loop: false
+
+state-r20-c00
+  index: 0
+  bounds: 0, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c01
+  index: 0
+  bounds: 40, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c02
+  index: 0
+  bounds: 80, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c03
+  index: 0
+  bounds: 120, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c06
+  index: 0
+  bounds: 240, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c07
+  index: 0
+  bounds: 280, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c08
+  index: 0
+  bounds: 320, 800, 40, 40
+  fps: 1
+  loop: false
+
+state-r20-c09
+  index: 0
+  bounds: 360, 800, 46, 40
+  fps: 1
+  loop: false
+
+state-r21-c01
+  index: 0
+  bounds: 40, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c02
+  index: 0
+  bounds: 80, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c03
+  index: 0
+  bounds: 120, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c04
+  index: 0
+  bounds: 160, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c05
+  index: 0
+  bounds: 200, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c06
+  index: 0
+  bounds: 240, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c07
+  index: 0
+  bounds: 280, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r21-c08
+  index: 0
+  bounds: 320, 840, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c00
+  index: 0
+  bounds: 0, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c01
+  index: 0
+  bounds: 40, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c02
+  index: 0
+  bounds: 80, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c03
+  index: 0
+  bounds: 120, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c04
+  index: 0
+  bounds: 160, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c05
+  index: 0
+  bounds: 200, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c06
+  index: 0
+  bounds: 240, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c07
+  index: 0
+  bounds: 280, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c08
+  index: 0
+  bounds: 320, 880, 40, 40
+  fps: 1
+  loop: false
+
+state-r22-c09
+  index: 0
+  bounds: 360, 880, 46, 40
+  fps: 1
+  loop: false
+
+state-r23-c00
+  index: 0
+  bounds: 0, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c01
+  index: 0
+  bounds: 40, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c02
+  index: 0
+  bounds: 80, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c03
+  index: 0
+  bounds: 120, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c04
+  index: 0
+  bounds: 160, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c05
+  index: 0
+  bounds: 200, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c06
+  index: 0
+  bounds: 240, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c07
+  index: 0
+  bounds: 280, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c08
+  index: 0
+  bounds: 320, 920, 40, 40
+  fps: 1
+  loop: false
+
+state-r23-c09
+  index: 0
+  bounds: 360, 920, 46, 40
+  fps: 1
+  loop: false
+
+state-r24-c00
+  index: 0
+  bounds: 0, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c01
+  index: 0
+  bounds: 40, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c02
+  index: 0
+  bounds: 80, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c03
+  index: 0
+  bounds: 120, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c04
+  index: 0
+  bounds: 160, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c05
+  index: 0
+  bounds: 200, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c06
+  index: 0
+  bounds: 240, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c07
+  index: 0
+  bounds: 280, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c08
+  index: 0
+  bounds: 320, 960, 40, 40
+  fps: 1
+  loop: false
+
+state-r24-c09
+  index: 0
+  bounds: 360, 960, 46, 40
+  fps: 1
+  loop: false
+
+state-r25-c00
+  index: 0
+  bounds: 0, 1000, 40, 40
+  fps: 1
+  loop: false
+
+state-r25-c02
+  index: 0
+  bounds: 80, 1000, 40, 40
+  fps: 1
+  loop: false
+
+state-r25-c03
+  index: 0
+  bounds: 120, 1000, 40, 40
+  fps: 1
+  loop: false
+
+state-r25-c06
+  index: 0
+  bounds: 240, 1000, 40, 40
+  fps: 1
+  loop: false
+
+state-r25-c07
+  index: 0
+  bounds: 280, 1000, 40, 40
+  fps: 1
+  loop: false
+
+state-r25-c09
+  index: 0
+  bounds: 360, 1000, 46, 40
+  fps: 1
+  loop: false
+
+state-r26-c00
+  index: 0
+  bounds: 0, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c01
+  index: 0
+  bounds: 40, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c02
+  index: 0
+  bounds: 80, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c03
+  index: 0
+  bounds: 120, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c04
+  index: 0
+  bounds: 160, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c05
+  index: 0
+  bounds: 200, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c06
+  index: 0
+  bounds: 240, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c07
+  index: 0
+  bounds: 280, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c08
+  index: 0
+  bounds: 320, 1040, 40, 40
+  fps: 1
+  loop: false
+
+state-r26-c09
+  index: 0
+  bounds: 360, 1040, 46, 40
+  fps: 1
+  loop: false
+
+state-r27-c01
+  index: 0
+  bounds: 40, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c02
+  index: 0
+  bounds: 80, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c03
+  index: 0
+  bounds: 120, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c04
+  index: 0
+  bounds: 160, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c05
+  index: 0
+  bounds: 200, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c06
+  index: 0
+  bounds: 240, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c07
+  index: 0
+  bounds: 280, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r27-c08
+  index: 0
+  bounds: 320, 1080, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c01
+  index: 0
+  bounds: 40, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c03
+  index: 0
+  bounds: 120, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c04
+  index: 0
+  bounds: 160, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c05
+  index: 0
+  bounds: 200, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c06
+  index: 0
+  bounds: 240, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r28-c08
+  index: 0
+  bounds: 320, 1120, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c00
+  index: 0
+  bounds: 0, 1160, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c01
+  index: 0
+  bounds: 40, 1160, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c03
+  index: 0
+  bounds: 120, 1160, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c06
+  index: 0
+  bounds: 240, 1160, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c08
+  index: 0
+  bounds: 320, 1160, 40, 40
+  fps: 1
+  loop: false
+
+state-r29-c09
+  index: 0
+  bounds: 360, 1160, 46, 40
+  fps: 1
+  loop: false
+
+state-r30-c00
+  index: 0
+  bounds: 0, 1200, 40, 40
+  fps: 1
+  loop: false
+
+state-r30-c01
+  index: 0
+  bounds: 40, 1200, 40, 40
+  fps: 1
+  loop: false
+
+state-r30-c02
+  index: 0
+  bounds: 80, 1200, 40, 40
+  fps: 1
+  loop: false
+
+state-r30-c08
+  index: 0
+  bounds: 320, 1200, 40, 40
+  fps: 1
+  loop: false
+
+state-r30-c09
+  index: 0
+  bounds: 360, 1200, 46, 40
+  fps: 1
+  loop: false
+
+state-r31-c00
+  index: 0
+  bounds: 0, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c01
+  index: 0
+  bounds: 40, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c02
+  index: 0
+  bounds: 80, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c03
+  index: 0
+  bounds: 120, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c04
+  index: 0
+  bounds: 160, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c05
+  index: 0
+  bounds: 200, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c06
+  index: 0
+  bounds: 240, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c07
+  index: 0
+  bounds: 280, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c08
+  index: 0
+  bounds: 320, 1240, 40, 40
+  fps: 1
+  loop: false
+
+state-r31-c09
+  index: 0
+  bounds: 360, 1240, 46, 40
+  fps: 1
+  loop: false
+
+state-r32-c00
+  index: 0
+  bounds: 0, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c01
+  index: 0
+  bounds: 40, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c02
+  index: 0
+  bounds: 80, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c03
+  index: 0
+  bounds: 120, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c04
+  index: 0
+  bounds: 160, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c05
+  index: 0
+  bounds: 200, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c06
+  index: 0
+  bounds: 240, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c07
+  index: 0
+  bounds: 280, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c08
+  index: 0
+  bounds: 320, 1280, 40, 40
+  fps: 1
+  loop: false
+
+state-r32-c09
+  index: 0
+  bounds: 360, 1280, 46, 40
+  fps: 1
+  loop: false
+
+state-r33-c00
+  index: 0
+  bounds: 0, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c01
+  index: 0
+  bounds: 40, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c02
+  index: 0
+  bounds: 80, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c03
+  index: 0
+  bounds: 120, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c04
+  index: 0
+  bounds: 160, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c05
+  index: 0
+  bounds: 200, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c06
+  index: 0
+  bounds: 240, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c07
+  index: 0
+  bounds: 280, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c08
+  index: 0
+  bounds: 320, 1320, 40, 40
+  fps: 1
+  loop: false
+
+state-r33-c09
+  index: 0
+  bounds: 360, 1320, 46, 40
+  fps: 1
+  loop: false
+
+state-r34-c00
+  index: 0
+  bounds: 0, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c01
+  index: 0
+  bounds: 40, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c03
+  index: 0
+  bounds: 120, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c04
+  index: 0
+  bounds: 160, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c05
+  index: 0
+  bounds: 200, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c06
+  index: 0
+  bounds: 240, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c08
+  index: 0
+  bounds: 320, 1360, 40, 40
+  fps: 1
+  loop: false
+
+state-r34-c09
+  index: 0
+  bounds: 360, 1360, 46, 40
+  fps: 1
+  loop: false
+
+state-r35-c00
+  index: 0
+  bounds: 0, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c01
+  index: 0
+  bounds: 40, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c02
+  index: 0
+  bounds: 80, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c03
+  index: 0
+  bounds: 120, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c04
+  index: 0
+  bounds: 160, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c05
+  index: 0
+  bounds: 200, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c06
+  index: 0
+  bounds: 240, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c07
+  index: 0
+  bounds: 280, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c08
+  index: 0
+  bounds: 320, 1400, 40, 40
+  fps: 1
+  loop: false
+
+state-r35-c09
+  index: 0
+  bounds: 360, 1400, 46, 40
+  fps: 1
+  loop: false
+
+state-r36-c00
+  index: 0
+  bounds: 0, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c01
+  index: 0
+  bounds: 40, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c02
+  index: 0
+  bounds: 80, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c03
+  index: 0
+  bounds: 120, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c06
+  index: 0
+  bounds: 240, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c07
+  index: 0
+  bounds: 280, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c08
+  index: 0
+  bounds: 320, 1440, 40, 40
+  fps: 1
+  loop: false
+
+state-r36-c09
+  index: 0
+  bounds: 360, 1440, 46, 40
+  fps: 1
+  loop: false
+
+state-r37-c01
+  index: 0
+  bounds: 40, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c02
+  index: 0
+  bounds: 80, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c03
+  index: 0
+  bounds: 120, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c04
+  index: 0
+  bounds: 160, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c05
+  index: 0
+  bounds: 200, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c06
+  index: 0
+  bounds: 240, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c07
+  index: 0
+  bounds: 280, 1480, 40, 27
+  fps: 1
+  loop: false
+
+state-r37-c08
+  index: 0
+  bounds: 320, 1480, 40, 27
+  fps: 1
+  loop: false
+
+idle
+  index: 0
+  bounds: 0, 440, 40, 40
+  fps: 1
+  loop: false
+
+run
+  index: 0
+  bounds: 0, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 1
+  bounds: 40, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 2
+  bounds: 80, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 3
+  bounds: 120, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 4
+  bounds: 160, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 5
+  bounds: 200, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 6
+  bounds: 240, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 7
+  bounds: 280, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 8
+  bounds: 320, 440, 40, 40
+  fps: 12
+  loop: true
+
+run
+  index: 9
+  bounds: 360, 440, 46, 40
+  fps: 12
+  loop: true

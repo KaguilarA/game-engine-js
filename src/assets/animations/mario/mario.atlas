@@ -1,0 +1,210 @@
+mario.png
+  size: 262, 17
+  format: RGBA8888
+  filter: Nearest, Nearest
+  repeat: none
+  pma: false
+
+state-00
+  index: 0
+  bounds: 0, 0, 13, 17
+  fps: 1
+  loop: false
+
+state-01
+  index: 0
+  bounds: 11, 0, 15, 17
+  fps: 1
+  loop: false
+
+state-02
+  index: 0
+  bounds: 26, 0, 14, 17
+  fps: 1
+  loop: false
+
+state-03
+  index: 0
+  bounds: 40, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-04
+  index: 0
+  bounds: 57, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-05
+  index: 0
+  bounds: 74, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-06
+  index: 0
+  bounds: 91, 0, 15, 17
+  fps: 1
+  loop: false
+
+state-07
+  index: 0
+  bounds: 107, 0, 15, 17
+  fps: 1
+  loop: false
+
+state-08
+  index: 0
+  bounds: 122, 0, 14, 17
+  fps: 1
+  loop: false
+
+state-09
+  index: 0
+  bounds: 136, 0, 15, 17
+  fps: 1
+  loop: false
+
+state-10
+  index: 0
+  bounds: 152, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-11
+  index: 0
+  bounds: 169, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-12
+  index: 0
+  bounds: 185, 0, 14, 17
+  fps: 1
+  loop: false
+
+state-13
+  index: 0
+  bounds: 199, 0, 14, 17
+  fps: 1
+  loop: false
+
+state-14
+  index: 0
+  bounds: 214, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-15
+  index: 0
+  bounds: 231, 0, 16, 17
+  fps: 1
+  loop: false
+
+state-16
+  index: 0
+  bounds: 248, 0, 14, 17
+  fps: 1
+  loop: false
+
+idle
+  index: 0
+  bounds: 26, 0, 14, 17
+  fps: 1
+  loop: false
+
+run
+  index: 0
+  bounds: 11, 0, 15, 17
+  fps: 10
+  loop: true
+
+run
+  index: 1
+  bounds: 26, 0, 14, 17
+  fps: 10
+  loop: true
+
+run
+  index: 2
+  bounds: 40, 0, 16, 17
+  fps: 10
+  loop: true
+
+run
+  index: 3
+  bounds: 57, 0, 16, 17
+  fps: 10
+  loop: true
+
+run
+  index: 4
+  bounds: 74, 0, 16, 17
+  fps: 10
+  loop: true
+
+run
+  index: 5
+  bounds: 91, 0, 15, 17
+  fps: 10
+  loop: true
+
+run
+  index: 6
+  bounds: 107, 0, 15, 17
+  fps: 10
+  loop: true
+
+run
+  index: 7
+  bounds: 122, 0, 14, 17
+  fps: 10
+  loop: true
+
+run
+  index: 8
+  bounds: 136, 0, 15, 17
+  fps: 10
+  loop: true
+
+run
+  index: 9
+  bounds: 152, 0, 16, 17
+  fps: 10
+  loop: true
+
+run
+  index: 10
+  bounds: 169, 0, 16, 17
+  fps: 10
+  loop: true
+
+run
+  index: 11
+  bounds: 185, 0, 14, 17
+  fps: 10
+  loop: true
+
+run
+  index: 12
+  bounds: 199, 0, 14, 17
+  fps: 10
+  loop: true
+
+special
+  index: 0
+  bounds: 214, 0, 16, 17
+  fps: 6
+  loop: false
+
+special
+  index: 1
+  bounds: 231, 0, 16, 17
+  fps: 6
+  loop: false
+
+special
+  index: 2
+  bounds: 248, 0, 14, 17
+  fps: 6
+  loop: false

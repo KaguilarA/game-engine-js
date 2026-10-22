@@ -21,6 +21,7 @@ import { signalValue } from 'reactive-values';
 import { Container } from '../engine/scene/container';
 import { PachinkoGame } from './pachinko/game';
 import { PinballGame } from './pinball/game';
+import { MeadowQuestGame } from './meadow-quest/game';
 
 /**
  * Presents the game list and starts the selected game.
@@ -85,6 +86,11 @@ export class GameSelector {
       title: 'PINBALL',
       description: 'FLIP, BUMP, AND KEEP THE BALL ALIVE',
       start: (onReturnToMenu) => { new PinballGame(onReturnToMenu); }
+    },
+    {
+      title: 'MEADOW QUEST',
+      description: 'AN ORIGINAL SIDE-SCROLLING PLATFORM ADVENTURE',
+      start: (onReturnToMenu) => { new MeadowQuestGame(onReturnToMenu); }
     }
   ];
   private readonly choicesContainer = new Container({ width: 0, height: 0, clipChildren: true, scrollable: true });
