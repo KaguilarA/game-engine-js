@@ -115,10 +115,13 @@ export class PinballGame extends BaseGame {
     this.drawLabel(`SCORE  ${this.score()}`, width * 0.5, height * 0.105,
       Math.max(14, Math.min(19, GameContext.viewportUnit() * 0.03)), '#ffffff', 'center', width * 0.86);
     this.drawLives(width, height);
-    this.board.draw();
-    this.leftFlipper.draw();
-    this.rightFlipper.draw();
-    this.ball()?.draw();
+    this.worldActors.setObjects([
+      this.board,
+      this.leftFlipper,
+      this.rightFlipper,
+      ...(this.ball() === undefined ? [] : [this.ball()!])
+    ]);
+    this.drawWorldScene();
     this.touchControls.draw();
     if (!this.launched() && !GameContext.isMobileDevice) {
       const panelWidth = Math.min(500, width * 0.9);

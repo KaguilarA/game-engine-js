@@ -229,8 +229,9 @@ export class SlotMachineGame extends BaseGame {
         return icon;
       });
       reel.setChildren(visibleIcons);
-      reel.draw();
     });
+    this.worldActors.setObjects(this.reelBank.reels);
+    this.drawWorldScene();
 
     this.creditsLabel.setValue(this.credits());
     this.creditsLabel.setText(`CREDITS  ${this.creditsLabel.getText()}`);

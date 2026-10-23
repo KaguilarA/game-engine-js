@@ -257,12 +257,15 @@ export class Game extends BaseGame {
       GameLoader.getImage('background1920x1080')
     );
 
-    for (const enemy of this.enemies) enemy.draw();
-    this.boss?.draw();
+    this.worldActors.setObjects([
+      ...this.enemies,
+      ...(this.boss === null ? [] : [this.boss]),
+      this.player,
+      ...this.playerProjectiles,
+      ...this.enemyProjectiles
+    ]);
+    this.drawWorldScene();
     this.drawLifePickup();
-    this.player.draw();
-    for (const projectile of this.playerProjectiles) projectile.draw();
-    for (const projectile of this.enemyProjectiles) projectile.draw();
 
     this.drawLabel(
       `SCORE ${this.score}`,

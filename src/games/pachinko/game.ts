@@ -74,7 +74,8 @@ export class PachinkoGame extends BaseGame {
       'rgba(7, 10, 27, 0.7)'
     );
     this.board.draw(this.selectedLane(), PAYOUTS);
-    this.ball()?.draw();
+    this.worldActors.setObjects(this.ball() === undefined ? [] : [this.ball()!]);
+    this.drawWorldScene();
 
     this.drawLabel('PACHINKO KENO', width * 0.5, Math.max(34, height * 0.065),
       Math.max(20, Math.min(34, GameContext.viewportUnit() * 0.052)), '#ffe18a', 'center', width * 0.84);

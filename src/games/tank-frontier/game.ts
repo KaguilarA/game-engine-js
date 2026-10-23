@@ -247,10 +247,13 @@ export class TankFrontierGame extends BaseGame {
     this.drawArena();
     this.drawBase();
     for (const wall of this.walls) this.drawWall(wall);
-    for (const enemy of this.enemies) enemy.draw();
-    this.player.draw();
-    for (const bullet of this.playerBullets) bullet.draw();
-    for (const bullet of this.enemyBullets) bullet.draw();
+    this.worldActors.setObjects([
+      ...this.enemies,
+      this.player,
+      ...this.playerBullets,
+      ...this.enemyBullets
+    ]);
+    this.drawWorldScene();
     this.drawLifePickup();
     this.drawHud(hudScale);
     this.drawTouchControls();

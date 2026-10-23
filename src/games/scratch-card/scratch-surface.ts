@@ -28,7 +28,7 @@ export class ScratchSurface {
 
   public constructor(getCardBounds: () => ScratchCardBounds) {
     this.getCardBounds = getCardBounds;
-    const context = this.canvas.getContext('2d');
+    const context = this.canvas.getContext('2d', { willReadFrequently: true });
     if (context === null) throw new Error('Failed to initialize scratch-card surface.');
     this.context = context;
   }

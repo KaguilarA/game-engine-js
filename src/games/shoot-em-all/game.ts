@@ -177,8 +177,11 @@ export class ShootEmAllGame extends BaseGame {
       'rgba(14, 10, 32, 0.3)'
     );
     this.drawStars(width, height);
-    for (const { entity } of this.enemies()) entity.draw();
-    this.player().draw();
+    this.worldActors.setObjects([
+      ...this.enemies().map(({ entity }) => entity),
+      this.player()
+    ]);
+    this.drawWorldScene();
     this.shots().forEach((shot) => {
       GameContext.drawCircle(shot.motion.x(), shot.motion.y(), Math.max(3, unit * 0.006), shot.direction < 0 ? '#73edff' : '#ff7a9d');
     });
