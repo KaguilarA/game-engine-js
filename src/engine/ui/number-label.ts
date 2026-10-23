@@ -1,8 +1,5 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import type { LabelOptions } from '../interfaces/label-options';
-import type { NumberLabelOptions } from '../interfaces/number-label-options';
+import { signalValue, type SignalValue } from 'reactive-values';
+import type { LabelOptions, NumberLabelOptions } from '../interfaces';
 import { Label } from './label';
 
 /** Formats reactive currency, count, or decimal values as a standard Label. */

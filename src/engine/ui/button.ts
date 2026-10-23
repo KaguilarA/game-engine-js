@@ -1,12 +1,12 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import Dimensions from '../core/dimensions';
-import GameEvents from '../input/events';
-import type { ButtonOptions } from '../interfaces/button-options';
-import type { GamePointer } from '../interfaces/game-pointer';
-import type { TextureStateName } from '../interfaces/texture-states';
-import { Texture } from '../rendering/texture';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { Dimensions } from '../core';
+import { GameEvents } from '../input';
+import { Texture } from '../rendering';
+import type {
+  ButtonOptions,
+  GamePointer,
+  TextureStateName
+} from '../interfaces';
 
 /** Owns pointer hit-testing, activation, visual states, and teardown. */
 export class Button {

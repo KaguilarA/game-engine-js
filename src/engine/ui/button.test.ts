@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './button';
-import { Texture } from '../rendering/texture';
+import { Texture } from '../rendering';
 
 describe('UI Button', () => {
   it('manages disabled and blocked states', () => {

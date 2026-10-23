@@ -1,10 +1,6 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import GameContext from '../core/context';
-import Dimensions from '../core/dimensions';
-import type { LabelOptions } from '../interfaces/label-options';
-import type { LabelStyle } from '../interfaces/label-style';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { Dimensions, GameContext } from '../core';
+import type { LabelOptions, LabelStyle } from '../interfaces';
 
 /** Draws a reactive text value with independently resizable dimensions. */
 export class Label {
