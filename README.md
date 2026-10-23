@@ -1,4 +1,4 @@
-# 2D Engine
+# OWL Engine
 
 A browser-based 2D game engine written in TypeScript and built on Canvas 2D. The engine's public code is organized under `src/engine` and exported from `src/engine/index.ts`.
 
