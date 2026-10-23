@@ -1,7 +1,5 @@
-import GameContext from '../../core/context';
-import Dimensions from '../../core/dimensions';
-import type { AtlasAnimation } from '../../interfaces/atlas-animation';
-import type { AtlasRegion } from '../../interfaces/atlas-region';
+import { Dimensions, GameContext } from '../../core';
+import type { AtlasAnimation, AtlasRegion } from '../../interfaces';
 
 /**
  * Draws an image or sprite-sheet frame using reactive position, size, scale,

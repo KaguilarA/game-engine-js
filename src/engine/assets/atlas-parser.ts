@@ -1,8 +1,7 @@
-import type { AtlasPageData } from '../interfaces/atlas-page-data';
-import type { ParsedAtlasRegion } from '../interfaces/parsed-atlas-region';
+import type { AtlasPageData, ParsedAtlasRegion } from '../interfaces';
 
 /** Parses and validates one text atlas page and its region records. */
-export class AtlasParser {
+export default class {
   private pageName = '';
   private pageWidth = 0;
   private pageHeight = 0;

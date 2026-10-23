@@ -1,7 +1,5 @@
-import { AtlasAnimationCatalog } from './atlas-animation-catalog';
-import type { AtlasAnimation } from '../interfaces/atlas-animation';
-import type { AtlasPageData } from '../interfaces/atlas-page-data';
-import type { AtlasRegion } from '../interfaces/atlas-region';
+import type { AtlasAnimation, AtlasPageData, AtlasRegion } from '../interfaces';
+import AtlasAnimationCatalog from './atlas-animation-catalog';
 
 /** Provides page metadata, image ownership, and named region lookups. */
 export class Atlas {

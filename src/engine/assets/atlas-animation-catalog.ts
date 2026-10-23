@@ -1,8 +1,7 @@
-import type { AtlasAnimation } from '../interfaces/atlas-animation';
-import type { ParsedAtlasRegion } from '../interfaces/parsed-atlas-region';
+import type { AtlasAnimation, ParsedAtlasRegion } from '../interfaces';
 
 /** Groups parsed atlas regions into frame-ordered named animations. */
-export class AtlasAnimationCatalog {
+export default class {
   private readonly animations = new Map<string, AtlasAnimation>();
 
   public constructor(pageName: string, regions: ParsedAtlasRegion[]) {

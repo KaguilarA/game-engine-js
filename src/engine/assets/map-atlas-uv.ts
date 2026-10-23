@@ -1,7 +1,7 @@
-import type { AtlasRegion } from '../interfaces/atlas-region';
+import type { AtlasRegion } from '../interfaces';
 
 /** Converts normalized attachment UVs into normalized page-image UVs. */
-export function mapAtlasUv(
+export default function (
   region: AtlasRegion,
   pageWidth: number,
   pageHeight: number,

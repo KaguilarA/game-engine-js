@@ -1,6 +1,6 @@
 import { Atlas } from './atlas';
-import { AtlasParser } from './atlas-parser';
-import type { SpineRecord } from '../interfaces/spine-record';
+import AtlasParser from './atlas-parser';
+import type { SpineRecord } from '../interfaces';
 
 export interface LoadedSpineAsset {
   readonly atlas: Atlas;
