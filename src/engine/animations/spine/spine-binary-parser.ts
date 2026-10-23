@@ -104,22 +104,24 @@ class BinaryReader {
 
 /**
  * Native parser for Spine .skel binary exports (Spine 3.8 and 4.x).
- * Converts binary skeleton assets into normalized SpineRecord definitions
- * without requiring the official runtime or external dependencies.
+ * @class SpineBinaryParser
  */
 export class SpineBinaryParser {
   /**
    * Determines whether the provided buffer contains Spine binary skeleton data.
+   * @public
+   * @return {boolean}
    */
   public static isBinary(buffer: ArrayBuffer | Uint8Array): boolean {
     const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
     if (bytes.length < 8) return false;
-    // Check if it's not a text JSON file (JSON starts with '{' = 0x7B)
     return bytes[0] !== 0x7b;
   }
 
   /**
    * Parses a Spine binary buffer into normalized skeleton data.
+   * @public
+   * @return {SpineRecord}
    */
   public static parse(buffer: ArrayBuffer | Uint8Array): SpineRecord {
     const reader = new BinaryReader(buffer);

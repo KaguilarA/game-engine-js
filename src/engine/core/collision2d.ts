@@ -7,10 +7,17 @@ export interface CollisionRect {
   height: number;
 }
 
-/** Allocation-free collision and bounce helpers for common 2D shapes. */
+/**
+ * Allocation-free collision and bounce helpers for common 2D shapes.
+ * @class Collision2D
+ */
 export class Collision2D {
 
-  /** Keeps a circular body inside horizontal world limits and reflects outward motion. */
+  /**
+   * Keeps a circular body inside horizontal world limits and reflects outward motion.
+   * @public
+   * @return {boolean}
+   */
   public static resolveCircleAgainstHorizontalBounds(
     body: CircleBody,
     left: number,
@@ -30,7 +37,54 @@ export class Collision2D {
     return collided;
   }
 
-  /** Tests whether a point lies within an axis-aligned rectangle. */
+  /**
+   * Keeps a circular body inside vertical world limits and reflects outward motion.
+   * @public
+   * @return {boolean}
+   */
+  public static resolveCircleAgainstVerticalBounds(
+    body: CircleBody,
+    top: number,
+    bottom: number,
+    restitution = 0.6
+  ): boolean {
+    let collided = false;
+    if (body.y - body.radius < top) {
+      body.setPosition(body.x, top + body.radius);
+      if (body.velocityY < 0) body.setVelocity(body.velocityX, -body.velocityY * restitution);
+      collided = true;
+    } else if (body.y + body.radius > bottom) {
+      body.setPosition(body.x, bottom - body.radius);
+      if (body.velocityY > 0) body.setVelocity(body.velocityX, -body.velocityY * restitution);
+      collided = true;
+    }
+    return collided;
+  }
+
+  /**
+   * Tests whether two circles overlap.
+   * @public
+   * @return {boolean}
+   */
+  public static overlapsCircles(
+    x1: number,
+    y1: number,
+    radius1: number,
+    x2: number,
+    y2: number,
+    radius2: number
+  ): boolean {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const combinedRadius = radius1 + radius2;
+    return dx * dx + dy * dy <= combinedRadius * combinedRadius;
+  }
+
+  /**
+   * Tests whether a point lies within an axis-aligned rectangle.
+   * @public
+   * @return {boolean}
+   */
   public static containsPoint(
     pointX: number,
     pointY: number,
@@ -45,7 +99,11 @@ export class Collision2D {
       && pointY <= rectangleY + rectangleHeight;
   }
 
-  /** Tests two axis-aligned rectangles without allocating collision objects. */
+  /**
+   * Tests two axis-aligned rectangles without allocating collision objects.
+   * @public
+   * @return {boolean}
+   */
   public static overlapsRectangles(
     firstX: number,
     firstY: number,
@@ -60,6 +118,64 @@ export class Collision2D {
       && firstX + firstWidth > secondX
       && firstY < secondY + secondHeight
       && firstY + firstHeight > secondY;
+  }
+
+  /**
+   * Calculates the minimum translation vector to separate a moving rectangle from target.
+   * @public
+   * @return {{ normalX: number; normalY: number; penetration: number } | null}
+   */
+  public static getAABBOverlap(
+    moving: CollisionRect,
+    target: CollisionRect
+  ): { normalX: number; normalY: number; penetration: number } | null {
+    const dx = (moving.x + moving.width * 0.5) - (target.x + target.width * 0.5);
+    const halfWidths = (moving.width + target.width) * 0.5;
+    const overlapX = halfWidths - Math.abs(dx);
+    if (overlapX <= 0) return null;
+
+    const dy = (moving.y + moving.height * 0.5) - (target.y + target.height * 0.5);
+    const halfHeights = (moving.height + target.height) * 0.5;
+    const overlapY = halfHeights - Math.abs(dy);
+    if (overlapY <= 0) return null;
+
+    if (overlapX < overlapY) {
+      return {
+        normalX: dx > 0 ? 1 : -1,
+        normalY: 0,
+        penetration: overlapX
+      };
+    } else {
+      return {
+        normalX: 0,
+        normalY: dy > 0 ? 1 : -1,
+        penetration: overlapY
+      };
+    }
+  }
+
+  /**
+   * Resolves one-way platform landing for platformer games.
+   * @public
+   * @return {{ landed: boolean; resolvedY: number }}
+   */
+  public static resolveOneWayPlatform(
+    actorX: number,
+    actorY: number,
+    actorWidth: number,
+    actorHeight: number,
+    previousY: number,
+    velocityY: number,
+    platform: CollisionRect
+  ): { landed: boolean; resolvedY: number } {
+    const wasAbove = previousY + actorHeight <= platform.y;
+    const isNowAtOrBelow = actorY + actorHeight >= platform.y;
+    const horizontalOverlap = actorX + actorWidth > platform.x && actorX < platform.x + platform.width;
+
+    if (wasAbove && isNowAtOrBelow && velocityY >= 0 && horizontalOverlap) {
+      return { landed: true, resolvedY: platform.y - actorHeight };
+    }
+    return { landed: false, resolvedY: actorY };
   }
 
   /** Tests a circle against an axis-aligned rectangle without resolving motion. */
