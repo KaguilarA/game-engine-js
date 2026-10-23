@@ -1,10 +1,15 @@
-import GameContext from '../../core/context';
-import { mapAtlasUv } from '../../assets/map-atlas-uv';
-import type { Atlas } from '../../assets/atlas';
-import type { SpineBoneTransform } from '../../interfaces/spine-bone-transform';
-import type { SpineRecord } from '../../interfaces/spine-record';
-import type { SpineSlotPose } from '../../interfaces/spine-slot-pose';
-import type { AtlasRegion } from '../../interfaces/atlas-region';
+import { GameContext } from '../../core';
+import {
+  mapAtlasUv,
+  type Atlas
+} from '../../assets';
+import type {
+  AtlasRegion,
+  SpineBoneTransform,
+  SpineRecord,
+  SpineSlotPose
+} from '../../interfaces';
+
 import { SpineRuntime } from './spine-runtime';
 
 const REGION_TRIANGLES = [0, 1, 2, 2, 3, 0];

@@ -1,13 +1,15 @@
 import { computedValue, signalValue } from 'reactive-values';
 import type { ComputedValue, SignalValue } from 'reactive-values';
-
-import type { Atlas } from '../../assets/atlas';
-import type { SpineBoneTransform } from '../../interfaces/spine-bone-transform';
-import type { SpineEvent } from '../../interfaces/spine-event';
-import type { SpineEventHandler } from '../../interfaces/spine-event-handler';
-import type { SpineRecord } from '../../interfaces/spine-record';
-import type { SpineSlotPose } from '../../interfaces/spine-slot-pose';
 import { MathUtils } from '../../core';
+import type { Atlas } from '../../assets';
+import type {
+  SpineBoneTransform,
+  SpineEvent,
+  SpineEventHandler,
+  SpineSlotPose,
+  SpineRecord
+} from '../../interfaces';
+
 import { SpineBinaryParser } from './spine-binary-parser';
 
 type BoneState = {

@@ -1,4 +1,4 @@
-import type { SpineRecord } from '../../interfaces/spine-record';
+import type { SpineRecord } from '../../interfaces';
 
 /**
  * Low-level binary stream reader for Spine .skel data.

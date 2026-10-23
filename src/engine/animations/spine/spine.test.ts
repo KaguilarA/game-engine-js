@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { Atlas } from '../../assets';
+import type { SpineRecord } from '../../interfaces';
 import { SpineRuntime } from './spine-runtime';
 import { SpineBinaryParser } from './spine-binary-parser';
-import { Atlas } from '../../assets/atlas';
-import type { SpineRecord } from '../../interfaces/spine-record';
 
 // Dummy atlas for headless tests
 const createMockAtlas = (): Atlas => {

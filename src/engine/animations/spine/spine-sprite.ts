@@ -1,7 +1,7 @@
-import type { Atlas } from '../../assets/atlas';
-import type { SpineEventHandler } from '../../interfaces/spine-event-handler';
-import type { SpineRecord } from '../../interfaces/spine-record';
-import Dimensions from '../../core/dimensions';
+import { Dimensions } from '../../core';
+import type { Atlas } from '../../assets';
+import type { SpineEventHandler, SpineRecord } from '../../interfaces';
+
 import { SpineRenderer } from './spine-renderer';
 import { SpineRuntime } from './spine-runtime';
 
