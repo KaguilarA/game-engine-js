@@ -6,4 +6,7 @@ export { PhysicsBody } from './physics';
 export { Collision2D } from './collision2d';
 export type { CollisionRect } from './collision2d';
 export { MathUtils } from './math-utils';
+export { Vector2 } from './vector2';
+export { ObjectPool, PoolRegistry, GamePools } from './object-pool';
+export type { Poolable } from './object-pool';
 export type { DamageResult } from '../interfaces/damage-result';
