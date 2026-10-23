@@ -1,14 +1,16 @@
 import { signalValue } from 'reactive-values';
+import {
+  BaseGame,
+  Button,
+  Collision2D,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  Texture,
+  type GamePointer
+} from '../../engine';
 
-import GameContext from '../../engine/core/context';
-import { BaseGame } from '../../engine/core/base-game';
-import { Collision2D } from '../../engine/core/collision2d';
-import GameEvents from '../../engine/input/events';
-import type { GamePointer } from '../../engine/interfaces/game-pointer';
-import GameLoader from '../../engine/assets/loader';
-import { GameBackground } from '../../engine/rendering/background';
-import { Button } from '../../engine/ui/button';
-import { Texture } from '../../engine/rendering/texture';
 import { PachinkoBall } from './ball';
 import { PachinkoBoard } from './board';
 

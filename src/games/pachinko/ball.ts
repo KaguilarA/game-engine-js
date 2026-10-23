@@ -1,6 +1,5 @@
-import { CircleBody } from '../../engine/entities/circle-body';
-import GameContext from '../../engine/core/context';
 import { signalValue } from 'reactive-values';
+import { CircleBody, GameContext } from '../../engine';
 
 /** Lightweight game token that delegates motion to the engine's circle body. */
 export class PachinkoBall {

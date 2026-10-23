@@ -1,6 +1,8 @@
-import GameContext from '../../engine/core/context';
-import { Collision2D } from '../../engine/core/collision2d';
-import type { CollisionRect } from '../../engine/core/collision2d';
+import {
+  Collision2D,
+  GameContext,
+  type CollisionRect
+} from '../../engine';
 import { PachinkoBall } from './ball';
 
 export interface PachinkoPeg {

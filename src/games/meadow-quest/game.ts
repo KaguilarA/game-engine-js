@@ -1,8 +1,11 @@
-import GameContext from '../../engine/core/context';
-import { BaseGame } from '../../engine/core/base-game';
-import { Collision2D } from '../../engine/core/collision2d';
-import GameEvents from '../../engine/input/events';
-import { TouchControls } from '../../engine/input/touch-controls';
+import {
+  BaseGame,
+  GameEvents,
+  GameContext,
+  Collision2D,
+  TouchControls
+} from '../../engine';
+
 import { createLevel, type Coin, type Platform } from './level';
 import { PlatformerRenderer } from './renderer';
 

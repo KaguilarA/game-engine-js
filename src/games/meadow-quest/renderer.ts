@@ -1,6 +1,8 @@
-import GameContext from '../../engine/core/context';
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
+import {
+  GameContext,
+  GameLoader,
+  Sprite
+} from '../../engine';
 import type { Coin, Platform } from './level';
 
 export interface PlatformerRenderState {
