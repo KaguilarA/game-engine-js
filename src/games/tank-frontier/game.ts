@@ -1,14 +1,17 @@
-import GameContext from '../../engine/core/context';
-import { MathUtils } from '../../engine/core/math-utils';
-import { Collision2D } from '../../engine/core/collision2d';
-import { BaseGame } from '../../engine/core/base-game';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
-import { GameBackground } from '../../engine/rendering/background';
-import GameEvents from '../../engine/input/events';
-import GameLoader from '../../engine/assets/loader';
-import { TouchControls } from '../../engine/input/touch-controls';
 import { signalValue } from 'reactive-values';
+import {
+  BaseGame,
+  Collision2D,
+  CanvasIcon,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  MathUtils,
+  TouchControls
+} from '../../engine';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
+
 import { Bullet } from './bullet';
 import type { Pickup } from './interfaces/pickup';
 import type { Direction } from './interfaces/direction';

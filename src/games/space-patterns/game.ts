@@ -1,14 +1,16 @@
-import GameContext from '../../engine/core/context';
-import GameEvents from '../../engine/input/events';
-import type { GamePointer } from '../../engine/interfaces/game-pointer';
-import { BaseGame } from '../../engine/core/base-game';
-import GameLoader from '../../engine/assets/loader';
-import { GameBackground } from '../../engine/rendering/background';
+import { signalValue } from 'reactive-values';
+import {
+  BaseGame,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  PhysicsBody,
+  type GamePointer
+} from '../../engine';
 
 import { PatternBoard } from './board';
 import { PATTERN_ICONS } from './pattern-icons';
-import { PhysicsBody } from '../../engine/core/physics';
-import { signalValue } from 'reactive-values';
 import type { BoardCell } from './interfaces/board-cell';
 import type { BoardLayout } from './interfaces/board-layout';
 import type { FallingPattern } from './interfaces/falling-pattern';

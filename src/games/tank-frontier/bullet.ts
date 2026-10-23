@@ -1,8 +1,11 @@
-import GameContext from '../../engine/core/context';
-import GameLoader from '../../engine/assets/loader';
-import { PhysicsBody } from '../../engine/core/physics';
-import Sprite from '../../engine/animations/sprites/sprite';
 import { signalValue } from 'reactive-values';
+import {
+  GameContext,
+  GameLoader,
+  PhysicsBody,
+  Sprite
+} from '../../engine';
+
 import type { Direction } from './interfaces/direction';
 import type { Rect } from './interfaces/rect';
 

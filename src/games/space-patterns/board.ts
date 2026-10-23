@@ -1,5 +1,5 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+
 import type { BoardCell } from './interfaces/board-cell';
 import type { PatternFall } from './interfaces/pattern-fall';
 

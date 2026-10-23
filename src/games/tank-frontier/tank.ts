@@ -1,7 +1,10 @@
 import { signalValue } from 'reactive-values';
-import GameLoader from '../../engine/assets/loader';
-import { PhysicsBody } from '../../engine/core/physics';
-import Sprite from '../../engine/animations/sprites/sprite';
+import {
+  GameLoader,
+  PhysicsBody,
+  Sprite
+} from '../../engine';
+
 import type { Direction } from './interfaces/direction';
 import type { EnemyBehavior } from './interfaces/enemy-behavior';
 
