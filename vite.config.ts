@@ -81,6 +81,6 @@ function musketeersManifestPlugin() {
 */
 
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/game-engine-js/' : '/',
+  base: command === 'build' ? '/OWL-engine-ts/' : '/',
   plugins: [/* musketeersManifestPlugin() */]
 }));
