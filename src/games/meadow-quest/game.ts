@@ -1,5 +1,6 @@
 import GameContext from '../../engine/core/context';
 import { BaseGame } from '../../engine/core/base-game';
+import { Collision2D } from '../../engine/core/collision2d';
 import GameEvents from '../../engine/input/events';
 import { TouchControls } from '../../engine/input/touch-controls';
 import { createLevel, type Coin, type Platform } from './level';
@@ -70,11 +71,17 @@ export class MeadowQuestGame extends BaseGame {
     }
     for (const platform of this.platforms) {
       if (platform.kind === 'ground') continue;
-      const px = this.playerX + playerW * 0.5;
-      const wasAbove = previousY + playerH <= platform.y;
-      if (wasAbove && this.velocityY >= 0 && px > platform.x && px < platform.x + platform.width
-        && this.playerY + playerH >= platform.y) {
-        this.playerY = platform.y - playerH;
+      const result = Collision2D.resolveOneWayPlatform(
+        this.playerX,
+        this.playerY,
+        playerW,
+        playerH,
+        previousY,
+        this.velocityY,
+        platform
+      );
+      if (result.landed) {
+        this.playerY = result.resolvedY;
         this.velocityY = 0;
         this.grounded = true;
       }
