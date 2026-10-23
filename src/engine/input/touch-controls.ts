@@ -1,15 +1,15 @@
-import GameContext from '../core/context';
-import type { TouchControlCircle } from '../interfaces/touch-control-circle';
-import type { TouchControlsLayout } from '../interfaces/touch-controls-layout';
-import CanvasIcon from '../rendering/canvas-icon';
-import { Texture } from '../rendering/texture';
-import { Button } from '../ui/button';
-import GameEvents from './events';
 import chevronDownSvg from 'lucide-static/icons/chevron-down.svg?raw';
 import chevronLeftSvg from 'lucide-static/icons/chevron-left.svg?raw';
 import chevronRightSvg from 'lucide-static/icons/chevron-right.svg?raw';
 import chevronUpSvg from 'lucide-static/icons/chevron-up.svg?raw';
 import crosshairSvg from 'lucide-static/icons/crosshair.svg?raw';
+
+import { GameContext } from '../core';
+import type { TouchControlCircle, TouchControlsLayout } from '../interfaces';
+import { CanvasIcon, Texture } from '../rendering';
+import { Button } from '../ui';
+import GameEvents from './events';
+
 
 /**
  * Shared directional and fire controls for touch capable phones and tablets.

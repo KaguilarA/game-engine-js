@@ -1,17 +1,18 @@
+import { signalValue } from 'reactive-values';
 import maximizeSvg from 'lucide-static/icons/maximize.svg?raw';
 import minimizeSvg from 'lucide-static/icons/minimize.svg?raw';
 import pauseSvg from 'lucide-static/icons/pause.svg?raw';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
 import houseSvg from 'lucide-static/icons/house.svg?raw';
 
-import CanvasIcon from '../rendering/canvas-icon';
-import { Button } from '../ui/button';
-import { Texture } from '../rendering/texture';
-import GameContext from '../core/context';
-import type { GameControlCircle } from '../interfaces/game-control-circle';
-import type { GameControlsLayout } from '../interfaces/game-controls-layout';
-import type { GameControlsOptions } from '../interfaces/game-controls-options';
-import { signalValue } from 'reactive-values';
+import { Button } from '../ui';
+import { CanvasIcon, Texture } from '../rendering';
+import { GameContext } from '../core';
+import type {
+  GameControlCircle,
+  GameControlsLayout,
+  GameControlsOptions
+} from '../interfaces';
 
 /**
  * Renders and handles the shared pause, fullscreen, and reset controls.

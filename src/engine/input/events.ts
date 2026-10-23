@@ -1,6 +1,6 @@
 import { signalValue } from 'reactive-values';
-import GameContext from '../core/context';
-import type { GamePointer } from '../interfaces/game-pointer';
+import { GameContext } from '../core';
+import type { GamePointer } from '../interfaces';
 
 type PointerListener = (pointer: GamePointer) => void;
 type WheelListener = (pointer: GamePointer, deltaY: number) => boolean;

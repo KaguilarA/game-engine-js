@@ -1,6 +1,6 @@
-import Sprite from '../animations/sprites/sprite';
+import { Sprite } from '../animations';
+import type { AtlasAnimation } from '../interfaces';
 import { SpriteEntity } from './sprite-entity';
-import type { AtlasAnimation } from '../interfaces/atlas-animation';
 
 /**
  * Shares animated engine-trail behavior between player ships.

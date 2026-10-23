@@ -1,7 +1,11 @@
-import { computedValue, signalValue } from 'reactive-values';
-import type { ComputedValue, SignalValue } from 'reactive-values';
-import GameContext from '../core/context';
-import type { Camera2D } from '../scene/camera2d';
+import {
+  computedValue,
+  signalValue,
+  type ComputedValue,
+  type SignalValue
+} from 'reactive-values';
+import { GameContext } from '../core';
+import type { Camera2D } from '../scene';
 
 export type ParticleShape = 'circle' | 'rect' | 'texture';
 

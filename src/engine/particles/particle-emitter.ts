@@ -1,8 +1,7 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-import { ParticleSystem, type ParticleShape } from './particle-system';
+import { signalValue, type SignalValue } from 'reactive-values';
 import { MathUtils } from '../core';
-import type { Camera2D } from '../scene/camera2d';
+import type { Camera2D } from '../scene';
+import { ParticleSystem, type ParticleShape } from './particle-system';
 
 export interface ParticleEmitterOptions {
   system?: ParticleSystem;
