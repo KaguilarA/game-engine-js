@@ -2,7 +2,7 @@
  * High-performance 2D vector with mutable in-place operations.
  * @class Vector2
  */
-export class Vector2 {
+export default class Vector2 {
   /**
    * Stores the horizontal component.
    * @property {number} x

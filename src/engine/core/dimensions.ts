@@ -28,8 +28,8 @@ import { computedValue, signalValue } from 'reactive-values';
  * dimensions.setScale(0.5);
  * ```
  */
-export default class Dimensions {
-  
+export default class {
+
   /**
    * The unscaled horizontal position.
    *

@@ -1,11 +1,10 @@
-import { GameControls } from '../input/game-controls';
-import type { GameControlsOptions } from '../interfaces/game-controls-options';
 import { signalValue } from 'reactive-values';
+import MathUtils from './math-utils';
 import GameContext from './context';
-import { Label } from '../ui/label';
-import { MathUtils } from './math-utils';
-import { WorldScene } from '../scene/world-scene';
-import { SceneLayer } from '../scene/scene-layer';
+import { GameControls } from '../input';
+import { Label } from '../ui';
+import { SceneLayer, WorldScene } from '../scene';
+import type { GameControlsOptions } from '../interfaces';
 
 type LabelRenderState = {
   text: string;
@@ -28,7 +27,7 @@ type LabelRenderState = {
  * @class BaseGame
  * @abstract
  */
-export abstract class BaseGame {
+export default abstract class BaseGame {
   /** Scene graph available to games that use the world APIs. */
   protected readonly worldScene = new WorldScene();
   protected readonly worldActors = new SceneLayer({ name: 'Actors', updateObjects: false });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Health } from './health';
+import Health from './health';
 
 describe('Health', () => {
   it('tracks damage exactly until health is depleted', () => {

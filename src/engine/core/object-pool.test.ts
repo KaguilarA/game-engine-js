@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ObjectPool, GamePools, type Poolable } from './object-pool';
+import GamePools from './pool-registry';
+import ObjectPool from './object-pool';
+import type { Poolable } from '../interfaces';
 
 class TestBullet implements Poolable {
   public x = 0;

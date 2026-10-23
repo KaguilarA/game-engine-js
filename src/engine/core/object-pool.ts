@@ -1,18 +1,16 @@
-import { computedValue, signalValue } from 'reactive-values';
-import type { ComputedValue, SignalValue } from 'reactive-values';
-
-/**
- * Interface that must be implemented by objects managed by an ObjectPool.
- */
-export interface Poolable {
-  reset(): void;
-}
+import {
+  computedValue,
+  signalValue,
+  type ComputedValue,
+  type SignalValue
+} from 'reactive-values';
+import type { Poolable } from '../interfaces/poolable';
 
 /**
  * High-performance object pool with zero runtime allocations and reactive tracking.
  * @class ObjectPool
  */
-export class ObjectPool<T extends Poolable> {
+export default class ObjectPool<T extends Poolable> {
   /**
    * Stores idle pooled instances.
    * @property {T[]} items
@@ -170,57 +168,4 @@ export class ObjectPool<T extends Poolable> {
   }
 }
 
-/**
- * Global registry for game-wide pools following SOLID singleton design.
- * @class PoolRegistry
- */
-export class PoolRegistry {
-  /**
-   * Stores registered pools by name.
-   * @property {Map<string, ObjectPool<any>>} pools
-   * @private
-   * @readonly
-   */
-  private readonly pools = new Map<string, ObjectPool<any>>();
 
-  /**
-   * Registers a named object pool.
-   * @public
-   * @return {void}
-   */
-  public register<T extends Poolable>(name: string, pool: ObjectPool<T>): void {
-    this.pools.set(name, pool);
-  }
-
-  /**
-   * Retrieves a named object pool.
-   * @public
-   * @return {ObjectPool<T> | undefined}
-   */
-  public get<T extends Poolable>(name: string): ObjectPool<T> | undefined {
-    return this.pools.get(name) as ObjectPool<T> | undefined;
-  }
-
-  /**
-   * Checks if a pool exists.
-   * @public
-   * @return {boolean}
-   */
-  public has(name: string): boolean {
-    return this.pools.has(name);
-  }
-
-  /**
-   * Clears all registered pools.
-   * @public
-   * @return {void}
-   */
-  public clear(): void {
-    for (const pool of this.pools.values()) {
-      pool.clear();
-    }
-    this.pools.clear();
-  }
-}
-
-export const GamePools = new PoolRegistry();

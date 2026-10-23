@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PhysicsBody } from './physics';
+import PhysicsBody from './physics';
 
 describe('PhysicsBody', () => {
   it('initializes with default position and zero motion', () => {

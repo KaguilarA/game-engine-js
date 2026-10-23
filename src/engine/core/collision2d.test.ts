@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Collision2D } from './collision2d';
+import Collision2D from './collision2d';
 import { CircleBody } from '../entities/circle-body';
 
 describe('Collision2D', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MathUtils } from './math-utils';
+import MathUtils from './math-utils';
 
 describe('MathUtils', () => {
   it('clamps and smoothSteps numeric values', () => {

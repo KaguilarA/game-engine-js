@@ -1,5 +1,5 @@
-import Dimensions from './dimensions';
 import { computedValue, signalValue } from 'reactive-values';
+import Dimensions from './dimensions';
 
 /**
  * Owns canvas sizing, responsive dimensions, and drawing helpers.
@@ -423,6 +423,4 @@ class Context {
 
 }
 
-const GameContext = new Context();
-
-export default GameContext;
+export default new Context();

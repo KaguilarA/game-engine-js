@@ -2,14 +2,14 @@
  * Allocation-free math helpers operating strictly on primitive numbers.
  * @class MathUtils
  */
-export class MathUtils {
+class MathUtils {
   /**
    * Degrees to radians conversion multiplier.
    * @property {number} DEG_TO_RAD
    * @public
    * @readonly
    */
-  public static readonly DEG_TO_RAD = Math.PI / 180;
+  public readonly DEG_TO_RAD = Math.PI / 180;
 
   /**
    * Radians to degrees conversion multiplier.
@@ -17,14 +17,14 @@ export class MathUtils {
    * @public
    * @readonly
    */
-  public static readonly RAD_TO_DEG = 180 / Math.PI;
+  public readonly RAD_TO_DEG = 180 / Math.PI;
 
   /**
    * Clamps numeric value to range.
    * @public
    * @return {number}
    */
-  public static clamp(value: number, minimum: number, maximum: number): number {
+  public clamp(value: number, minimum: number, maximum: number): number {
     if (maximum < minimum) return minimum;
     return value < minimum ? minimum : value > maximum ? maximum : value;
   }
@@ -34,8 +34,8 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static smoothStep(progress: number): number {
-    const amount = MathUtils.clamp(progress, 0, 1);
+  public smoothStep(progress: number): number {
+    const amount = this.clamp(progress, 0, 1);
     return amount * amount * (3 - 2 * amount);
   }
 
@@ -44,7 +44,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static lerp(start: number, end: number, alpha: number): number {
+  public lerp(start: number, end: number, alpha: number): number {
     return start + (end - start) * alpha;
   }
 
@@ -53,7 +53,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static lerpAngle(fromDeg: number, toDeg: number, alpha: number): number {
+  public lerpAngle(fromDeg: number, toDeg: number, alpha: number): number {
     let diff = (toDeg - fromDeg) % 360;
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
@@ -65,7 +65,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static lerpAngleRad(fromRad: number, toRad: number, alpha: number): number {
+  public lerpAngleRad(fromRad: number, toRad: number, alpha: number): number {
     const twoPi = Math.PI * 2;
     let diff = (toRad - fromRad) % twoPi;
     if (diff > Math.PI) diff -= twoPi;
@@ -78,9 +78,9 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static inverseLerp(start: number, end: number, value: number): number {
+  public inverseLerp(start: number, end: number, value: number): number {
     if (start === end) return 0;
-    return MathUtils.clamp((value - start) / (end - start), 0, 1);
+    return this.clamp((value - start) / (end - start), 0, 1);
   }
 
   /**
@@ -88,8 +88,8 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static degToRad(degrees: number): number {
-    return degrees * MathUtils.DEG_TO_RAD;
+  public degToRad(degrees: number): number {
+    return degrees * this.DEG_TO_RAD;
   }
 
   /**
@@ -97,8 +97,8 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static radToDeg(radians: number): number {
-    return radians * MathUtils.RAD_TO_DEG;
+  public radToDeg(radians: number): number {
+    return radians * this.RAD_TO_DEG;
   }
 
   /**
@@ -106,7 +106,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static randomRange(min: number, max: number): number {
+  public randomRange(min: number, max: number): number {
     const floorMin = Math.ceil(min);
     const floorMax = Math.floor(max);
     return Math.floor(Math.random() * (floorMax - floorMin + 1)) + floorMin;
@@ -117,7 +117,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static randomFloat(min: number, max: number): number {
+  public randomFloat(min: number, max: number): number {
     return min + Math.random() * (max - min);
   }
 
@@ -126,7 +126,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static distanceSquared(x1: number, y1: number, x2: number, y2: number): number {
+  public distanceSquared(x1: number, y1: number, x2: number, y2: number): number {
     const dx = x2 - x1;
     const dy = y2 - y1;
     return dx * dx + dy * dy;
@@ -137,7 +137,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static distance(x1: number, y1: number, x2: number, y2: number): number {
+  public distance(x1: number, y1: number, x2: number, y2: number): number {
     return Math.hypot(x2 - x1, y2 - y1);
   }
 
@@ -146,7 +146,7 @@ export class MathUtils {
    * @public
    * @return {number}
    */
-  public static angleBetween(x1: number, y1: number, x2: number, y2: number): number {
+  public angleBetween(x1: number, y1: number, x2: number, y2: number): number {
     return Math.atan2(y2 - y1, x2 - x1);
   }
 
@@ -155,7 +155,10 @@ export class MathUtils {
    * @public
    * @return {boolean}
    */
-  public static approximately(a: number, b: number, epsilon = 0.00001): boolean {
+  public approximately(a: number, b: number, epsilon = 0.00001): boolean {
     return Math.abs(a - b) <= epsilon;
   }
 }
+
+
+export default new MathUtils();

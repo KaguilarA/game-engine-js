@@ -1,17 +1,11 @@
+import type { CollisionRect } from '../interfaces';
 import type { CircleBody } from '../entities/circle-body';
-
-export interface CollisionRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 /**
  * Allocation-free collision and bounce helpers for common 2D shapes.
  * @class Collision2D
  */
-export class Collision2D {
+export default class {
 
   /**
    * Keeps a circular body inside horizontal world limits and reflects outward motion.

@@ -1,11 +1,10 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
 
 /**
  * Shared two-dimensional position, velocity, and acceleration integrator.
  * @class PhysicsBody
  */
-export class PhysicsBody {
+export default class {
   /**
    * Horizontal world position.
    * @property {SignalValue<number>} x

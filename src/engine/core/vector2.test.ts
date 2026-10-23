@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Vector2 } from './vector2';
+import Vector2 from './vector2';
 
 describe('Vector2 (Zero-Allocation)', () => {
   it('performs in-place mutable arithmetic', () => {

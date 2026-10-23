@@ -1,13 +1,17 @@
-import { computedValue, signalValue } from 'reactive-values';
-import type { ComputedValue, SignalValue } from 'reactive-values';
+import {
+  signalValue,
+  computedValue,
+  type SignalValue,
+  type ComputedValue,
+} from 'reactive-values';
+import MathUtils from './math-utils';
 import type { DamageResult } from '../interfaces/damage-result';
-import { MathUtils } from './math-utils';
 
 /**
  * Stores shared entity hit points and applies finite, positive damage values.
  * @class Health
  */
-export class Health {
+export default class {
   /**
    * Stores the current health state.
    * @property {number} currentHealth
