@@ -1,27 +1,31 @@
-import GameContext from '../engine/core/context';
-import { MathUtils } from '../engine/core/math-utils';
-import GameEvents from '../engine/input/events';
-import { GameControls } from '../engine/input/game-controls';
-import GameLoader from '../engine/assets/loader';
-import { Button } from '../engine/ui/button';
-import { Label } from '../engine/ui/label';
-import { Texture } from '../engine/rendering/texture';
-import { GameBackground } from '../engine/rendering/background';
-import { Game as SpaceHuntersGame } from './space-hunters/game';
-import { SpacePatternsGame } from './space-patterns/game';
-import { TankFrontierGame } from './tank-frontier';
-import { SlotMachineGame } from './slot-machine/game';
-import { ShootEmAllGame } from './shoot-em-all/game';
-// import { MusketeersSlotGame } from './musketeers-slot/game';
-import { ScratchCardGame } from './scratch-card/game';
-
-import { PolarityVanguardGame } from './polarity-vanguard/game';
-import type { GameChoice } from './interfaces/game-choice';
 import { signalValue } from 'reactive-values';
-import { Container } from '../engine/scene/container';
+import {
+  Button,
+  Container,
+  GameBackground,
+  GameContext,
+  GameControls,
+  GameEvents,
+  GameLoader,
+  Label,
+  MathUtils,
+  Texture
+} from '../engine';
+
+// import { MusketeersSlotGame } from './musketeers-slot/game';
+import { MeadowQuestGame } from './meadow-quest/game';
+import { ScratchCardGame } from './scratch-card/game';
+import { PolarityVanguardGame } from './polarity-vanguard/game';
 import { PachinkoGame } from './pachinko/game';
 import { PinballGame } from './pinball/game';
-import { MeadowQuestGame } from './meadow-quest/game';
+import { ShootEmAllGame } from './shoot-em-all/game';
+import { Game as SpaceHuntersGame } from './space-hunters/game';
+import { SlotMachineGame } from './slot-machine/game';
+import { SpacePatternsGame } from './space-patterns/game';
+import { TankFrontierGame } from './tank-frontier';
+
+import type { GameChoice } from './interfaces/game-choice';
+
 
 /**
  * Presents the game list and starts the selected game.

@@ -1,12 +1,8 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import GameContext from '../core/context';
-import Dimensions from '../core/dimensions';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { GameContext, Dimensions, MathUtils } from '../core';
+import GameEvents from '../input/events';
 import type { ContainerOptions } from '../interfaces/container-options';
 import type { Renderable } from '../interfaces/renderable';
-import { MathUtils } from '../core/math-utils';
-import GameEvents from '../input/events';
 import type { GamePointer } from '../interfaces/game-pointer';
 
 interface ScrollbarDrag {

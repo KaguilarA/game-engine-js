@@ -1,6 +1,7 @@
 export type { AtlasAnimation } from './atlas-animation';
 export type { AtlasPageData } from './atlas-page-data';
 export type { AtlasRegion } from './atlas-region';
+export type { CollisionRect } from './collisionRect';
 export type { DamageResult } from './damage-result';
 export type { GameControlCircle } from './game-control-circle';
 export type { GameControlsLayout } from './game-controls-layout';
@@ -11,6 +12,7 @@ export type { ContainerOptions } from './container-options';
 export type { LabelOptions } from './label-options';
 export type { LabelStyle } from './label-style';
 export type { NumberLabelOptions } from './number-label-options';
+export type { Poolable } from './poolable';
 export type { Renderable } from './renderable';
 export type { SceneDrawable } from './renderable';
 export type { ParsedAtlasRegion } from './parsed-atlas-region';

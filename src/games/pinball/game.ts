@@ -1,13 +1,15 @@
 import { signalValue } from 'reactive-values';
-
-import GameContext from '../../engine/core/context';
-import { BaseGame } from '../../engine/core/base-game';
-import GameEvents from '../../engine/input/events';
-import { TouchControls } from '../../engine/input/touch-controls';
-import GameLoader from '../../engine/assets/loader';
-import { GameBackground } from '../../engine/rendering/background';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
+import {
+  BaseGame,
+  CanvasIcon,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  TouchControls
+} from '../../engine';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
+
 import { PinballBall } from './ball';
 import { PinballBoard } from './board';
 import { PinballFlipper } from './flipper';

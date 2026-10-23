@@ -1,9 +1,9 @@
-import { computedValue, signalValue } from 'reactive-values';
-import type { ComputedValue, SignalValue } from 'reactive-values';
+import { computedValue, signalValue, type SignalValue, type ComputedValue } from 'reactive-values';
+import { MathUtils } from '../core';
 import { Container } from '../scene/container';
 import type { ReelOptions } from './interfaces/reel-options';
 import type { VisibleReelSymbol } from './interfaces/visible-reel-symbol';
-import { MathUtils } from '../core/math-utils';
+
 
 type ReelPhase = 'idle' | 'anticipation' | 'spinning' | 'bounce';
 

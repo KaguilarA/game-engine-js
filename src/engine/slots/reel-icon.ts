@@ -1,11 +1,8 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { Dimensions, GameContext, MathUtils } from '../core';
 
-import GameContext from '../core/context';
-import Dimensions from '../core/dimensions';
 import type { Renderable } from '../interfaces/renderable';
 import type { ReelSymbolVisual } from './interfaces/reel-symbol-visual';
-import { MathUtils } from '../core/math-utils';
 
 /** Draws one independently positioned symbol inside its owning reel container. */
 export class ReelIcon implements Renderable {
