@@ -352,7 +352,7 @@ export class SpineBinaryParser {
 
   private static readSkin(
     reader: BinaryReader,
-    isSpine4: boolean,
+    _isSpine4: boolean,
     slotNames: string[]
   ): Record<string, Record<string, SpineRecord>> | undefined {
     if (reader.remaining === 0) return undefined;

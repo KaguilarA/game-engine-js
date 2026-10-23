@@ -9,10 +9,10 @@ describe('Rendering Texture', () => {
     expect(texture.dimensions.getWidth()).toBe(64);
     expect(texture.dimensions.getHeight()).toBe(64);
 
+    texture.setState('disabled');
+    expect(texture.stateName).toBe('disabled');
+
     texture.setState('hover');
     expect(texture.stateName).toBe('hover');
-
-    texture.setState('active');
-    expect(texture.stateName).toBe('active');
   });
 });

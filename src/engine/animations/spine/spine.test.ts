@@ -6,9 +6,11 @@ import type { SpineRecord } from '../../interfaces/spine-record';
 
 // Dummy atlas for headless tests
 const createMockAtlas = (): Atlas => {
-  return new Atlas('dummy.png', {
-    pages: [{ name: 'dummy.png', size: { width: 100, height: 100 } }],
-    regions: {}
+  return new Atlas({
+    pageName: 'dummy.png',
+    width: 100,
+    height: 100,
+    regions: []
   });
 };
 

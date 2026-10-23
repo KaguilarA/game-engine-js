@@ -36,19 +36,15 @@ describe('Slot Machine Primitives (Reel & ReelBank)', () => {
     expect(bank.isSettled).toBe(true);
 
     // Start spin on all reels
-    bank.spin([
-      ['CHERRY', 'CHERRY', 'CHERRY'],
-      ['BELL', 'BELL', 'BELL'],
-      ['SEVEN', 'SEVEN', 'SEVEN']
-    ]);
+    bank.startSpin();
 
     expect(bank.isSettled).toBe(false);
 
     // Fast stop
-    bank.fastStop();
+    bank.requestFastStop();
 
-    // Advance time until all settled
-    bank.update(2.0);
+    // Advance in small steps through braking and settling phases.
+    for (let frame = 0; frame < 50 && !bank.isSettled; frame++) bank.update(0.1);
     expect(bank.isSettled).toBe(true);
   });
 });

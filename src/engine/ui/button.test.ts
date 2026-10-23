@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './button';
 import { Texture } from '../rendering/texture';
-import Dimensions from '../core/dimensions';
 
 describe('UI Button', () => {
   it('manages disabled and blocked states', () => {
@@ -25,7 +24,7 @@ describe('UI Button', () => {
     const texture = new Texture({}, 80, 30);
     const button = new Button(texture, {
       onClick: () => {},
-      dimensions: new Dimensions(120, 50, 10, 20)
+      dimensions: { width: 120, height: 50, x: 10, y: 20 }
     });
 
     expect(button.dimensions.getWidth()).toBe(120);

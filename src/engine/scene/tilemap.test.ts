@@ -17,13 +17,12 @@ describe('Tilemap', () => {
 
     expect(tilemap.mapWidth).toBe(10);
     expect(tilemap.mapHeight).toBe(8);
-    expect(tilemap.getCell(0, 0)).toBe(0);
+    expect(tilemap.getTile(0, 0)).toBe(0);
 
-    tilemap.setCell(2, 3, 5);
-    expect(tilemap.getCell(2, 3)).toBe(5);
+    tilemap.setTile(2, 3, 5);
+    expect(tilemap.getTile(2, 3)).toBe(5);
 
-    // Out of bounds checks
-    expect(tilemap.getCell(-1, 0)).toBe(0);
-    expect(tilemap.getCell(10, 8)).toBe(0);
+    expect(() => tilemap.getTile(-1, 0)).toThrow(RangeError);
+    expect(() => tilemap.getTile(10, 8)).toThrow(RangeError);
   });
 });
