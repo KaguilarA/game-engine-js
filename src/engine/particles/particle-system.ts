@@ -1,47 +1,227 @@
+import { computedValue, signalValue } from 'reactive-values';
+import type { ComputedValue, SignalValue } from 'reactive-values';
 import GameContext from '../core/context';
 import type { Camera2D } from '../scene/camera2d';
 
 export type ParticleShape = 'circle' | 'rect' | 'texture';
 
 /**
- * High-performance, zero-allocation 2D particle simulation engine.
- * Stores all particle attributes in contiguous typed arrays (Float32Array)
- * to maximize cache locality and completely bypass the JavaScript garbage collector.
- *
+ * Continuous Float32Array particle simulation engine with reactive state tracking.
  * @class ParticleSystem
  */
 export class ParticleSystem {
+  /**
+   * Stores the total capacity of pre-allocated particle buffers.
+   * @property {number} capacity
+   * @public
+   * @readonly
+   */
   public readonly capacity: number;
-  private activeCount = 0;
 
-  // Contiguous typed array buffers
+  /**
+   * Stores the reactive active particle count.
+   * @property {SignalValue<number>} activeCount
+   * @private
+   * @readonly
+   */
+  private readonly activeCount: SignalValue<number>;
+
+  /**
+   * Reports whether particle capacity has been reached.
+   * @property {ComputedValue<boolean>} full
+   * @private
+   * @readonly
+   */
+  private readonly full: ComputedValue<boolean>;
+
+  /**
+   * Stores horizontal positions.
+   * @property {Float32Array} posX
+   * @public
+   * @readonly
+   */
   public readonly posX: Float32Array;
-  public readonly posY: Float32Array;
-  public readonly velX: Float32Array;
-  public readonly velY: Float32Array;
-  public readonly accelX: Float32Array;
-  public readonly accelY: Float32Array;
-  public readonly life: Float32Array;
-  public readonly maxLife: Float32Array;
-  public readonly startSize: Float32Array;
-  public readonly endSize: Float32Array;
-  public readonly rotation: Float32Array;
-  public readonly rotationSpeed: Float32Array;
-  public readonly colorR: Uint8Array;
-  public readonly colorG: Uint8Array;
-  public readonly colorB: Uint8Array;
-  public readonly startAlpha: Float32Array;
-  public readonly endAlpha: Float32Array;
-  public readonly shape: Uint8Array; // 0 = circle, 1 = rect, 2 = texture
 
+  /**
+   * Stores vertical positions.
+   * @property {Float32Array} posY
+   * @public
+   * @readonly
+   */
+  public readonly posY: Float32Array;
+
+  /**
+   * Stores horizontal velocities.
+   * @property {Float32Array} velX
+   * @public
+   * @readonly
+   */
+  public readonly velX: Float32Array;
+
+  /**
+   * Stores vertical velocities.
+   * @property {Float32Array} velY
+   * @public
+   * @readonly
+   */
+  public readonly velY: Float32Array;
+
+  /**
+   * Stores horizontal accelerations.
+   * @property {Float32Array} accelX
+   * @public
+   * @readonly
+   */
+  public readonly accelX: Float32Array;
+
+  /**
+   * Stores vertical accelerations.
+   * @property {Float32Array} accelY
+   * @public
+   * @readonly
+   */
+  public readonly accelY: Float32Array;
+
+  /**
+   * Stores current particle lifetimes.
+   * @property {Float32Array} life
+   * @public
+   * @readonly
+   */
+  public readonly life: Float32Array;
+
+  /**
+   * Stores maximum particle lifetimes.
+   * @property {Float32Array} maxLife
+   * @public
+   * @readonly
+   */
+  public readonly maxLife: Float32Array;
+
+  /**
+   * Stores initial particle sizes.
+   * @property {Float32Array} startSize
+   * @public
+   * @readonly
+   */
+  public readonly startSize: Float32Array;
+
+  /**
+   * Stores final particle sizes.
+   * @property {Float32Array} endSize
+   * @public
+   * @readonly
+   */
+  public readonly endSize: Float32Array;
+
+  /**
+   * Stores current particle rotations.
+   * @property {Float32Array} rotation
+   * @public
+   * @readonly
+   */
+  public readonly rotation: Float32Array;
+
+  /**
+   * Stores particle rotation speeds.
+   * @property {Float32Array} rotationSpeed
+   * @public
+   * @readonly
+   */
+  public readonly rotationSpeed: Float32Array;
+
+  /**
+   * Stores red color components.
+   * @property {Uint8Array} colorR
+   * @public
+   * @readonly
+   */
+  public readonly colorR: Uint8Array;
+
+  /**
+   * Stores green color components.
+   * @property {Uint8Array} colorG
+   * @public
+   * @readonly
+   */
+  public readonly colorG: Uint8Array;
+
+  /**
+   * Stores blue color components.
+   * @property {Uint8Array} colorB
+   * @public
+   * @readonly
+   */
+  public readonly colorB: Uint8Array;
+
+  /**
+   * Stores starting alpha opacities.
+   * @property {Float32Array} startAlpha
+   * @public
+   * @readonly
+   */
+  public readonly startAlpha: Float32Array;
+
+  /**
+   * Stores ending alpha opacities.
+   * @property {Float32Array} endAlpha
+   * @public
+   * @readonly
+   */
+  public readonly endAlpha: Float32Array;
+
+  /**
+   * Stores particle shape types.
+   * @property {Uint8Array} shape
+   * @public
+   * @readonly
+   */
+  public readonly shape: Uint8Array;
+
+  /**
+   * Stores the composite operation blend mode.
+   * @property {GlobalCompositeOperation} blendMode
+   * @public
+   */
   public blendMode: GlobalCompositeOperation = 'source-over';
+
+  /**
+   * Stores the particle texture element.
+   * @property {HTMLImageElement | undefined} texture
+   * @public
+   */
   public texture: HTMLImageElement | undefined;
 
   /**
-   * @param capacity Maximum number of simultaneously alive particles (allocated once).
+   * Returns the count of active particles.
+   * @public
+   * @return {number}
+   */
+  public get count(): number {
+    return this.activeCount();
+  }
+
+  /**
+   * Reports whether particle buffer capacity is reached.
+   * @public
+   * @return {boolean}
+   */
+  public get isFull(): boolean {
+    return this.full();
+  }
+
+  /**
+   * Creates a particle system with pre-allocated contiguous buffers.
+   * @public
+   * @return {void}
    */
   public constructor(capacity = 1000) {
     this.capacity = Math.max(1, capacity);
+    this.activeCount = signalValue(0);
+    this.full = computedValue(
+      () => this.activeCount() >= this.capacity,
+      [this.activeCount]
+    );
 
     this.posX = new Float32Array(this.capacity);
     this.posY = new Float32Array(this.capacity);
@@ -64,8 +244,9 @@ export class ParticleSystem {
   }
 
   /**
-   * Spawns a new particle into contiguous buffers with zero allocation.
-   * Returns true if spawned, or false if capacity is reached.
+   * Spawns a particle into flat buffers without allocating objects.
+   * @public
+   * @return {boolean}
    */
   public spawn(
     x: number,
@@ -86,9 +267,10 @@ export class ParticleSystem {
     rotationSpeed = 0,
     shape: ParticleShape = 'circle'
   ): boolean {
-    if (this.activeCount >= this.capacity) return false;
+    const current = this.activeCount();
+    if (current >= this.capacity) return false;
 
-    const index = this.activeCount;
+    const index = current;
     this.posX[index] = x;
     this.posY[index] = y;
     this.velX[index] = vx;
@@ -108,28 +290,28 @@ export class ParticleSystem {
     this.rotationSpeed[index] = rotationSpeed;
     this.shape[index] = shape === 'circle' ? 0 : shape === 'rect' ? 1 : 2;
 
-    this.activeCount++;
+    this.activeCount.set(current + 1);
     return true;
   }
 
   /**
-   * Simulates all active particles.
-   * Dead particles are reclaimed in O(1) via swap-and-pop without memory reallocation.
+   * Updates particle simulation and cleans up expired particles via swap-and-pop.
+   * @public
+   * @return {void}
    */
   public update(deltaSeconds: number): void {
+    let count = this.activeCount();
     let index = 0;
-    while (index < this.activeCount) {
+    while (index < count) {
       this.life[index] += deltaSeconds;
 
       if (this.life[index] >= this.maxLife[index]) {
-        // Swap with the last active particle
-        const lastIndex = this.activeCount - 1;
+        const lastIndex = count - 1;
         if (index < lastIndex) {
           this.swap(index, lastIndex);
         }
-        this.activeCount--;
+        count--;
       } else {
-        // Physics integration
         this.velX[index] += this.accelX[index] * deltaSeconds;
         this.velY[index] += this.accelY[index] * deltaSeconds;
         this.posX[index] += this.velX[index] * deltaSeconds;
@@ -138,13 +320,17 @@ export class ParticleSystem {
         index++;
       }
     }
+    this.activeCount.set(count);
   }
 
   /**
-   * Batched drawing to the canvas context with minimal state switching.
+   * Renders active particles in batch to the graphics context.
+   * @public
+   * @return {void}
    */
   public draw(context = GameContext.context, camera?: Camera2D): void {
-    if (this.activeCount === 0) return;
+    const active = this.activeCount();
+    if (active === 0) return;
 
     context.save();
     if (this.blendMode !== 'source-over') {
@@ -156,7 +342,7 @@ export class ParticleSystem {
     const camY = hasCamera ? camera.y() : 0;
     const zoom = hasCamera ? camera.zoom() : 1;
 
-    for (let index = 0; index < this.activeCount; index++) {
+    for (let index = 0; index < active; index++) {
       const progress = this.life[index] / this.maxLife[index];
       const size = (this.startSize[index] + (this.endSize[index] - this.startSize[index]) * progress) * zoom;
       if (size <= 0.05) continue;
@@ -177,14 +363,12 @@ export class ParticleSystem {
       const rot = this.rotation[index];
 
       if (shapeType === 2 && this.texture && this.texture.complete) {
-        // Texture particle (Coin, Star, etc.)
         context.save();
         context.translate(drawX, drawY);
         if (rot !== 0) context.rotate(rot);
         context.drawImage(this.texture, -size * 0.5, -size * 0.5, size, size);
         context.restore();
       } else if (shapeType === 1) {
-        // Rectangle particle (Confetti, Debris)
         context.fillStyle = `rgb(${this.colorR[index]},${this.colorG[index]},${this.colorB[index]})`;
         if (rot !== 0) {
           context.save();
@@ -196,7 +380,6 @@ export class ParticleSystem {
           context.fillRect(drawX - size * 0.5, drawY - size * 0.5, size, size);
         }
       } else {
-        // Circle particle (Sparks, Magic, Smoke)
         context.fillStyle = `rgb(${this.colorR[index]},${this.colorG[index]},${this.colorB[index]})`;
         context.beginPath();
         context.arc(drawX, drawY, size * 0.5, 0, Math.PI * 2);
@@ -207,16 +390,20 @@ export class ParticleSystem {
     context.restore();
   }
 
-  /** Current number of active particles. */
-  public get count(): number {
-    return this.activeCount;
-  }
-
-  /** Clears all active particles immediately without reallocation. */
+  /**
+   * Resets active particle count to zero.
+   * @public
+   * @return {void}
+   */
   public clear(): void {
-    this.activeCount = 0;
+    this.activeCount.set(0);
   }
 
+  /**
+   * Swaps two particle slots in contiguous buffers.
+   * @private
+   * @return {void}
+   */
   private swap(a: number, b: number): void {
     this.posX[a] = this.posX[b];
     this.posY[a] = this.posY[b];
