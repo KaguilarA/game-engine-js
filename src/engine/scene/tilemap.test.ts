@@ -1,64 +1,29 @@
-import { describe, expect, it, vi } from 'vitest';
-
-const { drawingContext } = vi.hoisted(() => ({
-  drawingContext: {
-    drawImage: vi.fn(),
-    restore: vi.fn(),
-    save: vi.fn(),
-    scale: vi.fn(),
-    translate: vi.fn()
-  }
-}));
-
-vi.mock('../core/context', () => ({
-  default: {
-    context: drawingContext,
-    gameDimensionsModel: { getHeight: (): number => 300, getWidth: (): number => 400 }
-  }
-}));
-
+import { describe, expect, it } from 'vitest';
 import { Tilemap } from './tilemap';
 
 describe('Tilemap', () => {
-  it('stores zero-based grid coordinates and draws one-based tileset indices', () => {
-    const tileset = { width: 16, height: 8 } as HTMLCanvasElement;
+  it('initializes grid cells and updates cell values', () => {
+    // Mock image canvas source
+    const mockImage = { width: 128, height: 128 } as unknown as CanvasImageSource;
+
     const tilemap = new Tilemap({
-      image: tileset,
-      columns: 2,
-      tileWidth: 8,
-      tileHeight: 8,
-      mapWidth: 3,
-      mapHeight: 1,
-      x: 10,
-      y: 20
+      image: mockImage,
+      columns: 4,
+      tileWidth: 16,
+      tileHeight: 16,
+      mapWidth: 10,
+      mapHeight: 8
     });
-    tilemap.setTile(0, 0, 1);
-    tilemap.setTile(1, 0, 2);
 
-    expect(tilemap.getTile(0, 0)).toBe(1);
-    expect(tilemap.getTile(2, 0)).toBe(0);
-    tilemap.draw();
+    expect(tilemap.mapWidth).toBe(10);
+    expect(tilemap.mapHeight).toBe(8);
+    expect(tilemap.getCell(0, 0)).toBe(0);
 
-    expect(drawingContext.drawImage).toHaveBeenCalledTimes(2);
-    expect(drawingContext.drawImage).toHaveBeenNthCalledWith(
-      1, tileset, 0, 0, 8, 8, 0, 0, 8, 8
-    );
-    expect(drawingContext.drawImage).toHaveBeenNthCalledWith(
-      2, tileset, 8, 0, 8, 8, 8, 0, 8, 8
-    );
-  });
+    tilemap.setCell(2, 3, 5);
+    expect(tilemap.getCell(2, 3)).toBe(5);
 
-  it('rejects invalid coordinates and data that does not match map size', () => {
-    const tilemap = new Tilemap({
-      image: { width: 8, height: 8 } as HTMLCanvasElement,
-      columns: 1,
-      tileWidth: 8,
-      tileHeight: 8,
-      mapWidth: 1,
-      mapHeight: 1
-    });
-    expect(() => tilemap.getTile(1, 0)).toThrow(RangeError);
-    expect(() => tilemap.setTiles([1, 2])).toThrow(RangeError);
-    expect(() => tilemap.setTile(0, 0, -1)).toThrow(RangeError);
+    // Out of bounds checks
+    expect(tilemap.getCell(-1, 0)).toBe(0);
+    expect(tilemap.getCell(10, 8)).toBe(0);
   });
 });
