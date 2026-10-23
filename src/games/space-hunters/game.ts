@@ -1,20 +1,22 @@
-import GameContext from '../../engine/core/context';
-import { MathUtils } from '../../engine/core/math-utils';
-import { Collision2D } from '../../engine/core/collision2d';
-import { BaseGame } from '../../engine/core/base-game';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
-import { GameBackground } from '../../engine/rendering/background';
-import GameEvents from '../../engine/input/events';
-import { TouchControls } from '../../engine/input/touch-controls';
-import GameLoader from '../../engine/assets/loader';
-import { FallingPickup } from '../../engine/entities/falling-pickup';
-import { Boss } from './boss';
-import type { BossType } from './boss';
+import { signalValue } from 'reactive-values';
+import {
+  BaseGame,
+  CanvasIcon,
+  Collision2D,
+  FallingPickup,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  MathUtils,
+  TouchControls
+} from '../../engine';
+import heartSvg from 'lucide-static/icons/heart.svg?raw';
+
+import { Boss, type BossType } from './boss';
 import { Enemy } from './enemy';
 import { Player } from './player';
 import { Projectile } from './projectile';
-import heartSvg from 'lucide-static/icons/heart.svg?raw';
-import { signalValue } from 'reactive-values';
 
 /**
  * Space-invaders style game loop with scoring, waves, and boss encounters.

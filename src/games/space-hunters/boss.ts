@@ -1,10 +1,13 @@
-import GameLoader from '../../engine/assets/loader';
-import { Health } from '../../engine/core/health';
-import { Collision2D } from '../../engine/core/collision2d';
-import Sprite from '../../engine/animations/sprites/sprite';
-import { SpriteEntity } from '../../engine/entities/sprite-entity';
-import type { BossShotOrigin } from './interfaces/boss-shot-origin';
 import { signalValue } from 'reactive-values';
+import {
+  Collision2D,
+  GameLoader,
+  Health,
+  Sprite,
+  SpriteEntity,
+} from '../../engine';
+
+import type { BossShotOrigin } from './interfaces/boss-shot-origin';
 
 /**
  * Available boss encounters, each with its own health and attack phases.

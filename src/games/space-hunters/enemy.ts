@@ -1,6 +1,8 @@
-import Sprite from '../../engine/animations/sprites/sprite';
-import GameLoader from '../../engine/assets/loader';
-import { DamageableSpriteEntity } from '../../engine/entities/damageable-sprite-entity';
+import {
+  DamageableSpriteEntity,
+  GameLoader,
+  Sprite,
+} from '../../engine';
 
 /**
  * Enemy sprite sheets supported by Space Hunters formations.
