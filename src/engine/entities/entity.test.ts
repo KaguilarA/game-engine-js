@@ -31,6 +31,13 @@ describe('Entity components and prefabs', () => {
     expect([entity.dimensions.getX(), entity.dimensions.getY()]).toEqual([12, 18]);
     expect(component.updates).toBe(1);
     expect(component.draws).toBe(1);
+
+    component.enabled.set(true);
+    entity.active.set(false);
+    entity.update(1 / 60);
+    entity.draw();
+    expect(component.updates).toBe(1);
+    expect(component.draws).toBe(1);
   });
 
   it('detaches components when removed or the entity is destroyed', () => {

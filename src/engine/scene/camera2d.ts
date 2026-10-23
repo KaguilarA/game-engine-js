@@ -12,18 +12,86 @@ export interface Camera2DOptions {
   smoothing?: number;
 }
 
-/** Applies a world-to-screen transform and converts coordinates between spaces. */
+/**
+ * Applies a world-to-screen transform and converts coordinates between spaces.
+ * @class Camera2D
+ */
 export class Camera2D {
+  /**
+   * Horizontal world look-at coordinate.
+   * @property {SignalValue<number>} x
+   * @public
+   * @readonly
+   */
   public readonly x: SignalValue<number> = signalValue(0);
+
+  /**
+   * Vertical world look-at coordinate.
+   * @property {SignalValue<number>} y
+   * @public
+   * @readonly
+   */
   public readonly y: SignalValue<number> = signalValue(0);
+
+  /**
+   * Camera zoom magnification factor.
+   * @property {SignalValue<number>} zoom
+   * @public
+   * @readonly
+   */
   public readonly zoom: SignalValue<number> = signalValue(1);
+
+  /**
+   * Viewport pixel width.
+   * @property {SignalValue<number>} viewportWidth
+   * @private
+   * @readonly
+   */
   private readonly viewportWidth: SignalValue<number> = signalValue(0);
+
+  /**
+   * Viewport pixel height.
+   * @property {SignalValue<number>} viewportHeight
+   * @private
+   * @readonly
+   */
   private readonly viewportHeight: SignalValue<number> = signalValue(0);
+
+  /**
+   * Target dimensions model to follow.
+   * @property {Dimensions | undefined} target
+   * @private
+   */
   private target: Dimensions | undefined;
+
+  /**
+   * Follow smoothing interpolation factor.
+   * @property {number} smoothing
+   * @private
+   */
   private smoothing: number;
+
+  /**
+   * Whether to auto-center horizontally when viewport resizes.
+   * @property {boolean} autoCenterX
+   * @private
+   * @readonly
+   */
   private readonly autoCenterX: boolean;
+
+  /**
+   * Whether to auto-center vertically when viewport resizes.
+   * @property {boolean} autoCenterY
+   * @private
+   * @readonly
+   */
   private readonly autoCenterY: boolean;
 
+  /**
+   * Creates a camera instance with configured viewport and smoothing.
+   * @public
+   * @return {void}
+   */
   public constructor(options: Camera2DOptions = {}) {
     this.autoCenterX = options.x === undefined;
     this.autoCenterY = options.y === undefined;
@@ -36,15 +104,30 @@ export class Camera2D {
     this.validate();
   }
 
+  /**
+   * Follows a target dimensions model with smoothing.
+   * @public
+   * @return {void}
+   */
   public follow(target: Dimensions, smoothing = this.smoothing): void {
     this.target = target;
     this.setSmoothing(smoothing);
   }
 
+  /**
+   * Stops following any active target.
+   * @public
+   * @return {void}
+   */
   public stopFollowing(): void {
     this.target = undefined;
   }
 
+  /**
+   * Configures smoothing interpolation speed.
+   * @public
+   * @return {void}
+   */
   public setSmoothing(value: number): void {
     if (!Number.isFinite(value) || value <= 0 || value > 1) {
       throw new RangeError('Camera smoothing must be greater than 0 and at most 1.');
@@ -52,6 +135,11 @@ export class Camera2D {
     this.smoothing = value;
   }
 
+  /**
+   * Updates camera follow position and synchronizes viewport dimensions.
+   * @public
+   * @return {void}
+   */
   public update(deltaSeconds: number): void {
     const width = GameContext.gameDimensionsModel.getWidth();
     const height = GameContext.gameDimensionsModel.getHeight();
@@ -73,6 +161,11 @@ export class Camera2D {
     this.y.set(this.y() + (targetY - this.y()) * alpha);
   }
 
+  /**
+   * Converts world coordinates to screen pixel coordinates.
+   * @public
+   * @return {{ x: number; y: number }}
+   */
   public worldToScreen(x: number, y: number): { x: number; y: number } {
     return {
       x: (x - this.x()) * this.zoom() + this.viewportWidth() / 2,
@@ -80,6 +173,11 @@ export class Camera2D {
     };
   }
 
+  /**
+   * Converts screen pixel coordinates to world coordinates.
+   * @public
+   * @return {{ x: number; y: number }}
+   */
   public screenToWorld(x: number, y: number): { x: number; y: number } {
     return {
       x: (x - this.viewportWidth() / 2) / this.zoom() + this.x(),
@@ -87,6 +185,11 @@ export class Camera2D {
     };
   }
 
+  /**
+   * Executes a render closure under camera matrix transformation with parallax.
+   * @public
+   * @return {void}
+   */
   public withTransform(draw: () => void, parallaxX = 1, parallaxY = 1): void {
     const context = GameContext.context;
     context.save();
@@ -100,6 +203,11 @@ export class Camera2D {
     }
   }
 
+  /**
+   * Validates camera numeric attributes.
+   * @private
+   * @return {void}
+   */
   private validate(): void {
     if (!Number.isFinite(this.x()) || !Number.isFinite(this.y())) {
       throw new RangeError('Camera position must be finite.');

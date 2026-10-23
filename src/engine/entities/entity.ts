@@ -57,14 +57,14 @@ export class Entity implements Renderable {
   }
 
   public update(deltaSeconds: number): void {
-    if (!this.active) return;
+    if (!this.active()) return;
     for (const component of this.components()) {
       if (component.enabled()) component.update(deltaSeconds);
     }
   }
 
   public draw(): void {
-    if (!this.active) return;
+    if (!this.active()) return;
     for (const component of this.components()) {
       if (component.enabled()) component.draw();
     }
