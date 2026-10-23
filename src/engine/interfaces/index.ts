@@ -12,6 +12,7 @@ export type { LabelOptions } from './label-options';
 export type { LabelStyle } from './label-style';
 export type { NumberLabelOptions } from './number-label-options';
 export type { Renderable } from './renderable';
+export type { SceneDrawable } from './renderable';
 export type { ParsedAtlasRegion } from './parsed-atlas-region';
 export type { SpineBoneTransform } from './spine-bone-transform';
 export type { SpineEvent } from './spine-event';

@@ -4,6 +4,8 @@ import { signalValue } from 'reactive-values';
 import GameContext from './context';
 import { Label } from '../ui/label';
 import { MathUtils } from './math-utils';
+import { WorldScene } from '../scene/world-scene';
+import { SceneLayer } from '../scene/scene-layer';
 
 type LabelRenderState = {
   text: string;
@@ -27,6 +29,9 @@ type LabelRenderState = {
  * @abstract
  */
 export abstract class BaseGame {
+  /** Scene graph available to games that use the world APIs. */
+  protected readonly worldScene = new WorldScene();
+  protected readonly worldActors = new SceneLayer({ name: 'Actors', updateObjects: false });
   /**
    * Shared game controls.
    * @property {GameControls} controls
@@ -91,6 +96,7 @@ export abstract class BaseGame {
     controlOptions: GameControlsOptions = {}
   ) {
     this.onReturnToMenu = onReturnToMenu;
+    this.worldScene.addLayer(this.worldActors);
     this.controls = new GameControls(
       () => this.restart(),
       () => this.returnToMenu(),
@@ -139,6 +145,11 @@ export abstract class BaseGame {
    * @return {boolean} Whether the game has ended.
    */
   protected abstract get isGameOver(): boolean;
+
+  /** Draws the engine world at the chosen point in the game's render order. */
+  protected drawWorldScene(): void {
+    this.worldScene.draw();
+  }
 
   /**
    * Registers a listener or resource cleanup for when this game is closed.
@@ -201,6 +212,7 @@ export abstract class BaseGame {
 
     if (!this.controls.isPaused && !this.isGameOver) {
       this.updateGame(deltaSeconds);
+      this.worldScene.update(deltaSeconds);
     }
 
     this.labelCursor = 0;

@@ -7,3 +7,6 @@ export interface Renderable {
   draw(): void;
   update?(deltaSeconds: number): void;
 }
+
+/** A scene drawable; updates are registered separately to avoid coupling layers to game-specific update signatures. */
+export type SceneDrawable = Pick<Renderable, 'dimensions' | 'draw'>;
