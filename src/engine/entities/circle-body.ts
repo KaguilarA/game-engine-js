@@ -1,4 +1,4 @@
-import { PhysicsBody } from '../core/physics';
+import PhysicsBody from '../core/physics';
 
 /** Reactive circular collision body backed by the engine's 2D integrator. */
 export class CircleBody {

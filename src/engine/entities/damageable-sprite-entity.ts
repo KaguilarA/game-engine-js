@@ -1,7 +1,6 @@
 import { signalValue } from 'reactive-values';
 
-import { Health } from '../core/health';
-import { Collision2D } from '../core/collision2d';
+import { Collision2D, Health } from '../core';
 import Sprite from '../animations/sprites/sprite';
 import { SpriteEntity } from './sprite-entity';
 

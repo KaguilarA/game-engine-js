@@ -1,7 +1,6 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { MathUtils } from '../core';
 import GameLoader from '../assets/loader';
-import { MathUtils } from '../core/math-utils';
 
 /**
  * Centralized audio management for sound effects and background music.

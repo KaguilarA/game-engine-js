@@ -7,7 +7,7 @@ import type { SpineEvent } from '../../interfaces/spine-event';
 import type { SpineEventHandler } from '../../interfaces/spine-event-handler';
 import type { SpineRecord } from '../../interfaces/spine-record';
 import type { SpineSlotPose } from '../../interfaces/spine-slot-pose';
-import { MathUtils } from '../../core/math-utils';
+import { MathUtils } from '../../core';
 import { SpineBinaryParser } from './spine-binary-parser';
 
 type BoneState = {

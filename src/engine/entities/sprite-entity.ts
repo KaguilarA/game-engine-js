@@ -1,5 +1,5 @@
 import Sprite from '../animations/sprites/sprite';
-import { PhysicsBody } from '../core/physics';
+import { PhysicsBody } from '../core';
 
 /**
  * Shared position, size, animation, and drawing behavior for sprite entities.

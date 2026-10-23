@@ -1,4 +1,4 @@
-import { PhysicsBody } from '../core/physics';
+import PhysicsBody from '../core/physics';
 
 /** Reusable falling pickup motion and centered world-space geometry. */
 export class FallingPickup {
