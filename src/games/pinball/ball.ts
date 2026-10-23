@@ -1,6 +1,5 @@
-import { CircleBody } from '../../engine/entities/circle-body';
-import GameContext from '../../engine/core/context';
 import { signalValue } from 'reactive-values';
+import { CircleBody, GameContext } from '../../engine';
 
 /** Pinball sphere with engine-backed position, velocity, and acceleration. */
 export class PinballBall {

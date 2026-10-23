@@ -1,6 +1,4 @@
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
-import { SpriteEntity } from '../../engine/entities/sprite-entity';
+import { GameLoader, SpriteEntity, Sprite } from '../../engine';
 
 import type { Polarity } from './polarity';
 

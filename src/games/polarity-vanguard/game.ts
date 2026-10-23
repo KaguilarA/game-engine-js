@@ -1,15 +1,17 @@
-import GameContext from '../../engine/core/context';
-import { MathUtils } from '../../engine/core/math-utils';
-import { Collision2D } from '../../engine/core/collision2d';
-import { BaseGame } from '../../engine/core/base-game';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
-import { GameBackground } from '../../engine/rendering/background';
-import GameEvents from '../../engine/input/events';
-import GameLoader from '../../engine/assets/loader';
-import { TouchControls } from '../../engine/input/touch-controls';
-import type { TouchControlCircle } from '../../engine/interfaces/touch-control-circle';
 import { signalValue } from 'reactive-values';
-import { FallingPickup } from '../../engine/entities/falling-pickup';
+import {
+  BaseGame,
+  CanvasIcon,
+  Collision2D,
+  FallingPickup,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  MathUtils,
+  TouchControls,
+  type TouchControlCircle
+} from '../../engine';
 
 import { PolarityVanguardEnemy } from './enemy';
 import type { Polarity } from './polarity';

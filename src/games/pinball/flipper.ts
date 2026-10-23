@@ -1,8 +1,6 @@
 import { signalValue } from 'reactive-values';
+import { CircleBody, Collision2D, GameContext } from '../../engine';
 
-import { Collision2D } from '../../engine/core/collision2d';
-import { CircleBody } from '../../engine/entities/circle-body';
-import GameContext from '../../engine/core/context';
 import type { PinballBounds } from './board';
 
 export type FlipperSide = 'left' | 'right';

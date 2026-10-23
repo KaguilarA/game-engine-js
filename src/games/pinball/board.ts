@@ -1,11 +1,14 @@
-import GameContext from '../../engine/core/context';
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
-import type { AtlasAnimation } from '../../engine/interfaces/atlas-animation';
 import { signalValue } from 'reactive-values';
-import { Collision2D } from '../../engine/core/collision2d';
-import type { CollisionRect } from '../../engine/core/collision2d';
-import { CircleBody } from '../../engine/entities/circle-body';
+import {
+  CircleBody,
+  Collision2D,
+  GameContext,
+  GameLoader,
+  Sprite,
+  type AtlasAnimation,
+  type CollisionRect
+} from '../../engine';
+
 import { PinballBall } from './ball';
 
 export interface PinballBounds { x: number; y: number; width: number; height: number; }

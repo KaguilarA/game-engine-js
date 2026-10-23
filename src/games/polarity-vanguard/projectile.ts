@@ -1,9 +1,10 @@
-import GameContext from '../../engine/core/context';
-import { PhysicsBody } from '../../engine/core/physics';
 import { signalValue } from 'reactive-values';
+import {
+  GameContext,
+  PhysicsBody
+} from '../../engine';
 
-import type { Polarity } from './polarity';
-import { POLARITY_COLORS } from './polarity';
+import { POLARITY_COLORS, type Polarity } from './polarity';
 
 /**
  * Vertical projectile whose color and collision state follow its polarity.

@@ -1,12 +1,13 @@
-import GameContext from '../../engine/core/context';
-import { MathUtils } from '../../engine/core/math-utils';
-import GameEvents from '../../engine/input/events';
-import GameLoader from '../../engine/assets/loader';
-import { AnimatedShipEntity } from '../../engine/entities/animated-ship-entity';
-import Sprite from '../../engine/animations/sprites/sprite';
+import {
+  AnimatedShipEntity,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  MathUtils,
+  Sprite
+} from '../../engine';
 
-import type { Polarity } from './polarity';
-import { oppositePolarity } from './polarity';
+import { oppositePolarity, type Polarity } from './polarity';
 
 /**
  * Player ship with four-direction movement and switchable polarity.
