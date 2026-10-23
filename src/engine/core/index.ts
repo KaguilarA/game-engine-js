@@ -9,4 +9,3 @@ export { default as Vector2 } from './vector2';
 export { default as GameContext } from './context';
 export { default as MathUtils } from './math-utils';
 export { default as PoolRegistry } from './pool-registry';
-
