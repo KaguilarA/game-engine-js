@@ -1,4 +1,4 @@
-import type { PhysicsBody } from '../../../engine/core/physics';
+import type { PhysicsBody } from '../../../engine';
 
 export interface Shot {
   motion: PhysicsBody;
