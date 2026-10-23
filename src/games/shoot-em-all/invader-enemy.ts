@@ -1,6 +1,8 @@
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
-import { DamageableSpriteEntity } from '../../engine/entities/damageable-sprite-entity';
+import {
+  DamageableSpriteEntity,
+  GameLoader,
+  Sprite
+} from '../../engine';
 
 export type InvaderKind = 'beetlemorph' | 'rhinomorph' | 'lobstermorph';
 

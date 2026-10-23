@@ -1,6 +1,6 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-import { ReelBank } from '../../engine/slots/reel-bank';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { ReelBank } from '../../engine';
+
 import { evaluatePaylines } from './paylines';
 import type { MusketeersSlotAssets } from './assets';
 

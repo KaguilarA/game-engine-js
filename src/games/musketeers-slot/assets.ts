@@ -1,6 +1,8 @@
-import { Atlas } from '../../engine/assets/atlas';
-import GameLoader from '../../engine/assets/loader';
-import { Icon } from '../../engine/slots/icon';
+import {
+  Atlas,
+  GameLoader,
+  Icon
+} from '../../engine';
 
 interface MusketeersSymbolDefinition {
   id: string;

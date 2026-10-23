@@ -1,11 +1,13 @@
 import { signalValue } from 'reactive-values';
+import {
+  BaseGame,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  type GamePointer
+} from '../../engine';
 
-import GameLoader from '../../engine/assets/loader';
-import GameContext from '../../engine/core/context';
-import { BaseGame } from '../../engine/core/base-game';
-import GameEvents from '../../engine/input/events';
-import type { GamePointer } from '../../engine/interfaces/game-pointer';
-import { GameBackground } from '../../engine/rendering/background';
 import { ScratchIcon } from './scratch-icon';
 import { ScratchSurface } from './scratch-surface';
 

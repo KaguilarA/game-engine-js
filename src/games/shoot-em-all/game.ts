@@ -1,18 +1,20 @@
-import GameContext from '../../engine/core/context';
-import GameEvents from '../../engine/input/events';
-import { BaseGame } from '../../engine/core/base-game';
-import { TouchControls } from '../../engine/input/touch-controls';
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
-import { PhysicsBody } from '../../engine/core/physics';
-import { InvaderEnemy, type InvaderKind } from './invader-enemy';
+import { signalValue, type SignalValue } from 'reactive-values';
+import {
+  BaseGame,
+  CanvasIcon,
+  Collision2D,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  MathUtils,
+  PhysicsBody,
+  Sprite,
+  TouchControls
+} from '../../engine';
 import heartSvg from 'lucide-static/icons/heart.svg?raw';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
-import { GameBackground } from '../../engine/rendering/background';
-import { signalValue } from 'reactive-values';
-import { MathUtils } from '../../engine/core/math-utils';
-import { Collision2D } from '../../engine/core/collision2d';
-import type { SignalValue } from 'reactive-values';
+
+import { InvaderEnemy, type InvaderKind } from './invader-enemy';
 import type { Invader } from './interfaces/invader';
 import type { Shot } from './interfaces/shot';
 

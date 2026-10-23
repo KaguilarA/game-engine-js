@@ -1,9 +1,11 @@
-import GameEvents from '../../engine/input/events';
-import { BaseGame } from '../../engine/core/base-game';
-import { Button } from '../../engine/ui/button';
-import { Texture } from '../../engine/rendering/texture';
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+import {
+  BaseGame,
+  Button,
+  GameEvents,
+  Texture
+} from '../../engine';
+
 import { MusketeersSlotAssets } from './assets';
 import { MusketeersSlotRound } from './round';
 import { MusketeersSlotRenderer } from './renderer';

@@ -1,6 +1,9 @@
-import GameContext from '../../engine/core/context';
-import { GameBackground } from '../../engine/rendering/background';
-import type { Button } from '../../engine/ui/button';
+import {
+  GameBackground,
+  GameContext,
+  type Button
+} from '../../engine';
+
 import type { MusketeersSlotAssets } from './assets';
 import type { MusketeersSlotRound } from './round';
 import { MUSKETEERS_REEL_COUNT } from './round';
