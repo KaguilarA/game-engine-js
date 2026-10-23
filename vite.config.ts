@@ -80,7 +80,7 @@ function musketeersManifestPlugin() {
 }
 */
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/OWL-engine-ts/' : '/',
+export default defineConfig({
+  base: './',
   plugins: [/* musketeersManifestPlugin() */]
-}));
+});
