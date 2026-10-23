@@ -1,7 +1,6 @@
+import { signalValue, type SignalValue } from 'reactive-values';
 import { Camera2D } from './camera2d';
 import { SceneLayer } from './scene-layer';
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
 
 /**
  * Updates and draws a camera-driven 2D world composed of ordered layers.

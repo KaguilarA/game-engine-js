@@ -1,11 +1,13 @@
 import { signalValue, type SignalValue } from 'reactive-values';
 import { Atlas, GameLoader } from '../assets';
 import { GameContext, MathUtils } from '../core';
-import { SpineSprite, Sprite, type SpineEventHandler } from '../animations';
-
-import type { SpineRecord } from '../interfaces/spine-record';
-import type { IconAssetPaths } from './interfaces/icon-asset-paths';
-import type { ReelSymbolVisual } from './interfaces/reel-symbol-visual';
+import { SpineSprite, Sprite } from '../animations';
+import type {
+  IconAssetPaths,
+  ReelSymbolVisual,
+  SpineRecord,
+  SpineEventHandler
+} from '../interfaces';
 
 type SpineIconAsset = {
   atlas: Atlas;

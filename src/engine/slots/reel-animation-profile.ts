@@ -1,4 +1,4 @@
-import type { ReelOptions } from './interfaces/reel-options';
+import type { ReelOptions } from '../interfaces';
 
 /** Shared anticipation, acceleration, braking, and stop timing for slot reels. */
 export class ReelAnimationProfile {

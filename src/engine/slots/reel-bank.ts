@@ -1,7 +1,7 @@
 import { Reel } from './reel';
 import { ReelIcon } from './reel-icon';
 import { ReelAnimationProfile } from './reel-animation-profile';
-import type { ReelSymbolVisual } from './interfaces/reel-symbol-visual';
+import type { ReelSymbolVisual } from '../interfaces';
 
 export interface ReelBankOptions {
   reelCount: number;
