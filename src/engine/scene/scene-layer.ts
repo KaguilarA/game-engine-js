@@ -1,7 +1,6 @@
-import type { SceneDrawable } from '../interfaces/renderable';
+import { signalValue, type SignalValue } from 'reactive-values';
+import type { SceneDrawable } from '../interfaces';
 import type { Camera2D } from './camera2d';
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
 
 export interface SceneLayerOptions {
   name?: string;

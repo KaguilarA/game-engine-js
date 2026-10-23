@@ -1,4 +1,4 @@
-import GameContext from '../core/context';
+import { GameContext } from '../core';
 
 /** Draws orientation-specific full-screen imagery and an optional color wash. */
 class BackgroundRenderer {

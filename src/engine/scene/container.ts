@@ -1,9 +1,7 @@
 import { signalValue, type SignalValue } from 'reactive-values';
 import { GameContext, Dimensions, MathUtils } from '../core';
-import GameEvents from '../input/events';
-import type { ContainerOptions } from '../interfaces/container-options';
-import type { Renderable } from '../interfaces/renderable';
-import type { GamePointer } from '../interfaces/game-pointer';
+import { GameEvents } from '../input';
+import type { ContainerOptions, GamePointer, Renderable } from '../interfaces';
 
 interface ScrollbarDrag {
   pointerId: number;
@@ -49,16 +47,16 @@ export class Container implements Renderable {
     this.wheelSensitivity = Math.max(0.1, options.wheelSensitivity ?? 0.55);
     this.removeWheelListener = this.scrollable
       ? GameEvents.addWheelListener(this.handleWheel)
-      : () => {};
+      : () => { };
     this.removePointerDownListener = this.scrollable
       ? GameEvents.addPointerDownListener(this.handlePointerDown)
-      : () => {};
+      : () => { };
     this.removePointerMoveListener = this.scrollable
       ? GameEvents.addPointerMoveListener(this.handlePointerMove)
-      : () => {};
+      : () => { };
     this.removePointerEndListener = this.scrollable
       ? GameEvents.addPointerEndListener(this.handlePointerEnd)
-      : () => {};
+      : () => { };
   }
 
   public add(child: Renderable): void {

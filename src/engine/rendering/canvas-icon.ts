@@ -1,4 +1,4 @@
-import GameContext from '../core/context';
+import { GameContext } from '../core';
 
 /**
  * Draws an inline SVG icon on the game canvas.

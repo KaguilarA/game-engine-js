@@ -1,7 +1,5 @@
-import GameContext from '../core/context';
-import Dimensions from '../core/dimensions';
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { Dimensions, GameContext } from '../core';
 
 export interface TilemapOptions {
   image: CanvasImageSource;

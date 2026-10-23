@@ -1,7 +1,5 @@
-import GameContext from '../core/context';
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-import type Dimensions from '../core/dimensions';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { GameContext, type Dimensions } from '../core';
 
 export interface Camera2DOptions {
   x?: number;

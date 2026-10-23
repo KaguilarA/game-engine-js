@@ -1,11 +1,11 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import GameContext from '../core/context';
-import Dimensions from '../core/dimensions';
-import { SpineSprite } from '../animations/spine/spine-sprite';
-import Sprite from '../animations/sprites/sprite';
-import type { TextureStates, TextureStateName, TextureVisual } from '../interfaces/texture-states';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { Dimensions, GameContext } from '../core';
+import { SpineSprite, Sprite } from '../animations';
+import type {
+  TextureStates,
+  TextureStateName,
+  TextureVisual
+} from '../interfaces';
 
 /** Selects, resizes, updates, and renders one of several visual representations. */
 export class Texture {
