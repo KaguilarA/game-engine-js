@@ -16,7 +16,7 @@ export class SpineSprite {
   }
 
   public constructor(
-    data: SpineRecord,
+    data: SpineRecord | ArrayBuffer | Uint8Array,
     atlas: Atlas,
     x = 0,
     y = 0,
@@ -57,8 +57,20 @@ export class SpineSprite {
     return this.runtime.onEvent(name, handler);
   }
 
-  public play(name: string, loop = false): void {
-    this.runtime.play(name, loop);
+  public play(name: string, loop = false, blendDuration = 0): void {
+    this.runtime.play(name, loop, blendDuration);
+  }
+
+  public crossFade(name: string, duration: number, loop = false): void {
+    this.runtime.crossFade(name, duration, loop);
+  }
+
+  public setIkTarget(constraintName: string, worldX: number, worldY: number, mix = 1.0): void {
+    this.runtime.setIkTarget(constraintName, worldX, worldY, mix);
+  }
+
+  public clearIkTarget(constraintName: string): void {
+    this.runtime.clearIkTarget(constraintName);
   }
   
   public queue(name: string, loop = true): void {

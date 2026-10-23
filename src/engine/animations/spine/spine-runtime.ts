@@ -8,12 +8,27 @@ import type { SpineEventHandler } from '../../interfaces/spine-event-handler';
 import type { SpineRecord } from '../../interfaces/spine-record';
 import type { SpineSlotPose } from '../../interfaces/spine-slot-pose';
 import { MathUtils } from '../../core/math-utils';
+import { SpineBinaryParser } from './spine-binary-parser';
 
 type BoneState = {
   data: SpineRecord;
   parentIndex: number;
   localPose: SignalValue<SpineBoneTransform>;
   pose: SignalValue<SpineBoneTransform>;
+};
+
+type IkConstraintState = {
+  name: string;
+  order: number;
+  boneIndices: number[];
+  targetIndex: number;
+  mix: number;
+  softness: number;
+  bendPositive: boolean;
+  compress: boolean;
+  stretch: boolean;
+  overrideTarget?: { x: number; y: number };
+  overrideMix?: number;
 };
 
 export class SpineRuntime {
@@ -31,8 +46,17 @@ export class SpineRuntime {
   private readonly activeSkin: SignalValue<string> = signalValue('default');
   private readonly animationDurations = new Map<string, number>();
   private readonly setupOrder: number[];
+  private readonly ikConstraints: IkConstraintState[];
   private readonly data: SpineRecord;
   public readonly atlas: Atlas;
+
+  // Cross-fading / Animation blending state
+  private readonly blending: SignalValue<boolean> = signalValue(false);
+  private previousAnimation: string | undefined = undefined;
+  private previousAnimationTime = 0;
+  private previousAnimationLooping = false;
+  private blendDuration = 0;
+  private blendTime = 0;
 
   public get animationName(): string | undefined {
     return this.currentAnimation();
@@ -50,6 +74,10 @@ export class SpineRuntime {
     return this.animationPlaying();
   }
 
+  public get isBlending(): boolean {
+    return this.blending();
+  }
+
   public get skin(): string {
     return this.activeSkin();
   }
@@ -58,7 +86,11 @@ export class SpineRuntime {
     return Number(this.data.skeleton?.width ?? 1);
   }
 
-  constructor(data: SpineRecord, atlas: Atlas) {
+  public constructor(dataOrBuffer: SpineRecord | ArrayBuffer | Uint8Array, atlas: Atlas) {
+    const data: SpineRecord = (dataOrBuffer instanceof ArrayBuffer || dataOrBuffer instanceof Uint8Array)
+      ? SpineBinaryParser.parse(dataOrBuffer)
+      : dataOrBuffer;
+
     this.data = data;
     this.atlas = atlas;
     Object.entries(data.animations ?? {}).forEach(([name, animation]) => {
@@ -83,6 +115,28 @@ export class SpineRuntime {
       darkColor: slot.dark ?? undefined,
       blendMode: slot.blend ?? 'normal'
     }));
+
+    // Initialize IK Constraints
+    const rawIk: SpineRecord[] = data.ik ?? [];
+    this.ikConstraints = rawIk.map((ik) => {
+      const boneList = Array.isArray(ik.bones) ? ik.bones : (ik.bone ? [ik.bone] : []);
+      const boneIndices = boneList
+        .map((bName: string) => boneData.findIndex((b) => b.name === bName))
+        .filter((idx: number) => idx >= 0);
+      return {
+        name: String(ik.name),
+        order: Number(ik.order ?? 0),
+        boneIndices,
+        targetIndex: boneData.findIndex((b) => b.name === ik.target),
+        mix: Number(ik.mix ?? 1),
+        softness: Number(ik.softness ?? 0),
+        bendPositive: ik.bendPositive !== false,
+        compress: Boolean(ik.compress),
+        stretch: Boolean(ik.stretch)
+      };
+    });
+    this.ikConstraints.sort((a, b) => a.order - b.order);
+
     this.evaluatePose();
   }
 
@@ -132,22 +186,48 @@ export class SpineRuntime {
     });
   }
 
+  private evaluateLocalBonePose(data: SpineRecord, animName: string | undefined, time: number): SpineBoneTransform {
+    const animation = animName ? this.data.animations?.[animName]?.bones?.[data.name] : undefined;
+    const pose = this.identityPose();
+    pose.rotation = Number(data.rotation ?? 0) + this.readTimeline(animation?.rotate, time, 'angle', 0);
+    pose.x = Number(data.x ?? 0) + this.readTimeline(animation?.translate, time, 'x', 0);
+    pose.y = Number(data.y ?? 0) + this.readTimeline(animation?.translate, time, 'y', 0);
+    pose.scaleX = Number(data.scaleX ?? 1) * this.readTimeline(animation?.scale, time, 'x', 1);
+    pose.scaleY = Number(data.scaleY ?? 1) * this.readTimeline(animation?.scale, time, 'y', 1);
+    pose.shearX = Number(data.shearX ?? 0) + this.readTimeline(animation?.shear, time, 'x', 0);
+    pose.shearY = Number(data.shearY ?? 0) + this.readTimeline(animation?.shear, time, 'y', 0);
+    return pose;
+  }
+
   private evaluatePose(): void {
+    const currentName = this.currentAnimation();
+    const currentTime = this.animationTime();
+    const isCrossFading = this.blending() && this.previousAnimation !== undefined && this.blendDuration > 0;
+    const blendAlpha = isCrossFading ? MathUtils.clamp(this.blendTime / this.blendDuration, 0, 1) : 1;
+
     this.bones.forEach((bone) => {
-      const data = bone.data;
-      const animation = this.data.animations?.[this.currentAnimation() ?? '']?.bones?.[data.name];
-      const time = this.animationTime();
-      const pose = this.identityPose();
-      pose.rotation = Number(data.rotation ?? 0) + this.readTimeline(animation?.rotate, time, 'angle', 0);
-      pose.x = Number(data.x ?? 0) + this.readTimeline(animation?.translate, time, 'x', 0);
-      pose.y = Number(data.y ?? 0) + this.readTimeline(animation?.translate, time, 'y', 0);
-      pose.scaleX = Number(data.scaleX ?? 1) * this.readTimeline(animation?.scale, time, 'x', 1);
-      pose.scaleY = Number(data.scaleY ?? 1) * this.readTimeline(animation?.scale, time, 'y', 1);
-      pose.shearX = Number(data.shearX ?? 0) + this.readTimeline(animation?.shear, time, 'x', 0);
-      pose.shearY = Number(data.shearY ?? 0) + this.readTimeline(animation?.shear, time, 'y', 0);
-      bone.localPose.set(pose);
+      const currentPose = this.evaluateLocalBonePose(bone.data, currentName, currentTime);
+
+      if (isCrossFading && blendAlpha < 1) {
+        const prevPose = this.evaluateLocalBonePose(bone.data, this.previousAnimation, this.previousAnimationTime);
+        currentPose.x = MathUtils.lerp(prevPose.x, currentPose.x, blendAlpha);
+        currentPose.y = MathUtils.lerp(prevPose.y, currentPose.y, blendAlpha);
+        currentPose.rotation = MathUtils.lerpAngle(prevPose.rotation, currentPose.rotation, blendAlpha);
+        currentPose.scaleX = MathUtils.lerp(prevPose.scaleX, currentPose.scaleX, blendAlpha);
+        currentPose.scaleY = MathUtils.lerp(prevPose.scaleY, currentPose.scaleY, blendAlpha);
+        currentPose.shearX = MathUtils.lerp(prevPose.shearX ?? 0, currentPose.shearX ?? 0, blendAlpha);
+        currentPose.shearY = MathUtils.lerp(prevPose.shearY ?? 0, currentPose.shearY ?? 0, blendAlpha);
+      }
+
+      bone.localPose.set(currentPose);
     });
-    for (const index of this.setupOrder) this.updateBoneWorld(index);
+
+    for (const index of this.setupOrder) {
+      this.updateBoneWorld(index);
+    }
+
+    this.applyIkConstraints();
+
     this.slots.forEach((slotValue, index) => {
       const slot = { ...slotValue() };
       const setup = this.slotData[index];
@@ -159,6 +239,116 @@ export class SpineRuntime {
       slot.blendMode = setup.blend ?? 'normal';
       slotValue.set(slot);
     });
+  }
+
+  private applyIkConstraints(): void {
+    if (this.ikConstraints.length === 0) return;
+    const animName = this.currentAnimation();
+    const animIk = animName ? this.data.animations?.[animName]?.ik : undefined;
+    const time = this.animationTime();
+
+    for (const ik of this.ikConstraints) {
+      let targetX = 0;
+      let targetY = 0;
+
+      if (ik.overrideTarget !== undefined) {
+        targetX = ik.overrideTarget.x;
+        targetY = ik.overrideTarget.y;
+      } else if (ik.targetIndex >= 0 && this.bones[ik.targetIndex]) {
+        const targetPose = this.bones[ik.targetIndex].pose();
+        targetX = targetPose.x;
+        targetY = targetPose.y;
+      } else {
+        continue;
+      }
+
+      let mix = ik.overrideMix !== undefined ? ik.overrideMix : ik.mix;
+      let bendPositive = ik.bendPositive;
+
+      if (animIk && animIk[ik.name]) {
+        const frame = this.interpolateFrame(animIk[ik.name], time);
+        if (frame) {
+          if (frame.mix !== undefined && ik.overrideMix === undefined) mix = Number(frame.mix);
+          if (frame.bendPositive !== undefined) bendPositive = frame.bendPositive !== false;
+        }
+      }
+
+      if (mix <= 0) continue;
+
+      if (ik.boneIndices.length === 1) {
+        this.applyIk1(this.bones[ik.boneIndices[0]], targetX, targetY, mix);
+      } else if (ik.boneIndices.length === 2) {
+        this.applyIk2(this.bones[ik.boneIndices[0]], this.bones[ik.boneIndices[1]], targetX, targetY, bendPositive, mix);
+      }
+    }
+  }
+
+  private applyIk1(bone: BoneState, targetX: number, targetY: number, mix: number): void {
+    const pose = bone.pose();
+    const radians = Math.atan2(targetY - pose.y, targetX - pose.x);
+    const targetDeg = radians * MathUtils.RAD_TO_DEG;
+    const currentDeg = Math.atan2(pose.c, pose.a) * MathUtils.RAD_TO_DEG;
+    const local = bone.localPose();
+    const diff = (targetDeg - currentDeg) % 360;
+    local.rotation += diff * mix;
+    bone.localPose.set(local);
+    const boneIndex = this.bones.indexOf(bone);
+    if (boneIndex >= 0) this.updateBoneWorld(boneIndex);
+  }
+
+  private applyIk2(
+    parent: BoneState,
+    child: BoneState,
+    targetX: number,
+    targetY: number,
+    bendPositive: boolean,
+    mix: number
+  ): void {
+    const parentPose = parent.pose();
+    const childPose = child.pose();
+
+    const px = parentPose.x;
+    const py = parentPose.y;
+    const cx = childPose.x;
+    const cy = childPose.y;
+
+    const l1 = Math.hypot(cx - px, cy - py);
+    const childLength = Number(child.data.length ?? 0) * childPose.scaleX;
+    const l2 = childLength > 0 ? childLength : l1 * 0.8;
+
+    const dx = targetX - px;
+    const dy = targetY - py;
+    const d = Math.hypot(dx, dy);
+
+    if (d <= 0.0001 || l1 <= 0.0001 || l2 <= 0.0001) return;
+
+    // Law of cosines
+    const c2 = MathUtils.clamp((dx * dx + dy * dy - l1 * l1 - l2 * l2) / (2 * l1 * l2), -1, 1);
+    let a2 = Math.acos(c2);
+    if (!bendPositive) a2 = -a2;
+
+    const k1 = l1 + l2 * c2;
+    const k2 = l2 * Math.sin(a2);
+    const a1 = Math.atan2(dy, dx) - Math.atan2(k2, k1);
+
+    const parentCurrentDeg = Math.atan2(parentPose.c, parentPose.a) * MathUtils.RAD_TO_DEG;
+    const childCurrentDeg = Math.atan2(childPose.c, childPose.a) * MathUtils.RAD_TO_DEG;
+
+    const parentTargetDeg = a1 * MathUtils.RAD_TO_DEG;
+    const childTargetDeg = (a1 + a2) * MathUtils.RAD_TO_DEG;
+
+    const parentLocal = parent.localPose();
+    parentLocal.rotation = MathUtils.lerpAngle(parentLocal.rotation, parentLocal.rotation + (parentTargetDeg - parentCurrentDeg), mix);
+    parent.localPose.set(parentLocal);
+
+    const childLocal = child.localPose();
+    childLocal.rotation = MathUtils.lerpAngle(childLocal.rotation, childLocal.rotation + (childTargetDeg - childCurrentDeg), mix);
+    child.localPose.set(childLocal);
+
+    const pIdx = this.bones.indexOf(parent);
+    const cIdx = this.bones.indexOf(child);
+    if (pIdx >= 0) this.updateBoneWorld(pIdx);
+    if (cIdx >= 0) this.updateBoneWorld(cIdx);
   }
 
   private getAnimationDuration(name: string | undefined): number {
@@ -273,7 +463,7 @@ export class SpineRuntime {
       const second = Number.parseInt(normalizedTo.slice(offset, offset + 2), 16);
       return Math.round(first + (second - first) * amount).toString(16).padStart(2, '0');
     });
-  
+
     return channels.join('').toUpperCase();
   }
 
@@ -371,8 +561,24 @@ export class SpineRuntime {
     this.evaluatePose();
   }
 
-  public play(name: string, loop = false): void {
+  /**
+   * Plays an animation, with optional cross-fading duration in seconds.
+   */
+  public play(name: string, loop = false, blendDuration = 0): void {
     if (!this.data.animations?.[name]) throw new Error(`Spine animation "${name}" does not exist.`);
+
+    if (blendDuration > 0 && this.animationPlaying() && this.currentAnimation()) {
+      this.previousAnimation = this.currentAnimation();
+      this.previousAnimationTime = this.animationTime();
+      this.previousAnimationLooping = this.animationLooping();
+      this.blendDuration = blendDuration;
+      this.blendTime = 0;
+      this.blending.set(true);
+    } else {
+      this.blending.set(false);
+      this.previousAnimation = undefined;
+    }
+
     this.currentAnimation.set(name);
     this.animationTime.set(0);
     this.animationPlaying.set(true);
@@ -380,6 +586,37 @@ export class SpineRuntime {
     this.queuedAnimation.set(undefined);
     this.evaluatePose();
     this.emitEventsBetween(name, -Number.EPSILON, 0);
+  }
+
+  /**
+   * Smoothly cross-fades from the current animation to a new animation over the specified duration.
+   */
+  public crossFade(name: string, duration: number, loop = false): void {
+    this.play(name, loop, duration);
+  }
+
+  /**
+   * Dynamically sets a world-space IK target for a constraint (e.g., aiming a weapon or foot placement).
+   */
+  public setIkTarget(constraintName: string, worldX: number, worldY: number, mix = 1.0): void {
+    const ik = this.ikConstraints.find((c) => c.name === constraintName);
+    if (ik) {
+      ik.overrideTarget = { x: worldX, y: worldY };
+      ik.overrideMix = mix;
+      this.evaluatePose();
+    }
+  }
+
+  /**
+   * Clears any dynamic IK target override for a constraint.
+   */
+  public clearIkTarget(constraintName: string): void {
+    const ik = this.ikConstraints.find((c) => c.name === constraintName);
+    if (ik) {
+      ik.overrideTarget = undefined;
+      ik.overrideMix = undefined;
+      this.evaluatePose();
+    }
   }
 
   public queue(name: string, loop = true): void {
@@ -390,6 +627,21 @@ export class SpineRuntime {
 
   public update(deltaSeconds: number): void {
     if (!this.animationPlaying() || deltaSeconds <= 0) return;
+
+    if (this.blending()) {
+      this.blendTime += deltaSeconds;
+      if (this.blendTime >= this.blendDuration) {
+        this.blending.set(false);
+        this.previousAnimation = undefined;
+      } else if (this.previousAnimation) {
+        const prevDuration = this.getAnimationDuration(this.previousAnimation);
+        this.previousAnimationTime += deltaSeconds;
+        if (prevDuration > 0 && this.previousAnimationTime >= prevDuration && this.previousAnimationLooping) {
+          this.previousAnimationTime %= prevDuration;
+        }
+      }
+    }
+
     const name = this.currentAnimation();
     if (!name) return;
     const duration = this.getAnimationDuration(name);
@@ -486,9 +738,6 @@ export class SpineRuntime {
     const toOffset = Math.max(0, Number(to.offset ?? 0));
     const fromValues: number[] = from.vertices ?? [];
     const toValues: number[] = to.vertices ?? [];
-    // Deform frames are sparse. Expand both frames into the attachment's
-    // vertex space before interpolation; interpolating their raw arrays
-    // shifts deformations whenever a frame's `offset` changes.
     for (let index = 0; index < output.length; index++) {
       const first = index >= fromOffset && index < fromOffset + fromValues.length
         ? Number(fromValues[index - fromOffset] ?? 0) : 0;
@@ -501,5 +750,10 @@ export class SpineRuntime {
 
   public getBonePose(index: number): SpineBoneTransform {
     return this.bones[index]?.pose() ?? this.identityPose();
+  }
+
+  public getBoneByName(name: string): SpineBoneTransform | undefined {
+    const bone = this.bones.find((b) => b.data.name === name);
+    return bone ? bone.pose() : undefined;
   }
 }
