@@ -1,8 +1,5 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
-
-import GameContext from '../../engine/core/context';
-import type { GamePointer } from '../../engine/interfaces/game-pointer';
+import { signalValue, type SignalValue } from 'reactive-values';
+import { GameContext, type GamePointer } from '../../engine';
 
 export interface ScratchCardBounds {
   x: number;

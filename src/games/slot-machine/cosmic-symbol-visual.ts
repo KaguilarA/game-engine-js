@@ -1,9 +1,10 @@
-import { signalValue } from 'reactive-values';
-import type { SignalValue } from 'reactive-values';
+import { signalValue, type SignalValue } from 'reactive-values';
+import {
+  GameContext,
+  Sprite,
+  type ReelSymbolVisual
+} from '../../engine';
 
-import GameContext from '../../engine/core/context';
-import Sprite from '../../engine/animations/sprites/sprite';
-import type { ReelSymbolVisual } from '../../engine/slots/interfaces/reel-symbol-visual';
 import type { CosmicSymbolAsset } from './interfaces/cosmic-symbol-asset';
 
 /** Keeps per-cell atlas playback while reusing Cosmic Jackpot's own symbols. */

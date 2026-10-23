@@ -1,17 +1,20 @@
-import GameContext from '../../engine/core/context';
-import { MathUtils } from '../../engine/core/math-utils';
-import GameEvents from '../../engine/input/events';
-import { BaseGame } from '../../engine/core/base-game';
-import GameLoader from '../../engine/assets/loader';
-import CanvasIcon from '../../engine/rendering/canvas-icon';
 import { signalValue } from 'reactive-values';
-import { Button } from '../../engine/ui/button';
-import { NumberLabel } from '../../engine/ui/number-label';
-import { Label } from '../../engine/ui/label';
-import { Texture } from '../../engine/rendering/texture';
-import { GameBackground } from '../../engine/rendering/background';
+import {
+  BaseGame,
+  Button,
+  CanvasIcon,
+  GameBackground,
+  GameContext,
+  GameEvents,
+  GameLoader,
+  Label,
+  MathUtils,
+  NumberLabel,
+  ReelBank,
+  Texture,
+} from '../../engine';
 import resetSvg from 'lucide-static/icons/rotate-ccw.svg?raw';
-import { ReelBank } from '../../engine/slots';
+
 import { CosmicSymbolVisual } from './cosmic-symbol-visual';
 import type { CosmicSymbolAsset } from './interfaces/cosmic-symbol-asset';
 

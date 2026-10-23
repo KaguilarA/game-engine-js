@@ -1,7 +1,5 @@
 import { signalValue } from 'reactive-values';
-
-import GameLoader from '../../engine/assets/loader';
-import Sprite from '../../engine/animations/sprites/sprite';
+import { GameLoader, Sprite } from '../../engine';
 
 /** Owns one scratch-card symbol and its static or winning animation state. */
 export class ScratchIcon {
